@@ -5,3 +5,4 @@ Support both counter update methods described in new doc
 add code for machine readable output according to new doc
 allow DEPs with no cert according to new doc
 allow certs from file in verify.py
+test and integrate registrierkasse mobile? see: https://github.com/a-sit-plus/at-registrierkassen-mustercode/issues/38
