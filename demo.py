@@ -34,7 +34,7 @@ if __name__ == "__main__":
     with open(cert) as f:
         serial = utils.loadCert(f.read()).serial
 
-    register = regk.Registrierkassa("PIGGYBANK-007", None, int(0.0 * 100), key)
+    register = regk.Registrierkassa("AT77", "PIGGYBANK-007", None, int(0.0 * 100), key)
     sigsystem = sigeh.SignaturerstellungseinheitWorking(str(serial), priv)
     exporter = depexport.DEPExporter(cert)
 

@@ -18,14 +18,15 @@ class RegistrierkassaI:
         raise NotImplementedError("Please implement this yourself.")
 
 class Registrierkassa(RegistrierkassaI):
-    def __init__(self, registerId, lastReceiptSig, turnoverCounter, key):
+    def __init__(self, zda, registerId, lastReceiptSig, turnoverCounter, key):
+        self.zda = zda
         self.registerId = registerId
         self.lastReceiptSig = lastReceiptSig
         self.turnoverCounter = int(turnoverCounter)
         self.key = key
 
     def receipt(self, receiptId, dateTime, sumA, sumB, sumC, sumD, sumE, sigSystem, dummy=False, reversal=False):
-        prefix = "R1-AT0" # static for now
+        prefix = "R1" # static for now
 
         encTurnoverCounter = None
         if dummy:
@@ -51,7 +52,7 @@ class Registrierkassa(RegistrierkassaI):
             previousChain = utils.sha256(self.registerId.encode("utf-8"))
         previousChain = base64.b64encode(previousChain[0:8]).decode("utf-8")
 
-        receipt = rechnung.Rechnung(self.registerId, receiptId, dateTime,
+        receipt = rechnung.Rechnung(self.zda, self.registerId, receiptId, dateTime,
             sumA, sumB, sumC, sumD, sumE, encTurnoverCounter,
             certSerial, previousChain)
 

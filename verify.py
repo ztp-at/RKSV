@@ -71,7 +71,7 @@ class ReceiptVerifier(ReceiptVerifierI):
 
         receipt, algorithmPrefix = rechnung.Rechnung.fromJWSString(jwsString)
 
-        if 'R1-AT0' != algorithmPrefix: # Only support this one algoritm for now.
+        if 'R1' != algorithmPrefix: # Only support this one algoritm for now.
             raise UnknownAlgorithmException(jwsString)
 
         serial = utils.loadCert(depCert2PEM(self.cert)).serial

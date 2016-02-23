@@ -1,5 +1,4 @@
 Cert serial according to new doc
-Support different ZDAs (R1-AT0, R1-AT77 etc.) according to new doc
 Extract algorithms into R1 lib
 Verify URL receipts
 Android app?

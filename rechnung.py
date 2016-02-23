@@ -19,9 +19,10 @@ def restoreb64padding(data):
     return data
 
 class Rechnung:
-    def __init__(self, registerId, receiptId, dateTime,
+    def __init__(self, zda, registerId, receiptId, dateTime,
             sumA, sumB, sumC, sumD, sumE, encTurnoverCounter,
             certSerial, previousChain):
+        self.zda = zda
         self.header = None
         self.registerId = registerId
         self.receiptId = receiptId
@@ -50,7 +51,12 @@ class Rechnung:
         if len(segments) != 13 or len(segments[0]) != 0:
             raise MalformedReceiptException(jwsString)
 
-        algorithmPrefix = segments[1].decode("utf-8")
+        algorithmPrefixAndZda = segments[1].decode("utf-8").split('-')
+        if len(algorithmPrefixAndZda) != 2:
+            raise MalformedReceiptException(jwsString)
+        algorithmPrefix = algorithmPrefixAndZda[0]
+        zda = algorithmPrefixAndZda[1]
+
         registerId = segments[2].decode("utf-8")
         receiptId = segments[3].decode("utf-8")
 
@@ -68,7 +74,7 @@ class Rechnung:
         certSerial = segments[11].decode("utf-8")
         previousChain = segments[12].decode("utf-8")
 
-        receipt = Rechnung(registerId, receiptId, dateTime,
+        receipt = Rechnung(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
                 certSerial, previousChain)
         receipt.sign(header, signature)
@@ -90,7 +96,7 @@ class Rechnung:
         return b'.'.join(jwsSegs).decode("utf-8")
 
     def toPayloadString(self, algorithmPrefix):
-        segments = [b'_' + algorithmPrefix.encode("utf-8")]
+        segments = [b'_' + algorithmPrefix.encode("utf-8") + b'-' + self.zda.encode("utf-8")]
         segments.append(self.registerId.encode("utf-8"))
         segments.append(self.receiptId.encode("utf-8"))
         segments.append(self.dateTime.strftime("%Y-%m-%dT%H:%M:%S").encode("utf-8"))
