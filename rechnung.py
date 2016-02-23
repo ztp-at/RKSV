@@ -88,7 +88,6 @@ class Rechnung:
         jwsSegs.append(self.signature)
 
         return b'.'.join(jwsSegs).decode("utf-8")
-        pass
 
     def toPayloadString(self, algorithmPrefix):
         segments = [b'_' + algorithmPrefix.encode("utf-8")]
