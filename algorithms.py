@@ -34,6 +34,9 @@ class R1(AlgorithmI):
     def jwsHeader(self):
         return '{"alg":"ES256"}'
 
+    def hash(self, data):
+        return utils.sha256(data.encode("utf-8"))
+
     def chain(self, receipt, previousJwsString):
         chainingValue = None
         if previousJwsString:

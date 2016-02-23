@@ -2,8 +2,6 @@ import base64
 import datetime
 import struct
 
-import algorithms
-
 class ReceiptException(Exception):
     def __init__(self, receipt, message):
         super(ReceiptException, self).__init__("At receipt \"" + receipt + "\": " + message)
@@ -112,6 +110,50 @@ class Rechnung:
 
         return b'_'.join(segments).decode("utf-8")
 
+    def toBasicCode(self, algorithmPrefix):
+        if not self.signed:
+            raise Exception("You need to sign the receipt first.")
+
+        payload = self.toPayloadString(algorithmPrefix)
+        signature = restoreb64padding(self.signature).encode("utf-8")
+        signature = base64.urlsafe_b64decode(signature)
+        signature = base64.b64encode(signature).decode("utf-8")
+
+        return payload + '_' + signature
+
+    def toOCRCode(self, algorithmPrefix):
+        if not self.signed:
+            raise Exception("You need to sign the receipt first.")
+
+        segments = [b'_' + algorithmPrefix.encode("utf-8") + b'-' + self.zda.encode("utf-8")]
+        segments.append(self.registerId.encode("utf-8"))
+        segments.append(self.receiptId.encode("utf-8"))
+        segments.append(self.dateTime.strftime("%Y-%m-%dT%H:%M:%S").encode("utf-8"))
+        # replacing '.' with ',' because reference does it too, still weird
+        segments.append(("%.2f" % self.sumA).replace('.',',').encode("utf-8"))
+        segments.append(("%.2f" % self.sumB).replace('.',',').encode("utf-8"))
+        segments.append(("%.2f" % self.sumC).replace('.',',').encode("utf-8"))
+        segments.append(("%.2f" % self.sumD).replace('.',',').encode("utf-8"))
+        segments.append(("%.2f" % self.sumE).replace('.',',').encode("utf-8"))
+
+        encTurnoverCounter = self.encTurnoverCounter.encode("utf-8")
+        segments.append(base64.b32encode(encTurnoverCounter))
+
+        segments.append(("%d" % self.certSerial).encode("utf-8"))
+
+        previousChain = self.previousChain.encode("utf-8")
+        segments.append(base64.b32encode(previousChain))
+
+        signature = restoreb64padding(self.signature).encode("utf-8")
+        signature = base64.urlsafe_b64decode(signature)
+        segments.append(base64.b32encode(signature))
+
+        return b'_'.join(segments).decode("utf-8")
+
+    def toURLHash(self, algorithmPrefix, algorithm):
+        payload = self.toBasicCode(algorithmPrefix)
+        return base64.urlsafe_b64encode((algorithm.hash(payload)[0:8])).decode("utf-8")
+
     def sign(self, header, signature):
         self.header = header
         self.signature = signature
@@ -121,8 +163,8 @@ class Rechnung:
         if not self.signed:
             raise Exception("You need to sign the receipt first.")
 
-        failStr = base64.urlsafe_b64encode(b'Sicherheitseinrichtung ausgefallen').replace(b'=',
-                b'').decode("utf-8")
+        failStr = base64.urlsafe_b64encode(b'Sicherheitseinrichtung ausgefallen').replace(
+                b'=', b'').decode("utf-8")
         return failStr == self.signature
 
     def isDummy(self):
