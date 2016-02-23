@@ -2,7 +2,7 @@ import base64
 import datetime
 import struct
 
-import utils
+import algorithms
 
 class ReceiptException(Exception):
     def __init__(self, receipt, message):
@@ -133,19 +133,11 @@ class Rechnung:
         decCtr = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return decCtr == b'STO'
 
-    def decryptTurnoverCounter(self, key):
+    def decryptTurnoverCounter(self, key, algorithm):
         if self.isDummy():
             raise Exception("Can't decrypt turnover counter, this is a dummy receipt.")
         if self.isReversal():
             raise Exception("Can't decrypt turnover counter, this is a reversal receipt.")
 
-        iv = utils.sha256(self.registerId.encode("utf-8") + self.receiptId.encode("utf-8"))[0:16]
-        decCtr = utils.aes256ctr(iv, key, base64.b64decode(self.encTurnoverCounter.encode("utf-8")))
-        # TODO: we only support up to 8 byte long counters
-        needed = 8 - len(decCtr)
-        if decCtr[0] >= 128:
-            decCtr = bytes([255] * needed) + decCtr
-        else:
-            decCtr = bytes([0] * needed) + decCtr
-
-        return struct.unpack(">q", decCtr)[0]
+        ct = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
+        return algorithm.decryptTurnoverCounter(self, ct, key)

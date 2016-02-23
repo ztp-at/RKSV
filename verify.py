@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 
 import base64
-import jwt
 
+import algorithms
 import rechnung
 import utils
 
 class ReceiptVerifierI:
-    def verify(self, receipt, previous):
+    def verifyJWS(self, jwsString):
         raise NotImplementedError("Please implement this yourself.")
 
 class DEPException(Exception):
@@ -46,33 +46,18 @@ class InvalidTurnoverCounterException(rechnung.ReceiptException):
 def depCert2PEM(depCert):
     return '-----BEGIN CERTIFICATE-----\n' + depCert +  '\n-----END CERTIFICATE-----'
 
-def depCert2pubKey(depCert):
-    pemCert = depCert2PEM(depCert)
-    pubKey = utils.loadCert(pemCert).public_key()
-    return pubKey
-
-def restoreb64padding(data):
-    needed = 4 - len(data) % 4
-    if needed:
-        data += '=' * needed
-    return data
-
 class ReceiptVerifier(ReceiptVerifierI):
     def __init__(self, cert):
         self.cert = cert
 
     def verifyJWS(self, jwsString):
-        validationSuccessful = False
-        try:
-            jwt.PyJWS().decode(jwsString, depCert2pubKey(self.cert))
-            validationSuccessful = True
-        except jwt.exceptions.DecodeError as e:
-            pass
-
         receipt, algorithmPrefix = rechnung.Rechnung.fromJWSString(jwsString)
 
-        if 'R1' != algorithmPrefix: # Only support this one algoritm for now.
+        if algorithmPrefix not in algorithms.ALGORITHMS:
             raise UnknownAlgorithmException(jwsString)
+        algorithm = algorithms.ALGORITHMS[algorithmPrefix]
+
+        validationSuccessful = algorithm.verify(jwsString, depCert2PEM(self.cert))
 
         serial = utils.loadCert(depCert2PEM(self.cert)).serial
         serial = ("%d" % serial)
@@ -86,15 +71,11 @@ class ReceiptVerifier(ReceiptVerifierI):
             else:
                 raise InvalidSignatureException(jwsString)
 
-        return receipt
+        return receipt, algorithm
 
-def verifyChain(receipt, prev):
-    chainingValue = None
-    if prev:
-        chainingValue = utils.sha256(prev.encode("utf-8"))
-    else:
-        chainingValue = utils.sha256(receipt.registerId.encode("utf-8"))
-    chainingValue = base64.b64encode(chainingValue[0:8])
+def verifyChain(receipt, prev, algorithm):
+    chainingValue = algorithm.chain(receipt, prev)
+    chainingValue = base64.b64encode(chainingValue)
     if chainingValue.decode("utf-8") != receipt.previousChain:
         raise ChainingException(receipt, prev)
 
@@ -115,26 +96,28 @@ def verifyGroup(group, lastReceipt, lastTurnoverCounter, key):
         prevObj, algorithmPrefix = rechnung.Rechnung.fromJWSString(prev)
     for r in group['Belege-kompakt']:
         ro = None
+        algorithm = None
         try:
-            ro = rv.verifyJWS(r)
+            ro, algorithm = rv.verifyJWS(r)
             if not prevObj or prevObj.isSignedBroken():
                 if ro.sumA != 0.0 or ro.sumB != 0.0 or ro.sumC != 0.0 or ro.sumD != 0.0 or ro.sumE != 0.0:
                     raise NoRestoreReceiptAfterSignatureSystemFailureException(r)
         except SignatureSystemFailedException as e:
             ro, algorithmPrefix = rechnung.Rechnung.fromJWSString(r)
+            algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
         if not ro.isDummy():
             if key:
                 newC = lastTurnoverCounter + int(round((ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
                 if not ro.isReversal():
-                    turnoverCounter = ro.decryptTurnoverCounter(key)
+                    turnoverCounter = ro.decryptTurnoverCounter(key, algorithm)
                     if turnoverCounter != newC:
                         print(newC)
                         print(turnoverCounter)
                         raise InvalidTurnoverCounterException(r)
                 lastTurnoverCounter = newC
 
-        verifyChain(ro, prev)
+        verifyChain(ro, prev, algorithm)
 
         prev = r
         prevObj = ro

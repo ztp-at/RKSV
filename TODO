@@ -1,8 +1,6 @@
 Cert serial according to new doc
-Extract algorithms into R1 lib
 Verify URL receipts
 Android app?
 Support both counter update methods described in new doc
-use fixed jws header according to new doc
 add code for machine readable output according to new doc
 allow DEPs with no cert according to new doc

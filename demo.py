@@ -38,7 +38,8 @@ if __name__ == "__main__":
     sigsystem = sigeh.SignaturerstellungseinheitWorking(str(serial), priv)
     exporter = depexport.DEPExporter(cert)
 
-    receipts = [register.receipt("00000", datetime.datetime.now(), 0.0, 0.0, 0.0, 0.0, 0.0, sigsystem)]
+    receipts = [register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0, 0.0,
+        0.0, 0.0, sigsystem)]
     for i in range(1, num):
         receiptId = "%05d" % i
         sumA = round(random.uniform(-1000, 1000), 2)
@@ -48,8 +49,8 @@ if __name__ == "__main__":
         sumE = round(random.uniform(-1000, 1000), 2)
         dummy = random.uniform(0, 1) > 0.5
         reversal = random.uniform(0, 1) > 0.5
-        receipt = register.receipt(receiptId, datetime.datetime.now(), sumA, sumB, sumC, sumD, sumE, sigsystem,
-                dummy, reversal)
+        receipt = register.receipt('R1', receiptId, datetime.datetime.now(), sumA, sumB,
+                sumC, sumD, sumE, sigsystem, dummy, reversal)
         receipts.append(receipt)
 
     print(exporter.export(receipts))
