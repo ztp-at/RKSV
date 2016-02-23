@@ -71,7 +71,7 @@ class Rechnung:
         sumE = float(segments[9].replace(b',', b'.'))
 
         turnoverCounter = segments[10].decode("utf-8")
-        certSerial = segments[11].decode("utf-8")
+        certSerial = int(segments[11].decode("utf-8"))
         previousChain = segments[12].decode("utf-8")
 
         receipt = Rechnung(zda, registerId, receiptId, dateTime,

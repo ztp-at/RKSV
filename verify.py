@@ -60,9 +60,8 @@ class ReceiptVerifier(ReceiptVerifierI):
         validationSuccessful = algorithm.verify(jwsString, depCert2PEM(self.cert))
 
         serial = utils.loadCert(depCert2PEM(self.cert)).serial
-        serial = ("%d" % serial)
         # for some reason the ref impl has a negative serial on some certs
-        if serial != receipt.certSerial and ('-' + serial) != receipt.certSerial:
+        if serial != receipt.certSerial and -serial != receipt.certSerial:
             raise CertSerialMismatchException(jwsString)
 
         if not validationSuccessful:
