@@ -1,5 +1,4 @@
 import base64
-import jwt.algorithms
 
 class SignaturerstellungseinheitI:
     def sign(self, data, algorithm):

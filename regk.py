@@ -1,5 +1,4 @@
 import base64
-import struct
 
 import algorithms
 import rechnung

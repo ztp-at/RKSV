@@ -1,6 +1,5 @@
 import base64
 import datetime
-import struct
 
 class ReceiptException(Exception):
     def __init__(self, receipt, message):
