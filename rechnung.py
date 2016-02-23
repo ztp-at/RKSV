@@ -107,7 +107,7 @@ class Rechnung:
         segments.append(("%.2f" % self.sumD).replace('.',',').encode("utf-8"))
         segments.append(("%.2f" % self.sumE).replace('.',',').encode("utf-8"))
         segments.append(self.encTurnoverCounter.encode("utf-8"))
-        segments.append(self.certSerial.encode("utf-8"))
+        segments.append(("%d" % self.certSerial).encode("utf-8"))
         segments.append(self.previousChain.encode("utf-8"))
 
         return b'_'.join(segments).decode("utf-8")

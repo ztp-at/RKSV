@@ -35,7 +35,7 @@ if __name__ == "__main__":
         serial = utils.loadCert(f.read()).serial
 
     register = regk.Registrierkassa("AT77", "PIGGYBANK-007", None, int(0.0 * 100), key)
-    sigsystem = sigeh.SignaturerstellungseinheitWorking(str(serial), priv)
+    sigsystem = sigeh.SignaturerstellungseinheitWorking(serial, priv)
     exporter = depexport.DEPExporter(cert)
 
     receipts = [register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0, 0.0,
