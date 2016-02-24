@@ -4,18 +4,10 @@ import base64
 
 import algorithms
 import rechnung
-import utils
-
-class ReceiptVerifierI:
-    def verifyJWS(self, jwsString):
-        raise NotImplementedError("Please implement this yourself.")
+import verify_receipt
 
 class DEPException(Exception):
     pass
-
-class UnknownAlgorithmException(rechnung.ReceiptException):
-    def __init__(self, receipt):
-        super(UnknownAlgorithmException, self).__init__(receipt, "Unknown algorithm.")
 
 class ChainingException(DEPException):
     def __init__(self, receipt, receiptPrev):
@@ -27,50 +19,9 @@ class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
         super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__("At receipt \"" + receipt
                 + "\": Receipt after restored signature system must not have any turnover.")
 
-class CertSerialMismatchException(rechnung.ReceiptException):
-    def __init__(self, receipt):
-        super(CertSerialMismatchException, self).__init__(receipt, "Certificate serial mismatch.")
-
-class InvalidSignatureException(rechnung.ReceiptException):
-    def __init__(self, receipt):
-        super(InvalidSignatureException, self).__init__(receipt, "Invalid Signature.")
-
-class SignatureSystemFailedException(rechnung.ReceiptException):
-    def __init__(self, receipt):
-        super(SignatureSystemFailedException, self).__init__(receipt, "Signature System failed.")
-
 class InvalidTurnoverCounterException(rechnung.ReceiptException):
     def __init__(self, receipt):
         super(InvalidTurnoverCounterException, self).__init__(receipt, "Turnover counter invalid.")
-
-def depCert2PEM(depCert):
-    return '-----BEGIN CERTIFICATE-----\n' + depCert +  '\n-----END CERTIFICATE-----'
-
-class ReceiptVerifier(ReceiptVerifierI):
-    def __init__(self, cert):
-        self.cert = cert
-
-    def verifyJWS(self, jwsString):
-        receipt, algorithmPrefix = rechnung.Rechnung.fromJWSString(jwsString)
-
-        if algorithmPrefix not in algorithms.ALGORITHMS:
-            raise UnknownAlgorithmException(jwsString)
-        algorithm = algorithms.ALGORITHMS[algorithmPrefix]
-
-        validationSuccessful = algorithm.verify(jwsString, depCert2PEM(self.cert))
-
-        serial = utils.loadCert(depCert2PEM(self.cert)).serial
-        # for some reason the ref impl has a negative serial on some certs
-        if serial != receipt.certSerial and -serial != receipt.certSerial:
-            raise CertSerialMismatchException(jwsString)
-
-        if not validationSuccessful:
-            if receipt.isSignedBroken():
-                raise SignatureSystemFailedException(jwsString)
-            else:
-                raise InvalidSignatureException(jwsString)
-
-        return receipt, algorithm
 
 def verifyChain(receipt, prev, algorithm):
     chainingValue = algorithm.chain(receipt, prev)
@@ -88,7 +39,7 @@ def verifyGroup(group, lastReceipt, lastTurnoverCounter, key):
     chain = group['Zertifizierungsstellen']
     verifyCert(cert, chain)
 
-    rv = ReceiptVerifier(cert)
+    rv = verify_receipt.ReceiptVerifier(cert)
     prev = lastReceipt
     prevObj = None
     if prev:
@@ -101,7 +52,7 @@ def verifyGroup(group, lastReceipt, lastTurnoverCounter, key):
             if not prevObj or prevObj.isSignedBroken():
                 if ro.sumA != 0.0 or ro.sumB != 0.0 or ro.sumC != 0.0 or ro.sumD != 0.0 or ro.sumE != 0.0:
                     raise NoRestoreReceiptAfterSignatureSystemFailureException(r)
-        except SignatureSystemFailedException as e:
+        except verify_receipt.SignatureSystemFailedException as e:
             ro, algorithmPrefix = rechnung.Rechnung.fromJWSString(r)
             algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 

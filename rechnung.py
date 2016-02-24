@@ -84,13 +84,13 @@ class Rechnung:
 
         payload = self.toPayloadString(algorithmPrefix).encode("utf-8")
         payload = base64.urlsafe_b64encode(payload)
-        payload = payload.replace(b'=', b'')
+        payload = payload.replace(b'=', b'').decode("utf-8")
 
         jwsSegs = [self.header]
         jwsSegs.append(payload)
         jwsSegs.append(self.signature)
 
-        return b'.'.join(jwsSegs).decode("utf-8")
+        return '.'.join(jwsSegs)
 
     def toPayloadString(self, algorithmPrefix):
         segments = [b'_' + algorithmPrefix.encode("utf-8") + b'-' + self.zda.encode("utf-8")]
