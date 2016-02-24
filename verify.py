@@ -39,7 +39,7 @@ def verifyGroup(group, lastReceipt, lastTurnoverCounter, key):
     chain = group['Zertifizierungsstellen']
     verifyCert(cert, chain)
 
-    rv = verify_receipt.ReceiptVerifier(cert)
+    rv = verify_receipt.ReceiptVerifier.fromDEPCert(cert)
     prev = lastReceipt
     prevObj = None
     if prev:
@@ -85,7 +85,7 @@ import sys
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: ./demo.py <dep export file> <base64 AES key file>")
+        print("Usage: ./verify.py <dep export file> <base64 AES key file>")
         sys.exit(0)
 
     key = None

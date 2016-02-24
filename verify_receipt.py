@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import algorithms
 import rechnung
 import utils
@@ -32,6 +34,10 @@ class ReceiptVerifier(ReceiptVerifierI):
     def __init__(self, cert):
         self.cert = cert
 
+    @staticmethod
+    def fromDEPCert(depCert):
+        return ReceiptVerifier(depCert2PEM(depCert))
+
     def verify(self, receipt, algorithmPrefix):
         jwsString = receipt.toJWSString(algorithmPrefix)
 
@@ -39,9 +45,9 @@ class ReceiptVerifier(ReceiptVerifierI):
             raise UnknownAlgorithmException(jwsString)
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
-        validationSuccessful = algorithm.verify(jwsString, depCert2PEM(self.cert))
+        validationSuccessful = algorithm.verify(jwsString, self.cert)
 
-        serial = utils.loadCert(depCert2PEM(self.cert)).serial
+        serial = utils.loadCert(self.cert).serial
         # for some reason the ref impl has a negative serial on some certs
         if serial != receipt.certSerial and -serial != receipt.certSerial:
             raise CertSerialMismatchException(jwsString)
@@ -58,3 +64,24 @@ class ReceiptVerifier(ReceiptVerifierI):
         receipt, algorithmPrefix = rechnung.Rechnung.fromJWSString(jwsString)
 
         return self.verify(receipt, algorithmPrefix)
+
+import sys
+
+INPUT_FORMATS = {
+        'jws': lambda rv, js: rv.verifyJWS(js)
+        }
+
+if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print("Usage: ./verify_receipt.py <format> <cert file> <receipt string>")
+        sys.exit(0)
+
+    if sys.argv[1] not in INPUT_FORMATS:
+        print("Input format must be one of %s." % INPUT_FORMATS.keys())
+        sys.exit(0)
+
+    rv = None
+    with open(sys.argv[2]) as f:
+        rv = ReceiptVerifier(f.read())
+
+    INPUT_FORMATS[sys.argv[1]](rv, sys.argv[3])
