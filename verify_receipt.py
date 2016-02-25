@@ -47,9 +47,9 @@ class ReceiptVerifier(ReceiptVerifierI):
 
         validationSuccessful = algorithm.verify(jwsString, self.cert)
 
-        serial = utils.loadCert(self.cert).serial
+        serial = "%d" % utils.loadCert(self.cert).serial
         # for some reason the ref impl has a negative serial on some certs
-        if serial != receipt.certSerial and -serial != receipt.certSerial:
+        if serial != receipt.certSerial and '-' + serial != receipt.certSerial:
             raise CertSerialMismatchException(jwsString)
 
         if not validationSuccessful:

@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     serial = None
     with open(cert) as f:
-        serial = utils.loadCert(f.read()).serial
+        serial = "%d" % utils.loadCert(f.read()).serial
 
     register = regk.Registrierkassa("AT77", "PIGGYBANK-007", None, int(0.0 * 100), key)
     sigsystem = sigeh.SignaturerstellungseinheitWorking(serial, priv)

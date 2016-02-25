@@ -68,7 +68,7 @@ class Rechnung:
         sumE = float(segments[9].replace(b',', b'.'))
 
         turnoverCounter = segments[10].decode("utf-8")
-        certSerial = int(segments[11].decode("utf-8"))
+        certSerial = segments[11].decode("utf-8")
         previousChain = segments[12].decode("utf-8")
 
         receipt = Rechnung(zda, registerId, receiptId, dateTime,
@@ -104,7 +104,7 @@ class Rechnung:
         segments.append(("%.2f" % self.sumD).replace('.',',').encode("utf-8"))
         segments.append(("%.2f" % self.sumE).replace('.',',').encode("utf-8"))
         segments.append(self.encTurnoverCounter.encode("utf-8"))
-        segments.append(("%d" % self.certSerial).encode("utf-8"))
+        segments.append(self.certSerial.encode("utf-8"))
         segments.append(self.previousChain.encode("utf-8"))
 
         return b'_'.join(segments).decode("utf-8")
@@ -138,7 +138,7 @@ class Rechnung:
         encTurnoverCounter = self.encTurnoverCounter.encode("utf-8")
         segments.append(base64.b32encode(encTurnoverCounter))
 
-        segments.append(("%d" % self.certSerial).encode("utf-8"))
+        segments.append(self.certSerial.encode("utf-8"))
 
         previousChain = self.previousChain.encode("utf-8")
         segments.append(base64.b32encode(previousChain))
