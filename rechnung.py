@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import base64
 import datetime
 
@@ -127,6 +129,50 @@ class Rechnung:
 
         return b'_'.join(segments).decode("utf-8")
 
+    @staticmethod
+    def fromBasicCode(basicCode):
+        segments = basicCode.split('_')
+        if len(segments) != 14 or len(segments[0]) != 0:
+            raise MalformedReceiptException(jwsString)
+
+        algorithmPrefixAndZda = segments[1].split('-')
+        if len(algorithmPrefixAndZda) != 2:
+            raise MalformedReceiptException(jwsString)
+        algorithmPrefix = algorithmPrefixAndZda[0]
+        zda = algorithmPrefixAndZda[1]
+
+        if algorithmPrefix not in algorithms.ALGORITHMS:
+            raise UnknownAlgorithmException(jwsString)
+        header = algorithms.ALGORITHMS[algorithmPrefix].jwsHeader()
+
+        registerId = segments[2]
+        receiptId = segments[3]
+
+        dateTime = datetime.datetime.strptime(segments[4], "%Y-%m-%dT%H:%M:%S")
+        if not dateTime:
+            raise MalformedReceiptException(jwsString)
+
+        sumA = float(segments[5].replace(',', '.'))
+        sumB = float(segments[6].replace(',', '.'))
+        sumC = float(segments[7].replace(',', '.'))
+        sumD = float(segments[8].replace(',', '.'))
+        sumE = float(segments[9].replace(',', '.'))
+
+        turnoverCounter = segments[10]
+        certSerial = segments[11]
+        previousChain = segments[12]
+
+        signature = base64.b64decode(segments[13].encode("utf-8"))
+        signature = base64.urlsafe_b64encode(signature).replace(b'=', b'')
+        signature = signature.decode("utf-8")
+
+        receipt = Rechnung(zda, registerId, receiptId, dateTime,
+                sumA, sumB, sumC, sumD, sumE, turnoverCounter,
+                certSerial, previousChain)
+        receipt.sign(header, signature)
+
+        return receipt, algorithmPrefix
+
     def toBasicCode(self, algorithmPrefix):
         if not self.signed:
             raise Exception("You need to sign the receipt first.")
@@ -168,8 +214,13 @@ class Rechnung:
 
         return b'_'.join(segments).decode("utf-8")
 
-    def toURLHash(self, algorithmPrefix, algorithm):
+    def toURLHash(self, algorithmPrefix):
         payload = self.toBasicCode(algorithmPrefix)
+
+        if algorithmPrefix not in algorithms.ALGORITHMS:
+            raise UnknownAlgorithmException(self.toJWSString(algorithmPrefix))
+        algorithm = algorithms.ALGORITHMS[algorithmPrefix]
+
         return base64.urlsafe_b64encode((algorithm.hash(payload)[0:8])).decode("utf-8")
 
     def sign(self, header, signature):
@@ -201,3 +252,35 @@ class Rechnung:
 
         ct = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return algorithm.decryptTurnoverCounter(self, ct, key)
+
+import sys
+
+INPUT_FORMATS = {
+        'jws': lambda s: Rechnung.fromJWSString(s),
+        'qr': lambda s: Rechnung.fromBasicCode(s)
+        }
+
+OUTPUT_FORMATS = {
+        'jws': lambda r, p: r.toJWSString(p),
+        'qr': lambda r, p: r.toBasicCode(p),
+        'ocr': lambda r, p: r.toOCRCode(p),
+        'url': lambda r, p: r.toURLHash(p)
+        }
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: ./rechnung.py <in format> <out format>")
+        sys.exit(0)
+
+    if sys.argv[1] not in INPUT_FORMATS:
+        print("Input format must be one of %s." % INPUT_FORMATS.keys())
+        sys.exit(0)
+
+    if sys.argv[2] not in OUTPUT_FORMATS:
+        print("Output format must be one of %s." % OUTPUT_FORMATS.keys())
+        sys.exit(0)
+
+    for l in sys.stdin:
+        r, p = INPUT_FORMATS[sys.argv[1]](l.strip())
+        s = OUTPUT_FORMATS[sys.argv[2]](r, p)
+        print(s)
