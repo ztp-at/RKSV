@@ -11,9 +11,10 @@
 	Label:
 		text: self.parent.text
 
-<ReceiptVerifyWidget>:
+<VerifyReceiptWidget@GridLayout>:
 	rows: 6
 	BoxLayout:
+		orientation: 'horizontal'
 		TextInput:
 		Button:
 			size_hint_x: None
@@ -33,3 +34,23 @@
 		group: 'input_format'
 	Button:
 		text: 'Read & Verify'
+
+<VerifyDEPWidget@BoxLayout>:
+	orientation: 'vertical'
+	BoxLayout:
+		size_hint_y: None
+		orientation: 'horizontal'
+		TextInput:
+		Button:
+			size_hint_x: None
+			text: '...'
+	TreeView:
+
+<MainWidget>:
+	do_default_tab: False
+	TabbedPanelItem:
+		text: 'Verify Receipt'
+		VerifyReceiptWidget:
+	TabbedPanelItem:
+		text: 'Verify DEP'
+		VerifyDEPWidget:

@@ -1,16 +1,15 @@
 import kivy
 kivy.require('1.9.0')
 
-from kivy.uix.label import Label
-from kivy.uix.gridlayout import GridLayout
+from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.app import App
 
-class ReceiptVerifyWidget(GridLayout):
+class MainWidget(TabbedPanel):
     pass
 
 class RKToolApp(App):
     def build(self):
-        return ReceiptVerifyWidget()
+        return MainWidget()
 
 if __name__ == '__main__':
     RKToolApp().run()
