@@ -86,9 +86,9 @@ class R1(AlgorithmI):
         # TODO: we only support up to 8 byte long counters
         needed = 8 - len(decCtr)
         if decCtr[0] >= 128:
-            decCtr = bytes([255] * needed) + decCtr
+            decCtr = bytearray([255] * needed) + bytearray(decCtr)
         else:
-            decCtr = bytes([0] * needed) + decCtr
+            decCtr = bytearray([0] * needed) + bytearray(decCtr)
 
         return struct.unpack(">q", decCtr)[0]
 
