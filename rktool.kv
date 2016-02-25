@@ -1,0 +1,35 @@
+<RadioButton@BoxLayout>:
+	text: ''
+	state: 'normal'
+	group: None
+	orientation: 'horizontal'
+	size_hint_y: None
+	CheckBox:
+		size_hint_x: None
+		group: self.parent.group
+		state: self.parent.state
+	Label:
+		text: self.parent.text
+
+<ReceiptVerifyWidget>:
+	rows: 6
+	BoxLayout:
+		TextInput:
+		Button:
+			size_hint_x: None
+			text: '...'
+	RadioButton:
+		text: 'JWS string'
+		group: 'input_format'
+		state: 'down'
+	RadioButton:
+		text: 'QR code'
+		group: 'input_format'
+	RadioButton:
+		text: 'OCR code'
+		group: 'input_format'
+	RadioButton:
+		text: 'URL'
+		group: 'input_format'
+	Button:
+		text: 'Read & Verify'
