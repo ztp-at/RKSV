@@ -1,6 +1,8 @@
 import base64
 import datetime
 
+import algorithms
+
 class ReceiptException(Exception):
     def __init__(self, receipt, message):
         super(ReceiptException, self).__init__("At receipt \"" + receipt + "\": " + message)
@@ -8,6 +10,14 @@ class ReceiptException(Exception):
 class MalformedReceiptException(ReceiptException):
     def __init__(self, receipt):
         super(MalformedReceiptException, self).__init__(receipt, "Malformed receipt.")
+
+class UnknownAlgorithmException(ReceiptException):
+    def __init__(self, receipt):
+        super(UnknownAlgorithmException, self).__init__(receipt, "Unknown algorithm.")
+
+class AlgorithmMismatchException(ReceiptException):
+    def __init__(self, receipt):
+        super(AlgorithmMismatchException, self).__init__(receipt, "Algorithm mismatch.")
 
 def restoreb64padding(data):
     needed = 4 - len(data) % 4
@@ -40,7 +50,8 @@ class Rechnung:
         jwsSegs = jwsString.split('.')
         if len(jwsSegs) != 3:
             raise MalformedReceiptException(jwsString)
-        header = jwsSegs[0]
+        header = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[0]).encode(
+            "utf-8")).decode("utf-8")
         payload = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[1]).encode("utf-8"))
         signature = jwsSegs[2]
 
@@ -53,6 +64,11 @@ class Rechnung:
             raise MalformedReceiptException(jwsString)
         algorithmPrefix = algorithmPrefixAndZda[0]
         zda = algorithmPrefixAndZda[1]
+
+        if algorithmPrefix not in algorithms.ALGORITHMS:
+            raise UnknownAlgorithmException(jwsString)
+        if algorithms.ALGORITHMS[algorithmPrefix].jwsHeader() != header:
+            raise AlgorithmMismatchException(jwsString)
 
         registerId = segments[2].decode("utf-8")
         receiptId = segments[3].decode("utf-8")
@@ -86,7 +102,8 @@ class Rechnung:
         payload = base64.urlsafe_b64encode(payload)
         payload = payload.replace(b'=', b'').decode("utf-8")
 
-        jwsSegs = [self.header]
+        jwsSegs = [base64.urlsafe_b64encode(self.header.encode("utf-8")).replace(b'=', b'')
+                .decode("utf-8")]
         jwsSegs.append(payload)
         jwsSegs.append(self.signature)
 
@@ -114,6 +131,7 @@ class Rechnung:
             raise Exception("You need to sign the receipt first.")
 
         payload = self.toPayloadString(algorithmPrefix)
+
         signature = restoreb64padding(self.signature).encode("utf-8")
         signature = base64.urlsafe_b64decode(signature)
         signature = base64.b64encode(signature).decode("utf-8")

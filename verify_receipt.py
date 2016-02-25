@@ -4,10 +4,6 @@ import algorithms
 import rechnung
 import utils
 
-class UnknownAlgorithmException(rechnung.ReceiptException):
-    def __init__(self, receipt):
-        super(UnknownAlgorithmException, self).__init__(receipt, "Unknown algorithm.")
-
 class CertSerialMismatchException(rechnung.ReceiptException):
     def __init__(self, receipt):
         super(CertSerialMismatchException, self).__init__(receipt, "Certificate serial mismatch.")
@@ -42,7 +38,7 @@ class ReceiptVerifier(ReceiptVerifierI):
         jwsString = receipt.toJWSString(algorithmPrefix)
 
         if algorithmPrefix not in algorithms.ALGORITHMS:
-            raise UnknownAlgorithmException(jwsString)
+            raise rechnung.UnknownAlgorithmException(jwsString)
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
         validationSuccessful = algorithm.verify(jwsString, self.cert)
