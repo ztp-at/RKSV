@@ -61,15 +61,21 @@ class ReceiptVerifier(ReceiptVerifierI):
 
         return self.verify(receipt, algorithmPrefix)
 
+    def verifyBasicCode(self, basicCode):
+        receipt, algorithmPrefix = rechnung.Rechnung.fromBasicCode(basicCode)
+
+        return self.verify(receipt, algorithmPrefix)
+
 import sys
 
 INPUT_FORMATS = {
-        'jws': lambda rv, js: rv.verifyJWS(js)
+        'jws': lambda rv, s: rv.verifyJWS(s),
+        'qr': lambda rv, s: rv.verifyBasicCode(s)
         }
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: ./verify_receipt.py <format> <cert file> <receipt string>")
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
+        print("Usage: ./verify_receipt.py <format> <cert file> [<receipt string>]")
         sys.exit(0)
 
     if sys.argv[1] not in INPUT_FORMATS:
@@ -80,4 +86,8 @@ if __name__ == "__main__":
     with open(sys.argv[2]) as f:
         rv = ReceiptVerifier(f.read())
 
-    INPUT_FORMATS[sys.argv[1]](rv, sys.argv[3])
+    if len(sys.argv) == 4:
+        INPUT_FORMATS[sys.argv[1]](rv, sys.argv[3])
+    else:
+        for l in sys.stdin:
+            INPUT_FORMATS[sys.argv[1]](rv, l.strip())

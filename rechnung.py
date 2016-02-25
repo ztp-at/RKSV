@@ -133,16 +133,16 @@ class Rechnung:
     def fromBasicCode(basicCode):
         segments = basicCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(basicCode)
 
         algorithmPrefixAndZda = segments[1].split('-')
         if len(algorithmPrefixAndZda) != 2:
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(basicCode)
         algorithmPrefix = algorithmPrefixAndZda[0]
         zda = algorithmPrefixAndZda[1]
 
         if algorithmPrefix not in algorithms.ALGORITHMS:
-            raise UnknownAlgorithmException(jwsString)
+            raise UnknownAlgorithmException(basicCode)
         header = algorithms.ALGORITHMS[algorithmPrefix].jwsHeader()
 
         registerId = segments[2]
@@ -150,7 +150,7 @@ class Rechnung:
 
         dateTime = datetime.datetime.strptime(segments[4], "%Y-%m-%dT%H:%M:%S")
         if not dateTime:
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(basicCode)
 
         sumA = float(segments[5].replace(',', '.'))
         sumB = float(segments[6].replace(',', '.'))
