@@ -52,14 +52,15 @@ class Rechnung:
             raise MalformedReceiptException(jwsString)
         header = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[0]).encode(
             "utf-8")).decode("utf-8")
-        payload = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[1]).encode("utf-8"))
+        payload = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[1])
+                .encode("utf-8")).decode("utf-8")
         signature = jwsSegs[2]
 
-        segments = payload.split(b'_')
+        segments = payload.split('_')
         if len(segments) != 13 or len(segments[0]) != 0:
             raise MalformedReceiptException(jwsString)
 
-        algorithmPrefixAndZda = segments[1].decode("utf-8").split('-')
+        algorithmPrefixAndZda = segments[1].split('-')
         if len(algorithmPrefixAndZda) != 2:
             raise MalformedReceiptException(jwsString)
         algorithmPrefix = algorithmPrefixAndZda[0]
@@ -70,22 +71,22 @@ class Rechnung:
         if algorithms.ALGORITHMS[algorithmPrefix].jwsHeader() != header:
             raise AlgorithmMismatchException(jwsString)
 
-        registerId = segments[2].decode("utf-8")
-        receiptId = segments[3].decode("utf-8")
+        registerId = segments[2]
+        receiptId = segments[3]
 
-        dateTime = datetime.datetime.strptime(segments[4].decode("utf-8"), "%Y-%m-%dT%H:%M:%S")
+        dateTime = datetime.datetime.strptime(segments[4], "%Y-%m-%dT%H:%M:%S")
         if not dateTime:
             raise MalformedReceiptException(jwsString)
 
-        sumA = float(segments[5].replace(b',', b'.'))
-        sumB = float(segments[6].replace(b',', b'.'))
-        sumC = float(segments[7].replace(b',', b'.'))
-        sumD = float(segments[8].replace(b',', b'.'))
-        sumE = float(segments[9].replace(b',', b'.'))
+        sumA = float(segments[5].replace(',', '.'))
+        sumB = float(segments[6].replace(',', '.'))
+        sumC = float(segments[7].replace(',', '.'))
+        sumD = float(segments[8].replace(',', '.'))
+        sumE = float(segments[9].replace(',', '.'))
 
-        turnoverCounter = segments[10].decode("utf-8")
-        certSerial = segments[11].decode("utf-8")
-        previousChain = segments[12].decode("utf-8")
+        turnoverCounter = segments[10]
+        certSerial = segments[11]
+        previousChain = segments[12]
 
         receipt = Rechnung(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
