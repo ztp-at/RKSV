@@ -9,6 +9,9 @@
 		group: self.parent.group
 		state: self.parent.state
 	Label:
+		text_size: self.size
+		halign: 'left'
+		valign: 'middle'
 		text: self.parent.text
 
 <VerifyReceiptWidget@GridLayout>:
@@ -46,11 +49,25 @@
 			text: '...'
 	TreeView:
 
+<RKToolActionBar@ActionBar>:
+	pos_hint: {'top': 1}
+	ActionView:
+		use_separator: True
+		ActionPrevious:
+			title: 'Registrierkassen Tool'
+		ActionOverflow:
+		ActionButton:
+			text: 'Exit'
+			on_press: app.stop()
+
 <MainWidget>:
-	do_default_tab: False
-	TabbedPanelItem:
-		text: 'Verify Receipt'
-		VerifyReceiptWidget:
-	TabbedPanelItem:
-		text: 'Verify DEP'
-		VerifyDEPWidget:
+	orientation: 'vertical'
+	RKToolActionBar:
+	TabbedPanel:
+		do_default_tab: False
+		TabbedPanelItem:
+			text: 'Verify Receipt'
+			VerifyReceiptWidget:
+		TabbedPanelItem:
+			text: 'Verify DEP'
+			VerifyDEPWidget:

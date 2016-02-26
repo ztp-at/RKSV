@@ -1,10 +1,10 @@
 import kivy
 kivy.require('1.9.0')
 
-from kivy.uix.tabbedpanel import TabbedPanel
+from kivy.uix.boxlayout import BoxLayout
 from kivy.app import App
 
-class MainWidget(TabbedPanel):
+class MainWidget(BoxLayout):
     pass
 
 class RKToolApp(App):
