@@ -17,9 +17,6 @@ class SignatureSystemFailedException(rechnung.ReceiptException):
     def __init__(self, receipt):
         super(SignatureSystemFailedException, self).__init__(receipt, "Signature System failed.")
 
-def depCert2PEM(depCert):
-    return '-----BEGIN CERTIFICATE-----\n' + depCert +  '\n-----END CERTIFICATE-----'
-
 class ReceiptVerifierI:
     def verify(self, receipt, algorithmPrefix):
         raise NotImplementedError("Please implement this yourself.")
@@ -34,7 +31,7 @@ class ReceiptVerifier(ReceiptVerifierI):
     @staticmethod
     def fromDEPCert(depCert):
         keyStore = key_store.KeyStore()
-        keyStore.putPEMCert(depCert2PEM(depCert))
+        keyStore.putPEMCert(utils.addPEMCertHeaders(depCert))
 
         return ReceiptVerifier(keyStore)
 

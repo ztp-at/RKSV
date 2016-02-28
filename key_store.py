@@ -53,10 +53,78 @@ class KeyStore(KeyStoreI):
         self.keydict[keyId] = KeyTuple(keyId, pubKey, None)
 
     def writeStore(self, config):
-        # TODO
-        raise NotImplementedError("Please implement this yourself.")
+        if not config.has_section('certificates'):
+            config.add_section('certificates')
+        if not config.has_section('public_keys'):
+            config.add_section('public_keys')
+
+        for keyId, kt in self.keydict.items():
+            if kt.cert:
+                config.set('certificates', keyId,
+                        utils.exportCertToPEM(kt.cert))
+            else:
+                config.set('public_keys', keyId,
+                        utils.exportKeyToPEM(kt.key))
 
     @staticmethod
     def readStore(config):
-        # TODO
-        raise NotImplementedError("Please implement this yourself.")
+        keyStore = KeyStore()
+
+        for keyId, certStr in config.items('certificates'):
+            cert = utils.loadCert(utils.addPEMCertHeaders(certStr))
+            key = cert.public_key()
+            keyStore.putKey(keyId, key, cert)
+        for keyId, keyStr in config.items('public_keys'):
+            key = utils.loadPubKey(utils.addPEMPubKeyHeaders(keyStr))
+            keyStore.putKey(keyId, key, None)
+
+        return keyStore
+
+import configparser
+import sys
+
+def usage():
+    print("Usage: ./key_store.py <key store> create")
+    print("       ./key_store.py <key store> add <pem cert file>")
+    print("       ./key_store.py <key store> add <pem pubkey file> <pubkey id>")
+    sys.exit(0)
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        usage()
+
+    filename = sys.argv[1]
+    keyStore = None
+
+    if sys.argv[2] == 'create':
+        if len(sys.argv) != 3:
+            usage()
+
+        keyStore = KeyStore()
+
+    elif sys.argv[2] == 'add':
+        if len(sys.argv) < 4:
+            usage()
+
+        config = configparser.RawConfigParser()
+        config.read(filename)
+        keyStore = KeyStore.readStore(config)
+
+        newKey = None
+        with open(sys.argv[3]) as f:
+            newKey = f.read()
+
+        if len(sys.argv) == 4:
+            keyStore.putPEMCert(newKey)
+        elif len(sys.argv) == 5:
+            keyStore.putPEMKey(sys.argv[4], newKey)
+        else:
+            usage()
+
+    else:
+        usage()
+
+    config = configparser.RawConfigParser()
+    keyStore.writeStore(config)
+    with open(filename, 'w') as f:
+        config.write(f)
