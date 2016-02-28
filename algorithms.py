@@ -60,8 +60,7 @@ class R1(AlgorithmI):
 
         return sig
 
-    def verify(self, jwsString, cert):
-        pubKey = utils.loadCert(cert).public_key()
+    def verify(self, jwsString, pubKey):
         payload = None
         try:
             payload = jwt.PyJWS().decode(jwsString, pubKey)

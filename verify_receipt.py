@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import algorithms
+import key_store
 import rechnung
 import utils
 
@@ -27,12 +28,15 @@ class ReceiptVerifierI:
         raise NotImplementedError("Please implement this yourself.")
 
 class ReceiptVerifier(ReceiptVerifierI):
-    def __init__(self, cert):
-        self.cert = cert
+    def __init__(self, keyStore):
+        self.keyStore = keyStore
 
     @staticmethod
     def fromDEPCert(depCert):
-        return ReceiptVerifier(depCert2PEM(depCert))
+        keyStore = key_store.KeyStore()
+        keyStore.putPEMCert(depCert2PEM(depCert))
+
+        return ReceiptVerifier(keyStore)
 
     def verify(self, receipt, algorithmPrefix):
         jwsString = receipt.toJWSString(algorithmPrefix)
@@ -41,12 +45,16 @@ class ReceiptVerifier(ReceiptVerifierI):
             raise rechnung.UnknownAlgorithmException(jwsString)
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
-        validationSuccessful = algorithm.verify(jwsString, self.cert)
-
-        serial = "%d" % utils.loadCert(self.cert).serial
+        certSerial = receipt.certSerial
         # for some reason the ref impl has a negative serial on some certs
-        if serial != receipt.certSerial and '-' + serial != receipt.certSerial:
+        if certSerial[0] == '-':
+            certSerial = certSerial[1:]
+
+        pubKey = self.keyStore.getKey(certSerial)
+        if not pubKey:
             raise CertSerialMismatchException(jwsString)
+
+        validationSuccessful = algorithm.verify(jwsString, pubKey)
 
         if not validationSuccessful:
             if receipt.isSignedBroken():
@@ -84,7 +92,9 @@ if __name__ == "__main__":
 
     rv = None
     with open(sys.argv[2]) as f:
-        rv = ReceiptVerifier(f.read())
+        keyStore = key_store.KeyStore()
+        keyStore.putPEMCert(f.read())
+        rv = ReceiptVerifier(keyStore)
 
     if len(sys.argv) == 4:
         INPUT_FORMATS[sys.argv[1]](rv, sys.argv[3])
