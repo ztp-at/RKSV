@@ -32,13 +32,26 @@ class KeyStore(KeyStoreI):
     def __init__(self):
         self.keydict = dict()
 
+    def getKeyIds(self):
+        return self.keydict.keys()
+
     def getKey(self, keyId):
         if keyId not in self.keydict:
             return None
         return self.keydict[keyId].key
 
+    def getCert(self, keyId):
+        if keyId not in self.keydict:
+            return None
+        return self.keydict[keyId].cert
+
     def putKey(self, keyId, key, cert):
         self.keydict[keyId] = KeyTuple(keyId, key, cert)
+
+    def delKey(self, keyId):
+        if keyId not in self.keydict:
+            return
+        del self.keydict[keyId]
 
     def putPEMCert(self, pemCert):
         cert = utils.loadCert(pemCert)
@@ -89,6 +102,7 @@ def usage():
     print("Usage: ./key_store.py <key store> create")
     print("       ./key_store.py <key store> add <pem cert file>")
     print("       ./key_store.py <key store> add <pem pubkey file> <pubkey id>")
+    print("       ./key_store.py <key store> del <pubkey id|cert serial>")
     sys.exit(0)
 
 if __name__ == "__main__":
@@ -122,6 +136,16 @@ if __name__ == "__main__":
             keyStore.putPEMKey(sys.argv[4], newKey)
         else:
             usage()
+
+    elif sys.argv[2] == 'del':
+        if len(sys.argv) != 4:
+            usage()
+
+        config = configparser.RawConfigParser()
+        config.read(filename)
+        keyStore = KeyStore.readStore(config)
+
+        keyStore.delKey(sys.argv[3])
 
     else:
         usage()
