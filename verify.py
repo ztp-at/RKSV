@@ -83,7 +83,6 @@ def verifyDEP(dep, keyStore, key):
                 rv, lastTurnoverCounter, key)
         return
 
-    # TODO: check if all groups have certs or if there is just one group
     for group in dep['Belege-Gruppe']:
         cert = group['Signaturzertifikat']
         if not cert:
