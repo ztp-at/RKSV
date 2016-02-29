@@ -1,8 +1,10 @@
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key, Encoding, PublicFormat
 from cryptography.hazmat.primitives import hashes
+from cryptography.exceptions import InvalidSignature
 
 def sha256(data):
     digest = hashes.Hash(hashes.SHA256(), backend=default_backend())
@@ -34,3 +36,26 @@ def addPEMCertHeaders(cert):
 
 def addPEMPubKeyHeaders(pubKey):
     return '-----BEGIN PUBLIC KEY-----\n' + pubKey +  '\n-----END PUBLIC KEY-----'
+
+def verifyCert(cert, signCert):
+    # FIXME: This is very likely wrong and we should find a better way to verify certs.
+    halg = cert.signature_hash_algorithm
+    sig = cert.signature
+    data = cert.tbs_certificate_bytes
+
+    pubKey = signCert.public_key()
+    alg = None
+    # We only support ECDSA for now
+    if isinstance(pubKey, ec.EllipticCurvePublicKey):
+        alg = ec.ECDSA(halg)
+    else:
+        return False
+
+    ver = pubKey.verifier(sig, alg)
+    ver.update(data)
+
+    try:
+        ver.verify()
+        return True
+    except InvalidSignature as e:
+        return False

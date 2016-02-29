@@ -4,6 +4,7 @@ import base64
 
 import algorithms
 import rechnung
+import utils
 import verify_receipt
 
 class DEPException(Exception):
@@ -27,15 +28,34 @@ class NoCertificateGivenException(DEPException):
     def __init__(self):
         super(NoCertificateGivenException, self).__init__("No certificate specified in DEP and multiple groups used.")
 
+class UntrustedCertificateException(DEPException):
+    def __init__(self, cert):
+        super(UntrustedCertificateException, self).__init__("Certificate \"" + cert + "\" is not trusted.")
+
 def verifyChain(receipt, prev, algorithm):
     chainingValue = algorithm.chain(receipt, prev)
     chainingValue = base64.b64encode(chainingValue)
     if chainingValue.decode("utf-8") != receipt.previousChain:
         raise ChainingException(receipt, prev)
 
-def verifyCert(cert, chain):
-    # TODO
-    pass
+def verifyCert(cert, chain, keyStore):
+    prev = utils.loadCert(utils.addPEMCertHeaders(cert))
+
+    for c in chain:
+        if keyStore.getKey("%d" % prev.serial):
+            return
+
+        cur = utils.loadCert(utils.addPEMCertHeaders(c))
+
+        if not utils.verifyCert(prev, cur):
+            raise UntrustedCertificateException(cert)
+
+        prev = cur
+
+    if keyStore.getKey("%d" % prev.serial):
+        return
+
+    raise UntrustedCertificateException(cert)
 
 def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     prev = lastReceipt
@@ -89,7 +109,7 @@ def verifyDEP(dep, keyStore, key):
             raise NoCertificateGivenException()
 
         chain = group['Zertifizierungsstellen']
-        verifyCert(cert, chain)
+        verifyCert(cert, chain, keyStore)
         rv = verify_receipt.ReceiptVerifier.fromDEPCert(cert)
     
         lastReceipt, lastTurnoverCounter = verifyGroup(group, lastReceipt,
