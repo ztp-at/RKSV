@@ -2,4 +2,5 @@ Cert serial according to new doc
 Verify URL receipts
 Android app?
 Support both counter update methods described in new doc
+Update demo script to output pubkey signed receipts
 test and integrate registrierkasse mobile? see: https://github.com/a-sit-plus/at-registrierkassen-mustercode/issues/38
