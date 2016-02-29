@@ -4,3 +4,6 @@
 aesBase64.txt
 cert.key
 cert.crt
+cert.pub
+*.ini
+*.txt
