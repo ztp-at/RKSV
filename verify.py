@@ -23,6 +23,10 @@ class InvalidTurnoverCounterException(rechnung.ReceiptException):
     def __init__(self, receipt):
         super(InvalidTurnoverCounterException, self).__init__(receipt, "Turnover counter invalid.")
 
+class NoCertificateGivenException(DEPException):
+    def __init__(self):
+        super(NoCertificateGivenException, self).__init__("No certificate specified in DEP and multiple groups used.")
+
 def verifyChain(receipt, prev, algorithm):
     chainingValue = algorithm.chain(receipt, prev)
     chainingValue = base64.b64encode(chainingValue)
@@ -33,13 +37,7 @@ def verifyCert(cert, chain):
     # TODO
     pass
 
-def verifyGroup(group, lastReceipt, lastTurnoverCounter, key):
-    cert = group['Signaturzertifikat']
-
-    chain = group['Zertifizierungsstellen']
-    verifyCert(cert, chain)
-
-    rv = verify_receipt.ReceiptVerifier.fromDEPCert(cert)
+def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     prev = lastReceipt
     prevObj = None
     if prev:
@@ -74,14 +72,34 @@ def verifyGroup(group, lastReceipt, lastTurnoverCounter, key):
 
     return prev, lastTurnoverCounter
 
-def verifyDEP(dep, key):
+def verifyDEP(dep, keyStore, key):
     lastReceipt = None
     lastTurnoverCounter = 0
+
+    if len(dep['Belege-Gruppe']) == 1 and not dep['Belege-Gruppe'][0]['Signaturzertifikat']:
+        rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+        lastReceipt, lastTurnoverCounter = verifyGroup(
+                dep['Belege-Gruppe'][0], lastReceipt,
+                rv, lastTurnoverCounter, key)
+        return
+
+    # TODO: check if all groups have certs or if there is just one group
     for group in dep['Belege-Gruppe']:
-        lastReceipt, lastTurnoverCounter = verifyGroup(group, lastReceipt, lastTurnoverCounter, key)
+        cert = group['Signaturzertifikat']
+        if not cert:
+            raise NoCertificateGivenException()
+
+        chain = group['Zertifizierungsstellen']
+        verifyCert(cert, chain)
+        rv = verify_receipt.ReceiptVerifier.fromDEPCert(cert)
+    
+        lastReceipt, lastTurnoverCounter = verifyGroup(group, lastReceipt,
+                rv, lastTurnoverCounter, key)
 
 import json
 import sys
+
+import key_store
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or len(sys.argv) > 3:
@@ -94,4 +112,4 @@ if __name__ == "__main__":
             key = base64.b64decode(f.read().encode("utf-8"))
 
     with open(sys.argv[1]) as f:
-        verifyDEP(json.loads(f.read()), key)
+        verifyDEP(json.loads(f.read()), key_store.KeyStore(), key)
