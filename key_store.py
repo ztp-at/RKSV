@@ -70,13 +70,15 @@ class KeyStore(KeyStoreI):
     def readStore(config):
         keyStore = KeyStore()
 
-        for keyId, certStr in config.items('certificates'):
-            cert = utils.loadCert(utils.addPEMCertHeaders(certStr))
-            key = cert.public_key()
-            keyStore.putKey(keyId, key, cert)
-        for keyId, keyStr in config.items('public_keys'):
-            key = utils.loadPubKey(utils.addPEMPubKeyHeaders(keyStr))
-            keyStore.putKey(keyId, key, None)
+        if config.has_section('certificates'):
+            for keyId, certStr in config.items('certificates'):
+                cert = utils.loadCert(utils.addPEMCertHeaders(certStr))
+                key = cert.public_key()
+                keyStore.putKey(keyId, key, cert)
+        if config.has_section('public_keys'):
+            for keyId, keyStr in config.items('public_keys'):
+                key = utils.loadPubKey(utils.addPEMPubKeyHeaders(keyStr))
+                keyStore.putKey(keyId, key, None)
 
         return keyStore
 

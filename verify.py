@@ -96,20 +96,25 @@ def verifyDEP(dep, keyStore, key):
         lastReceipt, lastTurnoverCounter = verifyGroup(group, lastReceipt,
                 rv, lastTurnoverCounter, key)
 
+import configparser
 import json
 import sys
 
 import key_store
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: ./verify.py <dep export file> [<base64 AES key file>]")
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
+        print("Usage: ./verify.py <key store> <dep export file> [<base64 AES key file>]")
         sys.exit(0)
 
     key = None
-    if len(sys.argv) == 3:
-        with open(sys.argv[2]) as f:
+    if len(sys.argv) == 4:
+        with open(sys.argv[3]) as f:
             key = base64.b64decode(f.read().encode("utf-8"))
 
-    with open(sys.argv[1]) as f:
-        verifyDEP(json.loads(f.read()), key_store.KeyStore(), key)
+    with open(sys.argv[2]) as f:
+        config = configparser.RawConfigParser()
+        config.read(sys.argv[1])
+        keyStore = key_store.KeyStore.readStore(config)
+
+        verifyDEP(json.loads(f.read()), keyStore, key)
