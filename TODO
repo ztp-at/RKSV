@@ -2,7 +2,4 @@ Cert serial according to new doc
 Verify URL receipts
 Android app?
 Support both counter update methods described in new doc
-allow DEPs with no cert according to new doc
-allow certs from file in verify.py
-allow regular pub keys in verification and allow mismatching certs in pub key case
 test and integrate registrierkasse mobile? see: https://github.com/a-sit-plus/at-registrierkassen-mustercode/issues/38
