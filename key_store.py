@@ -100,6 +100,7 @@ import sys
 
 def usage():
     print("Usage: ./key_store.py <key store> create")
+    print("       ./key_store.py <key store> list")
     print("       ./key_store.py <key store> add <pem cert file>")
     print("       ./key_store.py <key store> add <pem pubkey file> <pubkey id>")
     print("       ./key_store.py <key store> del <pubkey id|cert serial>")
@@ -117,6 +118,17 @@ if __name__ == "__main__":
             usage()
 
         keyStore = KeyStore()
+
+    elif sys.argv[2] == 'list':
+        if len(sys.argv) != 3:
+            usage()
+
+        config = configparser.RawConfigParser()
+        config.read(filename)
+        keyStore = KeyStore.readStore(config)
+
+        for keyId in keyStore.getKeyIds():
+            print(keyId)
 
     elif sys.argv[2] == 'add':
         if len(sys.argv) < 4:
