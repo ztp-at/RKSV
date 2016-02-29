@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import enum
+
 import algorithms
 import key_store
 import rechnung
@@ -8,6 +10,10 @@ import utils
 class CertSerialMismatchException(rechnung.ReceiptException):
     def __init__(self, receipt):
         super(CertSerialMismatchException, self).__init__(receipt, "Certificate serial mismatch.")
+
+class CertSerialInvalidException(rechnung.ReceiptException):
+    def __init__(self, receipt):
+        super(CertSerialInvalidException, self).__init__(receipt, "Certificate serial invalid.")
 
 class NoPublicKeyException(rechnung.ReceiptException):
     def __init__(self, receipt):
@@ -27,6 +33,36 @@ class ReceiptVerifierI:
 
     def verifyJWS(self, jwsString):
         raise NotImplementedError("Please implement this yourself.")
+
+class CertSerialType(enum.Enum):
+    SERIAL = 0
+    TAX = 1
+    UID = 2
+    GLN = 3
+    INVALID = 4
+
+    def getCertSerialType(certSerial):
+        parts = certSerial.split('-')
+        certSerial = parts[0]
+        if len(parts) > 2:
+            return CertSerialType.INVALID
+        elif len(parts) == 2:
+            if not parts[1].isalnum():
+                return CertSerialType.INVALID
+
+        if len(certSerial) == 9 and certSerial[0:1] == 'S:' and certSerial[2:].isdigit():
+            return CertSerialType.TAX
+        elif len(certSerial) >= 3 and len(certSerial) <= 14 and certSerial[0:1] == 'U:'  and certSerial[2:].isalnum():
+            return CertSerialType.UID
+        elif len(certSerial) == 13 and certSerial[0:1] == 'G:' and certSerial[2:].isdigit():
+            return CertSerialType.GLN
+        else:
+            try:
+                # TODO: update this for HEX
+                int(certSerial, 10)
+                return CertSerialType.SERIAL
+            except ValueError as e:
+                return CertSerialType.INVALID
 
 class ReceiptVerifier(ReceiptVerifierI):
     def __init__(self, keyStore, cert):
@@ -55,11 +91,15 @@ class ReceiptVerifier(ReceiptVerifierI):
         if certSerial[0] == '-':
             certSerial = certSerial[1:]
 
-        # TODO: validate form of serial/keyId
+        certSerialType = CertSerialType.getCertSerialType(certSerial)
+        if certSerialType == CertSerialType.INVALID:
+            raise CertSerialInvalidException(jwsString)
 
         pubKey = None
         if self.cert:
-            # TODO: if cert, validate that cert serials match
+            if certSerialType == CertSerialType.SERIAL:
+                if ("%d" % self.cert.serial) != certSerial:
+                    raise CertSerialMismatchException(jwsString)
             pubKey = self.cert.public_key()
         else:
             pubKey = self.keyStore.getKey(certSerial)
