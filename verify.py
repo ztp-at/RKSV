@@ -100,7 +100,7 @@ def verifyCert(cert, chain, keyStore):
     prev = utils.loadCert(utils.addPEMCertHeaders(cert))
 
     for c in chain:
-        if keyStore.getKey("%d" % prev.serial):
+        if keyStore.getKey(key_store.preprocCertSerial("%d" % prev.serial)):
             return
 
         cur = utils.loadCert(utils.addPEMCertHeaders(c))
@@ -110,7 +110,7 @@ def verifyCert(cert, chain, keyStore):
 
         prev = cur
 
-    if keyStore.getKey("%d" % prev.serial):
+    if keyStore.getKey(key_store.preprocCertSerial("%d" % prev.serial)):
         return
 
     raise UntrustedCertificateException(cert)
@@ -244,6 +244,7 @@ if __name__ == "__main__":
 
     with open(sys.argv[2]) as f:
         config = configparser.RawConfigParser()
+        config.optionxform = str
         config.read(sys.argv[1])
         keyStore = key_store.KeyStore.readStore(config)
 

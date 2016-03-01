@@ -189,11 +189,7 @@ class ReceiptVerifier(ReceiptVerifierI):
             raise rechnung.UnknownAlgorithmException(jwsString)
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
-        certSerial = receipt.certSerial
-        # for some reason the ref impl has a negative serial on some certs
-        if certSerial[0] == '-':
-            certSerial = certSerial[1:]
-
+        certSerial = key_store.preprocCertSerial(receipt.certSerial)
         certSerialType = CertSerialType.getCertSerialType(certSerial)
         if certSerialType == CertSerialType.INVALID:
             raise CertSerialInvalidException(jwsString)
@@ -201,7 +197,7 @@ class ReceiptVerifier(ReceiptVerifierI):
         pubKey = None
         if self.cert:
             if certSerialType == CertSerialType.SERIAL:
-                if ("%d" % self.cert.serial) != certSerial:
+                if key_store.preprocCertSerial("%d" % self.cert.serial) != certSerial:
                     raise CertSerialMismatchException(jwsString)
             pubKey = self.cert.public_key()
         else:
@@ -249,6 +245,7 @@ if __name__ == "__main__":
 
     rv = None
     config = configparser.RawConfigParser()
+    config.optionxform = str
     config.read(sys.argv[2])
     keyStore = key_store.KeyStore.readStore(config)
     rv = ReceiptVerifier.fromKeyStore(keyStore)

@@ -71,6 +71,25 @@ class KeyStoreI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
+def preprocCertSerial(serial):
+    """
+    Prepares a certificate serial for usage with a key store.
+    :param serial: The serial as a string.
+    :return: The normalized serial as a string.
+    """
+    # for some reason the ref impl has a negative serial on some certs
+    if serial[0] == '-':
+        serial = serial[1:]
+
+    try:
+        # TODO: update this for HEX
+        int(serial, 10)
+        serial = serial.lower()
+    except ValueError as e:
+        pass
+
+    return serial
+
 class KeyTuple:
     """
     The data structure used internally by KeyStore. For internal use only.
@@ -129,7 +148,8 @@ class KeyStore(KeyStoreI):
 
     def writeStore(self, config):
         """
-        Writes the store to the given config parser.
+        Writes the store to the given config parser. The used parser must not
+        modify the case of the keys.
         :param config: The config parser.
         """
 
@@ -137,10 +157,6 @@ class KeyStore(KeyStoreI):
             config.add_section('certificates')
         if not config.has_section('public_keys'):
             config.add_section('public_keys')
-
-        # Prevent conversion of key IDs to lower case.
-        oldxform = config.optionxform
-        config.optionxform = str
 
         for keyId, kt in self.keydict.items():
             keyId = keyId.replace('S:', 's;')
@@ -153,13 +169,11 @@ class KeyStore(KeyStoreI):
                 config.set('public_keys', keyId,
                         utils.exportKeyToPEM(kt.key))
 
-        config.optionxform = oldxform
-
     @staticmethod
     def readStore(config):
         """
         Reads a key store from the given config parser and returns it as an
-        object.
+        object. The used parser must not modify the case of the keys.
         :param config: The config parser.
         :return: A KeyStore object.
         """
@@ -213,6 +227,7 @@ if __name__ == "__main__":
             usage()
 
         config = configparser.RawConfigParser()
+        config.optionxform = str
         config.read(filename)
         keyStore = KeyStore.readStore(config)
 
@@ -224,6 +239,7 @@ if __name__ == "__main__":
             usage()
 
         config = configparser.RawConfigParser()
+        config.optionxform = str
         config.read(filename)
         keyStore = KeyStore.readStore(config)
 
@@ -243,6 +259,7 @@ if __name__ == "__main__":
             usage()
 
         config = configparser.RawConfigParser()
+        config.optionxform = str
         config.read(filename)
         keyStore = KeyStore.readStore(config)
 
@@ -252,6 +269,7 @@ if __name__ == "__main__":
         usage()
 
     config = configparser.RawConfigParser()
+    config.optionxform = str
     keyStore.writeStore(config)
     with open(filename, 'w') as f:
         config.write(f)
