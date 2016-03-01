@@ -104,9 +104,9 @@ class Rechnung:
         Creates a receipt object from a JWS string.
         :param jwsString: The JWS string to parse.
         :return: The new, signed receipt object.
-        :throws MalformedReceiptException
-        :throws UnknownAlgorithmException
-        :throws AlgorithmMismatchException
+        :throws: MalformedReceiptException
+        :throws: UnknownAlgorithmException
+        :throws: AlgorithmMismatchException
         """
         jwsSegs = jwsString.split('.')
         if len(jwsSegs) != 3:
@@ -207,8 +207,8 @@ class Rechnung:
         Creates a receipt object from a QR code string.
         :param basicCode: The QR code string to parse.
         :return: The new, signed receipt object.
-        :throws MalformedReceiptException
-        :throws UnknownAlgorithmException
+        :throws: MalformedReceiptException
+        :throws: UnknownAlgorithmException
         """
         segments = basicCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:
@@ -308,7 +308,7 @@ class Rechnung:
         Converts the receipt to a hash value to be used in URL verification.
         :param algorithmPrefix: The ID of the algorithm class used as a string.
         :return The receipt hash.
-        :throws UnknownAlgorithmException
+        :throws: UnknownAlgorithmException
         """
         payload = self.toBasicCode(algorithmPrefix)
 

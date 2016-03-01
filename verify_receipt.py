@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+"""
+This module contains classes to verify receipts.
+"""
 import enum
 
 import algorithms
@@ -8,40 +11,116 @@ import rechnung
 import utils
 
 class CertSerialMismatchException(rechnung.ReceiptException):
+    """
+    Indicates that the certificate serial in the receipt and the certificate in
+    the DEP group to not match.
+    """
     def __init__(self, receipt):
         super(CertSerialMismatchException, self).__init__(receipt, "Certificate serial mismatch.")
 
 class CertSerialInvalidException(rechnung.ReceiptException):
+    """
+    Indicates that the certificate serial in the receipt is malformed.
+    """
     def __init__(self, receipt):
         super(CertSerialInvalidException, self).__init__(receipt, "Certificate serial invalid.")
 
 class NoPublicKeyException(rechnung.ReceiptException):
+    """
+    Indicates that no public key to verify the signature of the receipt could be
+    found.
+    """
     def __init__(self, receipt):
         super(NoPublicKeyException, self).__init__(receipt, "No public key found.")
 
 class InvalidSignatureException(rechnung.ReceiptException):
+    """
+    Indicates that the signature of the receipt is invalid.
+    """
     def __init__(self, receipt):
         super(InvalidSignatureException, self).__init__(receipt, "Invalid Signature.")
 
 class SignatureSystemFailedException(rechnung.ReceiptException):
+    """
+    Indicates that the signature system failed and that the receipt was not
+    signed.
+    """
     def __init__(self, receipt):
         super(SignatureSystemFailedException, self).__init__(receipt, "Signature System failed.")
 
 class ReceiptVerifierI:
+    """
+    The base class for receipt verifiers. It contains functions that every
+    receipt verifier must implement. Do not use this directly.
+    """
+
     def verify(self, receipt, algorithmPrefix):
+        """
+        Verifies the given receipt using the algorithm specified.
+        :param receipt: The signed receipt object to verify.
+        :param algorithmPrefix: The ID of the algorithm class used as a string.
+        This should match the algorithm used to sign the receipt.
+        :returns: The receipt object and the used algorithm class object.
+        :throws: CertSerialInvalidException
+        :throws: CertSerialMismatchException
+        :throws: NoPublicKeyException
+        :throws: InvalidSignatureException
+        :throws: UnknownAlgorithmException
+        :throws: InvalidSignatureException
+        :throws: SignatureSystemFailedException
+        """
         raise NotImplementedError("Please implement this yourself.")
 
     def verifyJWS(self, jwsString):
+        """
+        Verifies the given receipt.
+        :param jwsString: The receipt as jwsString.
+        :returns: The receipt object and the used algorithm class object.
+        :throws: CertSerialInvalidException
+        :throws: CertSerialMismatchException
+        :throws: NoPublicKeyException
+        :throws: InvalidSignatureException
+        :throws: UnknownAlgorithmException
+        :throws: InvalidSignatureException
+        :throws: SignatureSystemFailedException
+        :throws: MalformedReceiptException
+        :throws: AlgorithmMismatchException
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
+    def verifyBasicCode(self, basicCode):
+        """
+        Verifies the given receipt.
+        :param basicCode: The receipt as QR code string.
+        :returns: The receipt object and the used algorithm class object.
+        :throws: CertSerialInvalidException
+        :throws: CertSerialMismatchException
+        :throws: NoPublicKeyException
+        :throws: InvalidSignatureException
+        :throws: UnknownAlgorithmException
+        :throws: InvalidSignatureException
+        :throws: SignatureSystemFailedException
+        :throws: MalformedReceiptException
+        """
         raise NotImplementedError("Please implement this yourself.")
 
 class CertSerialType(enum.Enum):
+    """
+    An enum for all the different types of certificate serials
+    """
     SERIAL = 0
     TAX = 1
     UID = 2
     GLN = 3
     INVALID = 4
 
+    @staticmethod
     def getCertSerialType(certSerial):
+        """
+        Parses the given serial to determine its type.
+        :param certSerial: The serial from a receipt as string.
+        :return: The type of the serial or INVALID if the serial is malformed.
+        """
         parts = certSerial.split('-')
         certSerial = parts[0]
         if len(parts) > 2:
@@ -65,18 +144,42 @@ class CertSerialType(enum.Enum):
                 return CertSerialType.INVALID
 
 class ReceiptVerifier(ReceiptVerifierI):
+    """
+    A simple implementation of a receipt verifier.
+    """
+
     def __init__(self, keyStore, cert):
+        """
+        Creates a new receipt verifier. At least one of the two parameters has
+        to be set.
+        :param keyStore: The key store object to use to obtain public keys or
+        None.
+        :param cert: The certificate to verify the receipts with as a
+        cryptography certificate object.
+        """
         self.keyStore = keyStore
         self.cert = cert
 
     @staticmethod
     def fromDEPCert(depCert):
+        """
+        Creates a new receipt verifier from a certificate as it is stored in a
+        DEP.
+        :param depCert: The certificate as a PEM formatted string without header
+        and footer.
+        :return: The new receipt verifier.
+        """
         cert = utils.loadCert(utils.addPEMCertHeaders(depCert))
 
         return ReceiptVerifier(None, cert)
 
     @staticmethod
     def fromKeyStore(keyStore):
+        """
+        Creates a new receipt verifier from a key store object.
+        :param keyStore: The key store object.
+        :return: The new receipt verifier.
+        """
         return ReceiptVerifier(keyStore, None)
 
     def verify(self, receipt, algorithmPrefix):
