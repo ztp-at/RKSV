@@ -49,6 +49,17 @@
 			text: '...'
 	TreeView:
 
+<KeyStoreWidget@BoxLayout>:
+	orientation: 'vertical'
+	TreeView:
+	BoxLayout:
+		size_hint_y: None
+		orientation: 'horizontal'
+		Button:
+			text: 'Import'
+		Button:
+			text: 'Export'
+
 <RKToolActionBar@ActionBar>:
 	pos_hint: {'top': 1}
 	ActionView:
@@ -71,3 +82,6 @@
 		TabbedPanelItem:
 			text: 'Verify DEP'
 			VerifyDEPWidget:
+		TabbedPanelItem:
+			text: 'Key Store'
+			KeyStoreWidget:
