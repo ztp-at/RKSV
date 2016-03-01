@@ -50,11 +50,11 @@ class CertSerialType(enum.Enum):
             if not parts[1].isalnum():
                 return CertSerialType.INVALID
 
-        if len(certSerial) == 9 and certSerial[0:1] == 'S:' and certSerial[2:].isdigit():
+        if len(certSerial) == 11 and certSerial[0:2] == 'S:' and certSerial[2:].isdigit():
             return CertSerialType.TAX
-        elif len(certSerial) >= 3 and len(certSerial) <= 14 and certSerial[0:1] == 'U:'  and certSerial[2:].isalnum():
+        elif len(certSerial) >= 3 and len(certSerial) <= 16 and certSerial[0:2] == 'U:'  and certSerial[2:].isalnum():
             return CertSerialType.UID
-        elif len(certSerial) == 13 and certSerial[0:1] == 'G:' and certSerial[2:].isdigit():
+        elif len(certSerial) == 15 and certSerial[0:2] == 'G:' and certSerial[2:].isdigit():
             return CertSerialType.GLN
         else:
             try:
