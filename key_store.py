@@ -71,7 +71,14 @@ class KeyStore(KeyStoreI):
         if not config.has_section('public_keys'):
             config.add_section('public_keys')
 
+        # Prevent conversion of key IDs to lower case.
+        oldxform = config.optionxform
+        config.optionxform = str
+
         for keyId, kt in self.keydict.items():
+            keyId = keyId.replace('S:', 's;')
+            keyId = keyId.replace('U:', 'u;')
+            keyId = keyId.replace('G:', 'g;')
             if kt.cert:
                 config.set('certificates', keyId,
                         utils.exportCertToPEM(kt.cert))
@@ -79,17 +86,25 @@ class KeyStore(KeyStoreI):
                 config.set('public_keys', keyId,
                         utils.exportKeyToPEM(kt.key))
 
+        config.optionxform = oldxform
+
     @staticmethod
     def readStore(config):
         keyStore = KeyStore()
 
         if config.has_section('certificates'):
             for keyId, certStr in config.items('certificates'):
+                keyId = keyId.replace('s;', 'S:')
+                keyId = keyId.replace('u;', 'U:')
+                keyId = keyId.replace('g;', 'G:')
                 cert = utils.loadCert(utils.addPEMCertHeaders(certStr))
                 key = cert.public_key()
                 keyStore.putKey(keyId, key, cert)
         if config.has_section('public_keys'):
             for keyId, keyStr in config.items('public_keys'):
+                keyId = keyId.replace('s;', 'S:')
+                keyId = keyId.replace('u;', 'U:')
+                keyId = keyId.replace('g;', 'G:')
                 key = utils.loadPubKey(utils.addPEMPubKeyHeaders(keyStr))
                 keyStore.putKey(keyId, key, None)
 
