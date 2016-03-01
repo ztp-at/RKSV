@@ -1,36 +1,87 @@
 #!/usr/bin/python3
 
+"""
+This module provides an abstraction for a receipt and several basic conversion
+functions.
+"""
 import base64
 import datetime
 
 import algorithms
 
 class ReceiptException(Exception):
+    """
+    An exception related to a receipt. Generally the message it prints contains
+    the receipt in some string representation (usually JWS).
+    """
+
     def __init__(self, receipt, message):
         super(ReceiptException, self).__init__("At receipt \"" + receipt + "\": " + message)
 
 class MalformedReceiptException(ReceiptException):
+    """
+    Indicates that an attempt to parse a receipt from a string for failed
+    because the string did not contain a valid receipt.
+    """
+
     def __init__(self, receipt):
         super(MalformedReceiptException, self).__init__(receipt, "Malformed receipt.")
 
 class UnknownAlgorithmException(ReceiptException):
+    """
+    Is thrown when a required algorithm is not available in
+    algorithms.ALGORITHMS.
+    """
+
     def __init__(self, receipt):
         super(UnknownAlgorithmException, self).__init__(receipt, "Unknown algorithm.")
 
 class AlgorithmMismatchException(ReceiptException):
+    """
+    Indicates that an algorithm is not compatible with a receipt.
+    """
+
     def __init__(self, receipt):
         super(AlgorithmMismatchException, self).__init__(receipt, "Algorithm mismatch.")
 
 def restoreb64padding(data):
+    """
+    Restores the padding to a base64 string without padding. For internal use
+    only.
+    :param data: The base64 encoded string without padding.
+    :return: The base64 encoded string with padding.
+    """
     needed = 4 - len(data) % 4
     if needed:
         data += '=' * needed
     return data
 
 class Rechnung:
+    """
+    The basic receipt class. Contains methods to convert a receipt to and from
+    various string formats.
+    """
+
     def __init__(self, zda, registerId, receiptId, dateTime,
             sumA, sumB, sumC, sumD, sumE, encTurnoverCounter,
             certSerial, previousChain):
+        """
+        Creates a new receipt object.
+        :param zda: The ZDA ID as a string.
+        :param registerId: The ID of the register as a string.
+        :param receiptId: The ID of the receipt as a string.
+        :param dateTime: The receipt's timestamp as a datetime object.
+        :param sumA: The first sum as a float.
+        :param sumB: The second sum as a float.
+        :param sumC: The third sum as a float.
+        :param sumD: The fourth sum as a float.
+        :param sumE: The fifth sum as a float.
+        :param encTurnoverCounter: The encrypted turnover counter as a base64
+        encoded string.
+        :param certSerial: The certificate's serial or a key ID as a string.
+        :param previousChain: The chaining value for the previous receipt as a
+        base64 encoded string.
+        """
         self.zda = zda
         self.header = None
         self.registerId = registerId
@@ -49,6 +100,14 @@ class Rechnung:
 
     @staticmethod
     def fromJWSString(jwsString):
+        """
+        Creates a receipt object from a JWS string.
+        :param jwsString: The JWS string to parse.
+        :return: The new, signed receipt object.
+        :throws MalformedReceiptException
+        :throws UnknownAlgorithmException
+        :throws AlgorithmMismatchException
+        """
         jwsSegs = jwsString.split('.')
         if len(jwsSegs) != 3:
             raise MalformedReceiptException(jwsString)
@@ -98,6 +157,13 @@ class Rechnung:
         return receipt, algorithmPrefix
 
     def toJWSString(self, algorithmPrefix):
+        """
+        Converts the receipt to a JWS string using the given algorithm class.
+        The receipt has to be signed first.
+        :param algorithmPrefix: The ID of the algorithm class used as a string.
+        This should match the algorithm used to sign the receipt.
+        :return: The receipt as a JWS string.
+        """
         if not self.signed:
             raise Exception("You need to sign the receipt first.")
 
@@ -113,6 +179,12 @@ class Rechnung:
         return '.'.join(jwsSegs)
 
     def toPayloadString(self, algorithmPrefix):
+        """
+        Converts the receipt to a payload string that can be signed with JWS or
+        used in the machine readable code.
+        :param algorithmPrefix: The ID of the algorithm class used as a string.
+        :return The receipt as a payload string.
+        """
         segments = [b'_' + algorithmPrefix.encode("utf-8") + b'-' + self.zda.encode("utf-8")]
         segments.append(self.registerId.encode("utf-8"))
         segments.append(self.receiptId.encode("utf-8"))
@@ -131,6 +203,13 @@ class Rechnung:
 
     @staticmethod
     def fromBasicCode(basicCode):
+        """
+        Creates a receipt object from a QR code string.
+        :param basicCode: The QR code string to parse.
+        :return: The new, signed receipt object.
+        :throws MalformedReceiptException
+        :throws UnknownAlgorithmException
+        """
         segments = basicCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:
             raise MalformedReceiptException(basicCode)
@@ -174,6 +253,11 @@ class Rechnung:
         return receipt, algorithmPrefix
 
     def toBasicCode(self, algorithmPrefix):
+        """
+        Converts the receipt to a QR code string.
+        :param algorithmPrefix: The ID of the algorithm class used as a string.
+        :return The receipt as a QR code string.
+        """
         if not self.signed:
             raise Exception("You need to sign the receipt first.")
 
@@ -186,6 +270,11 @@ class Rechnung:
         return payload + '_' + signature
 
     def toOCRCode(self, algorithmPrefix):
+        """
+        Converts the receipt to an OCR code string.
+        :param algorithmPrefix: The ID of the algorithm class used as a string.
+        :return The receipt as an OCR code string.
+        """
         if not self.signed:
             raise Exception("You need to sign the receipt first.")
 
@@ -215,6 +304,12 @@ class Rechnung:
         return b'_'.join(segments).decode("utf-8")
 
     def toURLHash(self, algorithmPrefix):
+        """
+        Converts the receipt to a hash value to be used in URL verification.
+        :param algorithmPrefix: The ID of the algorithm class used as a string.
+        :return The receipt hash.
+        :throws UnknownAlgorithmException
+        """
         payload = self.toBasicCode(algorithmPrefix)
 
         if algorithmPrefix not in algorithms.ALGORITHMS:
@@ -224,11 +319,21 @@ class Rechnung:
         return base64.urlsafe_b64encode((algorithm.hash(payload)[0:8])).decode("utf-8")
 
     def sign(self, header, signature):
+        """
+        Signs the receipt with the given signature and JWS header.
+        :param header: The JWS header as a string.
+        :param signature: The signature as a base64 encoded string.
+        """
         self.header = header
         self.signature = signature
         self.signed = True
 
     def isSignedBroken(self):
+        """
+        Determines if the signature system was inoperative when the receipt was
+        signed. The receipt must be signed first.
+        :return: True if the signature system was broken, False otherwise.
+        """
         if not self.signed:
             raise Exception("You need to sign the receipt first.")
 
@@ -237,14 +342,30 @@ class Rechnung:
         return failStr == self.signature
 
     def isDummy(self):
+        """
+        Determines if this receipt is a dummy receipt.
+        :return: True if the receipt is a dummy receipt, False otherwise.
+        """
         decCtr = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return decCtr == b'TRA'
 
     def isReversal(self):
+        """
+        Determines if this receipt is a reversal.
+        :return: True if the receipt is a reversal, False otherwise.
+        """
         decCtr = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return decCtr == b'STO'
 
     def decryptTurnoverCounter(self, key, algorithm):
+        """
+        Decrypts the encrypted turnover counter using the given key and
+        algorithm. The receipt must not be a dummy receipt or a reversal in
+        order for this to work.
+        :param key: The key to decrypt the counter as a byte list.
+        :param algorithm: The algorithm to use as an algorithm object.
+        :return: The decrypted turnover counter as int.
+        """
         if self.isDummy():
             raise Exception("Can't decrypt turnover counter, this is a dummy receipt.")
         if self.isReversal():

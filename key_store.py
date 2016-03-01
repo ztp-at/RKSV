@@ -1,34 +1,96 @@
 #!/usr/bin/python3
 
+"""
+This module contains classes for a key store where certificates or public keys
+can be stored under an identifier. Keys (and certificates) can also be retrieved
+or deleted from the key store.
+"""
 import utils
 
 class KeyStoreI:
-    def getKey(self, keyId):
+    """
+    The base class for a key store. It contains functions every key store must
+    implement. Do not use this directly.
+    """
+
+    def getKeyIds(self):
+        """
+        Gets the IDs of all keys stored in the key store.
+        :return A list of the key IDs as strings.
+        """
         raise NotImplementedError("Please implement this yourself.")
 
-    def putKey(self, keyId, key):
+    def getKey(self, keyId):
+        """
+        Gets the key stored under the given ID.
+        :param keyId: The ID of the key to get as a string.
+        :return: The public key as a cryptography key object or None if no key
+        is stored under the given ID.
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
+    def getCert(self, keyId):
+        """
+        Gets the certificate stored under the given ID.
+        :param keyId: The ID of the certificate to get as a string.
+        :return: The certificate as a cryptography certificate object or None if
+        no certificate is stored under the given ID.
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
+    def putKey(self, keyId, key, cert):
+        """
+        Stores the given key under the given ID in the key store.
+        :param keyId: The ID as a string.
+        :param key: The public key as a cryptography key object.
+        :param cert: The certificate as a cryptography certificate object or
+        None if no certificate for the public key is known.
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
+    def delKey(self, keyId):
+        """
+        Deletes the key stored under the given ID from the key store.
+        :param keyId: The ID as a string.
+        """
         raise NotImplementedError("Please implement this yourself.")
 
     def putPEMCert(self, pemCert):
+        """
+        Stores a PEM certificate in the key store using the certificate's serial
+        as an ID.
+        :param pemCert: The certificate as a PEM formatted string.
+        """
         raise NotImplementedError("Please implement this yourself.")
 
     def putPEMKey(self, keyId, pemKey):
-        raise NotImplementedError("Please implement this yourself.")
-
-    def writeStore(self, config):
-        raise NotImplementedError("Please implement this yourself.")
-
-    @staticmethod
-    def readStore(config):
+        """
+        Stores a PEM public key in the key store using the given ID.
+        :param keyId: The ID as a string.
+        :param pemKey: The public key as a PEM formatted string.
+        """
         raise NotImplementedError("Please implement this yourself.")
 
 class KeyTuple:
+    """
+    The data structure used internally by KeyStore. For internal use only.
+    """
+
     def __init__(self, keyId, key, cert):
         self.keyId = keyId
         self.key = key
         self.cert = cert
 
 class KeyStore(KeyStoreI):
+    """
+    A basic implementation of a key store. It allows writing the store to and
+    reading it from an .ini file using a config parser.
+
+    Note that key IDs starting with \"S:\", \"U:\" or \"G:\" are stored as
+    \"s;...\", \"u;...\" and \"g;...\" respectively because the default config parser
+    does not support a colon in the key ID.
+    """
+
     def __init__(self):
         self.keydict = dict()
 
@@ -66,6 +128,11 @@ class KeyStore(KeyStoreI):
         self.keydict[keyId] = KeyTuple(keyId, pubKey, None)
 
     def writeStore(self, config):
+        """
+        Writes the store to the given config parser.
+        :param config: The config parser.
+        """
+
         if not config.has_section('certificates'):
             config.add_section('certificates')
         if not config.has_section('public_keys'):
@@ -90,6 +157,13 @@ class KeyStore(KeyStoreI):
 
     @staticmethod
     def readStore(config):
+        """
+        Reads a key store from the given config parser and returns it as an
+        object.
+        :param config: The config parser.
+        :return: A KeyStore object.
+        """
+
         keyStore = KeyStore()
 
         if config.has_section('certificates'):
