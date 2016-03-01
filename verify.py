@@ -65,6 +65,13 @@ class UntrustedCertificateException(DEPException):
     def __init__(self, cert):
         super(UntrustedCertificateException, self).__init__("Certificate \"" + cert + "\" is not trusted.")
 
+class SignatureSystemFailedOnInitialReceiptException(rechnung.ReceiptException):
+    """
+    Indicates that the initial receipt was not signed.
+    """
+    def __init__(self, receipt):
+        super(SignatureSystemFailedOnInitialReceiptException, self).__init__(receipt, "Initial receipt not signed.")
+
 def verifyChain(receipt, prev, algorithm):
     """
     Verifies that a receipt is preceeded by another receipt in the receipt
@@ -136,6 +143,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     :throws: MalformedReceiptException
     :throws: UnknownAlgorithmException
     :throws: AlgorithmMismatchException
+    :throws: SignatureSystemFailedOnInitialReceiptException
     """
     prev = lastReceipt
     prevObj = None
@@ -150,6 +158,8 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
                 if ro.sumA != 0.0 or ro.sumB != 0.0 or ro.sumC != 0.0 or ro.sumD != 0.0 or ro.sumE != 0.0:
                     raise NoRestoreReceiptAfterSignatureSystemFailureException(r)
         except verify_receipt.SignatureSystemFailedException as e:
+            if not prevObj:
+                raise SignatureSystemFailedOnInitialReceiptException(r)
             ro, algorithmPrefix = rechnung.Rechnung.fromJWSString(r)
             algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
@@ -192,6 +202,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: UnknownAlgorithmException
     :throws: AlgorithmMismatchException
     :throws: UntrustedCertificateException
+    :throws: SignatureSystemFailedOnInitialReceiptException
     """
     lastReceipt = None
     lastTurnoverCounter = 0
