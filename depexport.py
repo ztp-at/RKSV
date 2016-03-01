@@ -7,10 +7,12 @@ class DEPExporterI:
 # Supports just one cert and no cert chain for now.
 class DEPExporter(DEPExporterI):
     def __init__(self, certFile):
-        with open(certFile) as f:
-            lines = f.readlines()[1:-1]
-            lines = [ l.strip() for l in lines ]
-            self.cert = ''.join(lines)
+        self.cert = ''
+        if certFile:
+            with open(certFile) as f:
+                lines = f.readlines()[1:-1]
+                lines = [ l.strip() for l in lines ]
+                self.cert = ''.join(lines)
 
     def export(self, receipts):
         data = { "Belege-Gruppe" :

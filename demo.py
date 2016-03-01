@@ -14,29 +14,47 @@ import sigeh
 import utils
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
+    if len(sys.argv) < 5 or len(sys.argv) > 6:
         print("Usage: ./demo.py <private key file> <cert file> <base64 AES key file> <number of receipts>")
+        print("       ./demo.py <private key file> <public key file> <key ID> <base64 AES key file> <number of receipts>")
         sys.exit(0)
 
-    priv = sys.argv[1]
-    cert = sys.argv[2]
-    num = int(sys.argv[4])
+    priv = None
+    cert = None
+    keyf = None
+    serial = None
+    num = 0
+    if len(sys.argv) == 5:
+        priv = sys.argv[1]
+        cert = sys.argv[2]
+        keyf = sys.argv[3]
+        num = int(sys.argv[4])
+    else:
+        priv = sys.argv[1]
+        cert = sys.argv[2]
+        serial = sys.argv[3]
+        keyf = sys.argv[4]
+        num = int(sys.argv[5])
 
     if num < 1:
         print("The number of receipts must be at least 1.")
         sys.exit(0)
 
     key = None
-    with open(sys.argv[3]) as f:
+    with open(keyf) as f:
         key = base64.b64decode(f.read().encode("utf-8"))
 
-    serial = None
-    with open(cert) as f:
-        serial = "%d" % utils.loadCert(f.read()).serial
+    if not serial:
+        with open(cert) as f:
+            serial = "%d" % utils.loadCert(f.read()).serial
 
     register = regk.Registrierkassa("AT77", "PIGGYBANK-007", None, int(0.0 * 100), key)
     sigsystem = sigeh.SignaturerstellungseinheitWorking(serial, priv)
-    exporter = depexport.DEPExporter(cert)
+    exporter = None
+    if len(sys.argv) == 5:
+        exporter = depexport.DEPExporter(cert)
+    else:
+        exporter = depexport.DEPExporter(None)
 
     receipts = [register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0, 0.0,
         0.0, 0.0, sigsystem)]

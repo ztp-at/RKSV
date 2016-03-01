@@ -32,10 +32,10 @@ def exportKeyToPEM(key):
     return ''.join(pem)
 
 def addPEMCertHeaders(cert):
-    return '-----BEGIN CERTIFICATE-----\n' + cert +  '\n-----END CERTIFICATE-----'
+    return '-----BEGIN CERTIFICATE-----\n' + cert + '\n-----END CERTIFICATE-----'
 
 def addPEMPubKeyHeaders(pubKey):
-    return '-----BEGIN PUBLIC KEY-----\n' + pubKey +  '\n-----END PUBLIC KEY-----'
+    return '-----BEGIN PUBLIC KEY-----\n' + pubKey + '\n-----END PUBLIC KEY-----'
 
 def verifyCert(cert, signCert):
     # FIXME: This is very likely wrong and we should find a better way to verify certs.
