@@ -76,7 +76,9 @@ def addPEMCertHeaders(cert):
     :param cert: The PEM certificate string.
     :return: The PEM certificate string with header and footer.
     """
-    return '-----BEGIN CERTIFICATE-----\n' + cert + '\n-----END CERTIFICATE-----'
+    return '-----BEGIN CERTIFICATE-----\n' + '\n'.join(
+            [cert[i:i+64] for i in range(0, len(cert), 64)]
+            ) + '\n-----END CERTIFICATE-----'
 
 def addPEMPubKeyHeaders(pubKey):
     """
@@ -84,7 +86,9 @@ def addPEMPubKeyHeaders(pubKey):
     :param pubKey: The PEM public key string.
     :return: The PEM public key string with header and footer.
     """
-    return '-----BEGIN PUBLIC KEY-----\n' + pubKey + '\n-----END PUBLIC KEY-----'
+    return '-----BEGIN PUBLIC KEY-----\n' + '\n'.join(
+            [pubKey[i:i+64] for i in range(0, len(pubKey), 64)]
+            ) + '\n-----END PUBLIC KEY-----'
 
 def verifyCert(cert, signCert):
     """
