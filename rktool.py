@@ -3,13 +3,15 @@
 import kivy
 kivy.require('1.9.0')
 
+import os 
+
 from kivy.app import App
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.popup import Popup
-from kivy.uix.treeview import TreeView, TreeViewNode
+from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
 
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
@@ -28,9 +30,73 @@ class SingleValueDialog(FloatLayout):
 class TreeViewButton(Button, TreeViewNode):
     pass
 
+import json
+class VerifyDEPWidget(BoxLayout):
+    treeView = ObjectProperty(None)
+
+    def addCert(self, btn):
+        # TODO
+        pass
+
+    def viewReceipt(self, btn):
+        # TODO
+        pass
+
+    def updateDEPDisplay(self):
+        tv = self.treeView
+
+        for n in tv.iterate_all_nodes():
+            tv.remove_node(n)
+
+        groupIdx = 1
+        for group in self._jsonDEP['Belege-Gruppe']:
+            groupNode = tv.add_node(TreeViewLabel(text=('Gruppe %d' % groupIdx)))
+            groupIdx += 1
+
+            certNode = tv.add_node(TreeViewLabel(text='Signaturzertifikat'),
+                    groupNode)
+            chainNode = tv.add_node(TreeViewLabel(text='Zertifizierungsstellen'),
+                    groupNode)
+            receiptsNode = tv.add_node(TreeViewLabel(text='Belege-kompakt'),
+                    groupNode)
+
+            cert = group['Signaturzertifikat']
+            if cert:
+                tv.add_node(TreeViewButton(text=cert, on_press=self.addCert),
+                        certNode)
+
+            for cert in group['Zertifizierungsstellen']:
+                tv.add_node(TreeViewButton(text=cert, on_press=self.addCert),
+                        chainNode)
+
+            for receipt in group['Belege-kompakt']:
+                tv.add_node(TreeViewButton(text=receipt, on_press=self.viewReceipt),
+                        receiptsNode)
+
+    def dismissPopup(self):
+        self._popup.dismiss()
+
+    def loadDEP(self):
+        content = LoadDialog(load=self.loadDEPCb,
+                cancel=self.dismissPopup)
+        self._popup = Popup(title="Load DEP", content=content,
+                size_hint=(0.9, 0.9))
+        self._popup.open()
+
+    def loadDEPCb(self, path, filename):
+        with open(os.path.join(path, filename[0])) as f:
+            self._jsonDEP = json.loads(f.read())
+
+        self.updateDEPDisplay()
+        self.dismissPopup()
+
+    def loadAES(self):
+        pass
+
+    def loadAESCb(self, path, filename):
+        pass
+
 import configparser
-import key_store
-import os 
 
 class KeyStoreWidget(BoxLayout):
     pubKeyGroup = ObjectProperty(None)
@@ -148,6 +214,8 @@ class KeyStoreWidget(BoxLayout):
 
 class MainWidget(BoxLayout):
     pass
+
+import key_store
 
 class RKToolApp(App):
     keyStore = key_store.KeyStore()

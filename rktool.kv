@@ -1,3 +1,9 @@
+<TreeViewButton>:
+	halign: 'left'
+	valign: 'middle'
+	text_size: self.size
+	size_hint_y: None
+
 <LoadDialog>:
 	BoxLayout:
 		size: root.size
@@ -96,23 +102,28 @@
 	Button:
 		text: 'Read & Verify'
 
-<VerifyDEPWidget@BoxLayout>:
+<VerifyDEPWidget>:
+	id: vd_w
+	treeView: vd_tv
 	orientation: 'vertical'
 	BoxLayout:
 		size_hint_y: None
 		orientation: 'horizontal'
 		Button:
 			text: 'Load DEP'
+			on_press: vd_w.loadDEP()
 		Button:
 			text: 'Load AES Key'
+			on_press: vd_w.loadAES()
 	TextInput:
 		size_hint_y: None
 		multiline: False
 	ScrollView:
 		do_scroll_x: False
 		TreeView:
+			id: vd_tv
 			size_hint_y: None
-			hide_root: True
+			root_options: {'text': 'Belege-Gruppe'}
 			height: self.minimum_height
 
 <KeyStoreWidget>:
