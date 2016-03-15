@@ -20,7 +20,12 @@ class SaveDialog(FloatLayout):
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
 
-class KeyStoreGroup(Button, TreeViewNode):
+class SingleValueDialog(FloatLayout):
+    receive_value = ObjectProperty(None)
+    text_input = ObjectProperty(None)
+    cancel = ObjectProperty(None)
+
+class TreeViewButton(Button, TreeViewNode):
     pass
 
 import configparser
@@ -30,25 +35,17 @@ import os
 class KeyStoreWidget(BoxLayout):
     pubKeyGroup = ObjectProperty(None)
     certGroup = ObjectProperty(None)
-    keyStore = ObjectProperty(None)
     treeView = ObjectProperty(None)
-
-    def __init__(self, **kwargs):
-        super(KeyStoreWidget, self).__init__(**kwargs)
-        self.keyStore = key_store.KeyStore()
 
     def on_treeView(self, instance, value):
         tv = self.treeView
-        self.pubKeyGroup = tv.add_node(KeyStoreGroup(text='Public Keys',
+        self.pubKeyGroup = tv.add_node(TreeViewButton(text='Public Keys',
                 on_press=self.addPubKey))
-        self.certGroup = tv.add_node(KeyStoreGroup(text='Certificates',
+        self.certGroup = tv.add_node(TreeViewButton(text='Certificates',
                 on_press=self.addCert))
 
-    def on_keyStore(self, instance, value):
-        self.buildKSTree()
-
     def buildKSTree(self):
-        if not self.keyStore or not self.treeView:
+        if not self.treeView:
             return
         if not self.pubKeyGroup or not self.certGroup:
             return
@@ -65,20 +62,27 @@ class KeyStoreWidget(BoxLayout):
         for n in iterator:
             tv.remove_node(n)
 
-        ks = self.keyStore
+        ks = App.get_running_app().keyStore
         for kid in ks.getKeyIds():
             if ks.getCert(kid):
-                tv.add_node(KeyStoreGroup(text=kid, on_press=self.viewKey),
+                tv.add_node(TreeViewButton(text=kid, on_press=self.delKey),
                         self.certGroup)
             else:
-                tv.add_node(KeyStoreGroup(text=kid, on_press=self.viewKey),
+                tv.add_node(TreeViewButton(text=kid, on_press=self.delKey),
                         self.pubKeyGroup)
 
-    def viewKey(self, btn):
-        print("viewing key " + btn.text)
+    def delKey(self, btn):
+        App.get_running_app().keyStore.delKey(btn.text)
+        self.buildKSTree()
+
+    def dismissPopup(self):
+        self._popup.dismiss()
 
     def addPubKey(self, btn):
-        print("adding pubkey")
+        content = LoadDialog(load=self.addPubKeyCbKey, cancel=self.dismissPopup)
+        self._popup = Popup(title="Load PEM Public Key", content=content,
+                size_hint=(0.9, 0.9))
+        self._popup.open()
 
     def addCert(self, btn):
         content = LoadDialog(load=self.addCertCb, cancel=self.dismissPopup)
@@ -86,12 +90,26 @@ class KeyStoreWidget(BoxLayout):
                 size_hint=(0.9, 0.9))
         self._popup.open()
 
-    def dismissPopup(self):
-        self._popup.dismiss()
+    def addPubKeyCbKey(self, path, filename):
+        with open(os.path.join(path, filename[0])) as f:
+            self._tmpPubKey = f.read()
+
+        content = SingleValueDialog(receive_value=self.addPubKeyCbId,
+                cancel=self.dismissPopup)
+
+        self.dismissPopup()
+        self._popup = Popup(title="Enter Public Key ID", content=content,
+                size_hint=(0.9, 0.9))
+        self._popup.open()
+
+    def addPubKeyCbId(self, keyId):
+        App.get_running_app().keyStore.putPEMKey(keyId, self._tmpPubKey)
+        self.dismissPopup()
+        self.buildKSTree()
 
     def addCertCb(self, path, filename):
         with open(os.path.join(path, filename[0])) as f:
-            self.keyStore.putPEMCert(f.read())
+            App.get_running_app().keyStore.putPEMCert(f.read())
 
         self.dismissPopup()
         self.buildKSTree()
@@ -114,14 +132,15 @@ class KeyStoreWidget(BoxLayout):
         config = configparser.RawConfigParser()
         config.optionxform = str
         config.read(os.path.join(path, filename[0]))
-        self.keyStore = key_store.KeyStore.readStore(config)
+        App.get_running_app().keyStore = key_store.KeyStore.readStore(config)
 
         self.dismissPopup()
+        self.buildKSTree()
 
     def exportKeyStoreCb(self, path, filename):
         config = configparser.RawConfigParser()
         config.optionxform = str
-        self.keyStore.writeStore(config)
+        App.get_running_app().keyStore.writeStore(config)
         with open(os.path.join(path, filename), 'w') as f:
             config.write(f)
 
@@ -131,6 +150,8 @@ class MainWidget(BoxLayout):
     pass
 
 class RKToolApp(App):
+    keyStore = key_store.KeyStore()
+
     def build(self):
         return MainWidget()
 

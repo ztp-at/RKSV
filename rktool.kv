@@ -36,6 +36,25 @@
 				text: "Save"
 				on_release: root.save(filechooser.path, text_input.text)
 
+<SingleValueDialog>:
+	text_input: text_input
+	BoxLayout:
+		size: root.size
+		pos: root.pos
+		orientation: "vertical"
+		TextInput:
+			id: text_input
+			size_hint_y: None
+			multiline: False
+		BoxLayout:
+			size_hint_y: None
+			Button:
+				text: "Cancel"
+				on_release: root.cancel()
+			Button:
+				text: "Ok"
+				on_release: root.receive_value(text_input.text)
+
 <RadioButton@BoxLayout>:
 	text: ''
 	state: 'normal'
@@ -57,6 +76,7 @@
 	BoxLayout:
 		orientation: 'horizontal'
 		TextInput:
+			multiline: False
 		Button:
 			size_hint_x: None
 			text: '...'
@@ -82,6 +102,7 @@
 		size_hint_y: None
 		orientation: 'horizontal'
 		TextInput:
+			multiline: False
 		Button:
 			size_hint_x: None
 			text: '...'
