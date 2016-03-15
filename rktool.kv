@@ -108,15 +108,24 @@
 	TextInput:
 		size_hint_y: None
 		multiline: False
-	TreeView:
+	ScrollView:
+		do_scroll_x: False
+		TreeView:
+			size_hint_y: None
+			hide_root: True
+			height: self.minimum_height
 
 <KeyStoreWidget>:
 	id: ks_w
 	orientation: 'vertical'
 	treeView: ks_tv
-	TreeView:
-		id: ks_tv
-		hide_root: True
+	ScrollView:
+		do_scroll_x: False
+		TreeView:
+			id: ks_tv
+			size_hint_y: None
+			hide_root: True
+			height: self.minimum_height
 	BoxLayout:
 		size_hint_y: None
 		orientation: 'horizontal'
