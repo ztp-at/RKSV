@@ -72,7 +72,7 @@ class SignatureSystemFailedOnInitialReceiptException(rechnung.ReceiptException):
     def __init__(self, receipt):
         super(SignatureSystemFailedOnInitialReceiptException, self).__init__(receipt, "Initial receipt not signed.")
 
-def verifyChain(receipt, prev, algorithm):
+def verifyChain(receipt, jwsString, prev, algorithm):
     """
     Verifies that a receipt is preceeded by another receipt in the receipt
     chain. It returns nothing on success and throws an exception otherwise.
@@ -84,7 +84,7 @@ def verifyChain(receipt, prev, algorithm):
     chainingValue = algorithm.chain(receipt, prev)
     chainingValue = base64.b64encode(chainingValue)
     if chainingValue.decode("utf-8") != receipt.previousChain:
-        raise ChainingException(receipt, prev)
+        raise ChainingException(jwsString, prev)
 
 def verifyCert(cert, chain, keyStore):
     """
@@ -172,7 +172,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
                         raise InvalidTurnoverCounterException(r)
                 lastTurnoverCounter = newC
 
-        verifyChain(ro, prev, algorithm)
+        verifyChain(ro, r, prev, algorithm)
 
         prev = r
         prevObj = ro
