@@ -77,34 +77,48 @@
 		valign: 'middle'
 		text: self.parent.text
 
-<VerifyReceiptWidget@GridLayout>:
-	rows: 6
+<VerifyReceiptWidget>:
+	id: vr_w
+	receiptInput: vr_ti
+	orientation: 'vertical'
 	BoxLayout:
 		orientation: 'horizontal'
+		size_hint_y: None
 		TextInput:
+			id: vr_ti
 			multiline: False
 		Button:
 			size_hint_x: None
-			text: '...'
-	RadioButton:
-		text: 'JWS string'
-		group: 'input_format'
-		state: 'down'
-	RadioButton:
-		text: 'QR code'
-		group: 'input_format'
-	RadioButton:
-		text: 'OCR code'
-		group: 'input_format'
-	RadioButton:
-		text: 'URL'
-		group: 'input_format'
+			text: 'Load Receipt'
+			on_press: vr_w.loadReceipt()
+	ScrollView:
+		do_scroll_x: False
+		GridLayout:
+			rows: 4
+			size_hint_y: None
+			height: self.minimum_height
+			RadioButton:
+				text: 'JWS string'
+				group: 'input_format'
+				state: 'down'
+			RadioButton:
+				text: 'QR code'
+				group: 'input_format'
+			RadioButton:
+				text: 'OCR code'
+				group: 'input_format'
+			RadioButton:
+				text: 'URL'
+				group: 'input_format'
 	Button:
-		text: 'Read & Verify'
+		size_hint_y: None
+		text: 'Read Receipt'
+		on_press: vr_w.viewReceipt()
 
 <VerifyDEPWidget>:
 	id: vd_w
 	treeView: vd_tv
+	aesInput: vd_ti
 	orientation: 'vertical'
 	BoxLayout:
 		size_hint_y: None
@@ -116,6 +130,7 @@
 			text: 'Load AES Key'
 			on_press: vd_w.loadAES()
 	TextInput:
+		id: vd_ti
 		size_hint_y: None
 		multiline: False
 	ScrollView:

@@ -30,13 +30,43 @@ class SingleValueDialog(FloatLayout):
 class TreeViewButton(Button, TreeViewNode):
     pass
 
-import json
-class VerifyDEPWidget(BoxLayout):
-    treeView = ObjectProperty(None)
+class VerifyReceiptWidget(BoxLayout):
+    receiptInput = ObjectProperty(None)
 
-    def addCert(self, btn):
+    def dismissPopup(self):
+        self._popup.dismiss()
+
+    def loadReceipt(self):
+        content = LoadDialog(load=self.loadReceiptCb,
+                cancel=self.dismissPopup)
+        self._popup = Popup(title="Load Receipt", content=content,
+                size_hint=(0.9, 0.9))
+        self._popup.open()
+
+    def loadReceiptCb(self, path, filename):
+        if not filename or len(filename) < 1:
+            return
+
+        with open(os.path.join(path, filename[0])) as f:
+            self.receiptInput.text = f.read()
+
+        self.dismissPopup()
+
+    def viewReceipt(self, btn):
         # TODO
         pass
+
+import json
+import utils
+class VerifyDEPWidget(BoxLayout):
+    # TODO: actual verification of the DEP
+
+    treeView = ObjectProperty(None)
+    aesInput = ObjectProperty(None)
+
+    def addCert(self, btn):
+        App.get_running_app().keyStore.putPEMCert(utils.addPEMCertHeaders(btn.text))
+        App.get_running_app().updateKSWidget()
 
     def viewReceipt(self, btn):
         # TODO
@@ -84,6 +114,9 @@ class VerifyDEPWidget(BoxLayout):
         self._popup.open()
 
     def loadDEPCb(self, path, filename):
+        if not filename or len(filename) < 1:
+            return
+
         with open(os.path.join(path, filename[0])) as f:
             self._jsonDEP = json.loads(f.read())
 
@@ -91,10 +124,20 @@ class VerifyDEPWidget(BoxLayout):
         self.dismissPopup()
 
     def loadAES(self):
-        pass
+        content = LoadDialog(load=self.loadAESCb,
+                cancel=self.dismissPopup)
+        self._popup = Popup(title="Load AES Key", content=content,
+                size_hint=(0.9, 0.9))
+        self._popup.open()
 
     def loadAESCb(self, path, filename):
-        pass
+        if not filename or len(filename) < 1:
+            return
+
+        with open(os.path.join(path, filename[0])) as f:
+            self.aesInput.text = f.read()
+
+        self.dismissPopup()
 
 import configparser
 
@@ -109,6 +152,8 @@ class KeyStoreWidget(BoxLayout):
                 on_press=self.addPubKey))
         self.certGroup = tv.add_node(TreeViewButton(text='Certificates',
                 on_press=self.addCert))
+
+        App.get_running_app().ksWidget = self
 
     def buildKSTree(self):
         if not self.treeView:
@@ -157,6 +202,9 @@ class KeyStoreWidget(BoxLayout):
         self._popup.open()
 
     def addPubKeyCbKey(self, path, filename):
+        if not filename or len(filename) < 1:
+            return
+
         with open(os.path.join(path, filename[0])) as f:
             self._tmpPubKey = f.read()
 
@@ -174,6 +222,9 @@ class KeyStoreWidget(BoxLayout):
         self.buildKSTree()
 
     def addCertCb(self, path, filename):
+        if not filename or len(filename) < 1:
+            return
+
         with open(os.path.join(path, filename[0])) as f:
             App.get_running_app().keyStore.putPEMCert(f.read())
 
@@ -195,6 +246,9 @@ class KeyStoreWidget(BoxLayout):
         self._popup.open()
 
     def importKeyStoreCb(self, path, filename):
+        if not filename or len(filename) < 1:
+            return
+
         config = configparser.RawConfigParser()
         config.optionxform = str
         config.read(os.path.join(path, filename[0]))
@@ -204,6 +258,9 @@ class KeyStoreWidget(BoxLayout):
         self.buildKSTree()
 
     def exportKeyStoreCb(self, path, filename):
+        if not filename:
+            return
+
         config = configparser.RawConfigParser()
         config.optionxform = str
         App.get_running_app().keyStore.writeStore(config)
@@ -219,6 +276,11 @@ import key_store
 
 class RKToolApp(App):
     keyStore = key_store.KeyStore()
+    ksWidget = None
+
+    def updateKSWidget(self):
+        if self.ksWidget:
+            self.ksWidget.buildKSTree()
 
     def build(self):
         return MainWidget()
