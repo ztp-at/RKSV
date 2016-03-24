@@ -232,20 +232,27 @@ import sys
 
 import key_store
 
+def usage():
+    print("Usage: ./verify.py <key store> <dep export file> [<base64 AES key file>]")
+    sys.exit(0)
+
 if __name__ == "__main__":
     if len(sys.argv) < 3 or len(sys.argv) > 4:
-        print("Usage: ./verify.py <key store> <dep export file> [<base64 AES key file>]")
-        sys.exit(0)
+        usage()
 
     key = None
     if len(sys.argv) == 4:
         with open(sys.argv[3]) as f:
             key = base64.b64decode(f.read().encode("utf-8"))
 
+    dep = None
+    keyStore = None
     with open(sys.argv[2]) as f:
         config = configparser.RawConfigParser()
         config.optionxform = str
         config.read(sys.argv[1])
         keyStore = key_store.KeyStore.readStore(config)
 
-        verifyDEP(json.loads(f.read()), keyStore, key)
+        dep = json.loads(f.read())
+
+    verifyDEP(dep, keyStore, key)
