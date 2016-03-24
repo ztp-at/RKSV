@@ -233,26 +233,42 @@ import sys
 import key_store
 
 def usage():
-    print("Usage: ./verify.py <key store> <dep export file> [<base64 AES key file>]")
+    print("Usage: ./verify.py keyStore <key store> <dep export file> [<base64 AES key file>]")
+    print("       ./verify.py json <json container file> <dep export file>")
     sys.exit(0)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3 or len(sys.argv) > 4:
+    if len(sys.argv) < 4 or len(sys.argv) > 5:
         usage()
 
     key = None
-    if len(sys.argv) == 4:
-        with open(sys.argv[3]) as f:
-            key = base64.b64decode(f.read().encode("utf-8"))
-
-    dep = None
     keyStore = None
-    with open(sys.argv[2]) as f:
+
+    if sys.argv[1] == 'keyStore':
+        if len(sys.argv) == 5:
+            with open(sys.argv[4]) as f:
+                key = base64.b64decode(f.read().encode("utf-8"))
+
         config = configparser.RawConfigParser()
         config.optionxform = str
-        config.read(sys.argv[1])
+        config.read(sys.argv[2])
         keyStore = key_store.KeyStore.readStore(config)
 
+    elif sys.argv[1] == 'json':
+        if len(sys.argv) != 4:
+            usage()
+
+        with open(sys.argv[2]) as f:
+            jsonStore = json.loads(f.read())
+
+            key = utils.loadKeyFromJson(jsonStore)
+            keyStore = key_store.KeyStore.readStoreFromJson(jsonStore)
+
+    else:
+        usage()
+
+    dep = None
+    with open(sys.argv[3]) as f:
         dep = json.loads(f.read())
 
     verifyDEP(dep, keyStore, key)

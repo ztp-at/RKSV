@@ -2,6 +2,8 @@
 This module contains several utility functions regarding certificate and key
 handling.
 """
+import base64
+
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -9,6 +11,14 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key, Encoding, PublicFormat
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
+
+def loadKeyFromJson(json):
+    """
+    Loads an AES-256 key from a cryptographic material container JSON.
+    :param json: The JSON data.
+    :return: The key as a byte list.
+    """
+    return base64.b64decode(json['base64AESKey'].encode('utf-8'))
 
 def sha256(data):
     """
