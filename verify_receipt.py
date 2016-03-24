@@ -137,11 +137,14 @@ class CertSerialType(enum.Enum):
             return CertSerialType.GLN
         else:
             try:
-                # TODO: update this for HEX
-                int(certSerial, 10)
+                int(certSerial, 16)
                 return CertSerialType.SERIAL
             except ValueError as e:
-                return CertSerialType.INVALID
+                try:
+                    int(certSerial, 10)
+                    return CertSerialType.SERIAL
+                except ValueError as f:
+                    return CertSerialType.INVALID
 
 class ReceiptVerifier(ReceiptVerifierI):
     """
@@ -197,7 +200,7 @@ class ReceiptVerifier(ReceiptVerifierI):
         pubKey = None
         if self.cert:
             if certSerialType == CertSerialType.SERIAL:
-                if key_store.preprocCertSerial("%d" % self.cert.serial) != certSerial:
+                if key_store.preprocCertSerial(self.cert.serial) != certSerial:
                     raise CertSerialMismatchException(jwsString)
             pubKey = self.cert.public_key()
         else:

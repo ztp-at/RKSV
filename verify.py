@@ -100,7 +100,7 @@ def verifyCert(cert, chain, keyStore):
     prev = utils.loadCert(utils.addPEMCertHeaders(cert))
 
     for c in chain:
-        if keyStore.getKey(key_store.preprocCertSerial("%d" % prev.serial)):
+        if keyStore.getKey(key_store.preprocCertSerial(prev.serial)):
             return
 
         cur = utils.loadCert(utils.addPEMCertHeaders(c))
@@ -110,7 +110,7 @@ def verifyCert(cert, chain, keyStore):
 
         prev = cur
 
-    if keyStore.getKey(key_store.preprocCertSerial("%d" % prev.serial)):
+    if keyStore.getKey(key_store.preprocCertSerial(prev.serial)):
         return
 
     raise UntrustedCertificateException(cert)
