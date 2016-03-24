@@ -5,6 +5,8 @@ This module contains classes for a key store where certificates or public keys
 can be stored under an identifier. Keys (and certificates) can also be retrieved
 or deleted from the key store.
 """
+import numbers
+
 import utils
 
 class KeyStoreI:
@@ -74,17 +76,24 @@ class KeyStoreI:
 def preprocCertSerial(serial):
     """
     Prepares a certificate serial for usage with a key store.
-    :param serial: The serial as a string.
+    :param serial: The serial as a string or number.
     :return: The normalized serial as a string.
     """
+    if isinstance(serial, numbers.Number):
+        return ('%x' % abs(serial))
+
     # for some reason the ref impl has a negative serial on some certs
     if serial[0] == '-':
         serial = serial[1:]
 
     try:
-        # TODO: update this for HEX
-        int(serial, 10)
+        int(serial, 16)
         serial = serial.lower()
+    except ValueError as e:
+        pass
+
+    try:
+        serial = ('%x' % int(serial, 10))
     except ValueError as e:
         pass
 
@@ -203,7 +212,7 @@ class KeyStore(KeyStoreI):
         keyStore = KeyStore()
 
         for value in json['certificateOrPublicKeyMap'].values():
-            keyId = value['id']
+            keyId = preprocCertSerial(value['id'])
             keyStr = value['signatureCertificateOrPublicKey']
 
             key = None
