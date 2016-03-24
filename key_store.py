@@ -198,12 +198,34 @@ class KeyStore(KeyStoreI):
 
         return keyStore
 
+    @staticmethod
+    def readStoreFromJson(json):
+        keyStore = KeyStore()
+
+        for value in json['certificateOrPublicKeyMap'].values():
+            keyId = value['id']
+            keyStr = value['signatureCertificateOrPublicKey']
+
+            key = None
+            cert = None
+            if value['signatureDeviceType'] == 'CERTIFICATE':
+                cert = utils.loadCert(utils.addPEMCertHeaders(keyStr))
+                key = cert.public_key()
+            else:
+                key = utils.loadPubKey(utils.addPEMPubKeyHeaders(keyStr))
+
+            keyStore.putKey(keyId, key, cert)
+
+        return keyStore
+
 import configparser
+import json
 import sys
 
 def usage():
     print("Usage: ./key_store.py <key store> create")
     print("       ./key_store.py <key store> list")
+    print("       ./key_store.py <key store> fromJson <json container file>")
     print("       ./key_store.py <key store> add <pem cert file>")
     print("       ./key_store.py <key store> add <pem pubkey file> <pubkey id>")
     print("       ./key_store.py <key store> del <pubkey id|cert serial>")
@@ -233,6 +255,14 @@ if __name__ == "__main__":
 
         for keyId in keyStore.getKeyIds():
             print(keyId)
+
+    elif sys.argv[2] == 'fromJson':
+        if len(sys.argv) != 4:
+            usage()
+
+        keyStore = None
+        with open(sys.argv[3]) as f:
+            keyStore = KeyStore.readStoreFromJson(json.loads(f.read()))
 
     elif sys.argv[2] == 'add':
         if len(sys.argv) < 4:
