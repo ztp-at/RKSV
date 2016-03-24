@@ -69,15 +69,19 @@ converting them to a different format. The supported input formats are
 
 verify.py
 ---------
-	Usage: ./verify.py <key store> <dep export file> [<base64 AES key file>]
+	Usage: ./verify.py keyStore <key store> <dep export file> [<base64 AES key file>]
+               ./verify.py json <json container file> <dep export file>
 
-This script verifies the given DEP export file. The used certificates or
-public keys must be available in the given key store. If the DEP is valid
-the script prints nothing, if it is not then the script will print an error
-message.
+This script, when called with the `keyStore` command, verifies the given DEP
+export file. The used certificates or public keys must be available in the given
+key store. If the DEP is valid the script prints nothing, if it is not then the
+script will print an error message.
 
 If an AES key file is specified, the script will also check the turnover
 counter in each receipt.
+
+When the script is called with the `json` command it will instead read the
+certificates and the AES key from a cryptographic material container JSON file.
 
 verify_receipt.py
 -----------------
