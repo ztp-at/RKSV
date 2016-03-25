@@ -28,7 +28,7 @@ class RegistrierkassaI:
         :param sigSystem: The signature system to use.
         :param dummy: Whether the generated receipt is a dummy receipt.
         :param reversal: Whether the generated receipt is a reversal.
-        :return: The created receipt as a JWS string.
+        :return: The created receipt as a receipt object.
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -100,10 +100,15 @@ class Registrierkassa(RegistrierkassaI):
         receipt.previousChain = base64.b64encode(previousChain).decode("utf-8")
 
         jwsString = sigSystem.sign(receipt.toPayloadString(prefix).encode("utf-8"),
-                algorithm)
-        self.lastReceiptSig = jwsString.decode("utf-8")
+                algorithm).decode('utf-8')
+        self.lastReceiptSig = jwsString
+        
+        header, payload, signature = jwsString.split('.')
+        header = base64.urlsafe_b64decode(
+                rechnung.restoreb64padding(header)).decode('utf-8')
+        receipt.sign(header, signature)
 
-        return self.lastReceiptSig
+        return receipt
 
     def registerId(self):
         return self.registerId

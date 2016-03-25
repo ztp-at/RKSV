@@ -52,9 +52,9 @@ if __name__ == "__main__":
     sigsystem = sigeh.SignaturerstellungseinheitWorking(serial, priv)
     exporter = None
     if len(sys.argv) == 5:
-        exporter = depexport.DEPExporter(cert)
+        exporter = depexport.DEPExporter('R1', cert)
     else:
-        exporter = depexport.DEPExporter(None)
+        exporter = depexport.DEPExporter('R1', None)
 
     receipts = [register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0, 0.0,
         0.0, 0.0, sigsystem)]

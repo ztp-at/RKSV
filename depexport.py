@@ -12,7 +12,7 @@ class DEPExporterI:
     def export(self, receipts):
         """
         Creates a DEP from the given list of receipts.
-        :param receipts: A list of JWS formatted receipt strings.
+        :param receipts: A list receipt objects.
         :return: The JSON for the DEP as a string.
         """
         raise NotImplementedError("Please implement this yourself.")
@@ -24,12 +24,14 @@ class DEPExporter(DEPExporterI):
     no certificate.
     """
 
-    def __init__(self, certFile):
+    def __init__(self, prefix, certFile):
         """
         Creates a DEPExporter.
+        :param prefix: The ID of the algorithm used.
         :param certFile: The path to a file containing a certificate in PEM
         format or None if no certificate should be used.
         """
+        self.prefix = prefix
         self.cert = ''
         if certFile:
             with open(certFile) as f:
@@ -42,7 +44,8 @@ class DEPExporter(DEPExporterI):
                 [
                     { "Signaturzertifikat" : self.cert,
                         "Zertifizierungsstellen" : [],
-                        "Belege-kompakt" : receipts
+                        "Belege-kompakt" : [r.toJWSString(self.prefix)
+                            for r in receipts]
                     }
                 ]
                }
