@@ -207,6 +207,23 @@ class KeyStore(KeyStoreI):
 
         return keyStore
 
+    def writeStoreToJson(self):
+        kDict = dict()
+        for keyId, kt in self.keydict.items():
+            cont = dict()
+
+            cont['id'] = keyId
+            if kt.cert:
+                cont['signatureDeviceType'] = 'CERTIFICATE'
+                cont['signatureCertificateOrPublicKey'] = utils.exportCertToPEM(kt.cert)
+            else:
+                cont['signatureDeviceType'] = 'PUBLIC_KEY'
+                cont['signatureCertificateOrPublicKey'] = utils.exportKeyToPEM(kt.key)
+
+            kDict[keyId] = cont
+
+        return {'certificateOrPublicKeyMap': kDict}
+
     @staticmethod
     def readStoreFromJson(json):
         keyStore = KeyStore()
