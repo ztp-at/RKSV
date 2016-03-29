@@ -3,7 +3,7 @@ This module provides classes to work as signature systems.
 """
 import base64
 
-class SignaturerstellungseinheitI:
+class SignatureSystemI:
     """
     The base class for signature systems. It contains functions that every
     signature system must implement. Do not use this directly.
@@ -25,7 +25,7 @@ class SignaturerstellungseinheitI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
-class SignaturerstellungseinheitBroken(SignaturerstellungseinheitI):
+class SignatureSystemBroken(SignatureSystemI):
     """
     A broken signature system. It will \"sign\" all receipts with the standard
     broken message.
@@ -52,7 +52,7 @@ class SignaturerstellungseinheitBroken(SignaturerstellungseinheitI):
     def serial(self):
         return self.serial
 
-class SignaturerstellungseinheitWorking(SignaturerstellungseinheitI):
+class SignatureSystemWorking(SignatureSystemI):
     """
     A working signature system. It will sign receipts.
     """

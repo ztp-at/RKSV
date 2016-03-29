@@ -10,7 +10,7 @@ from cryptography.hazmat.backends import default_backend
 
 import depexport
 import cashreg
-import sigeh
+import sigsys
 import utils
 
 if __name__ == "__main__":
@@ -49,7 +49,7 @@ if __name__ == "__main__":
             serial = "%x" % utils.loadCert(f.read()).serial
 
     register = cashreg.CashRegister("AT77", "PIGGYBANK-007", None, int(0.0 * 100), key)
-    sigsystem = sigeh.SignaturerstellungseinheitWorking(serial, priv)
+    sigsystem = sigsys.SignatureSystemWorking(serial, priv)
     exporter = None
     if len(sys.argv) == 5:
         exporter = depexport.DEPExporter('R1', cert)
