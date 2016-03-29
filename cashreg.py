@@ -4,7 +4,7 @@ This module provides classes that can act as a simple cash register.
 import base64
 
 import algorithms
-import rechnung
+import receipt
 
 class CashRegisterI:
     """
@@ -79,7 +79,7 @@ class CashRegister(CashRegisterI):
 
         certSerial = sigSystem.serial
 
-        receipt = rechnung.Rechnung(self.zda, self.registerId, receiptId, dateTime,
+        rec = receipt.Receipt(self.zda, self.registerId, receiptId, dateTime,
             sumA, sumB, sumC, sumD, sumE, '', certSerial, '')
 
         encTurnoverCounter = None
@@ -90,25 +90,25 @@ class CashRegister(CashRegisterI):
             if reversal:
                 encTurnoverCounter = b'STO'
             else:
-                encTurnoverCounter = algorithm.encryptTurnoverCounter(receipt,
+                encTurnoverCounter = algorithm.encryptTurnoverCounter(rec,
                         self.turnoverCounter, self.key)
         encTurnoverCounter = base64.b64encode(encTurnoverCounter)
         encTurnoverCounter = encTurnoverCounter.decode("utf-8")
-        receipt.encTurnoverCounter = encTurnoverCounter
+        rec.encTurnoverCounter = encTurnoverCounter
 
-        previousChain = algorithm.chain(receipt, self.lastReceiptSig)
-        receipt.previousChain = base64.b64encode(previousChain).decode("utf-8")
+        previousChain = algorithm.chain(rec, self.lastReceiptSig)
+        rec.previousChain = base64.b64encode(previousChain).decode("utf-8")
 
-        jwsString = sigSystem.sign(receipt.toPayloadString(prefix).encode("utf-8"),
+        jwsString = sigSystem.sign(rec.toPayloadString(prefix).encode("utf-8"),
                 algorithm).decode('utf-8')
         self.lastReceiptSig = jwsString
         
         header, payload, signature = jwsString.split('.')
         header = base64.urlsafe_b64decode(
-                rechnung.restoreb64padding(header)).decode('utf-8')
-        receipt.sign(header, signature)
+                receipt.restoreb64padding(header)).decode('utf-8')
+        rec.sign(header, signature)
 
-        return receipt
+        return rec
 
     def registerId(self):
         return self.registerId

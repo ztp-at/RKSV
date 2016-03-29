@@ -7,46 +7,46 @@ import enum
 
 import algorithms
 import key_store
-import rechnung
+import receipt
 import utils
 
-class CertSerialMismatchException(rechnung.ReceiptException):
+class CertSerialMismatchException(receipt.ReceiptException):
     """
     Indicates that the certificate serial in the receipt and the certificate in
     the DEP group to not match.
     """
-    def __init__(self, receipt):
-        super(CertSerialMismatchException, self).__init__(receipt, "Certificate serial mismatch.")
+    def __init__(self, rec):
+        super(CertSerialMismatchException, self).__init__(rec, "Certificate serial mismatch.")
 
-class CertSerialInvalidException(rechnung.ReceiptException):
+class CertSerialInvalidException(receipt.ReceiptException):
     """
     Indicates that the certificate serial in the receipt is malformed.
     """
-    def __init__(self, receipt):
-        super(CertSerialInvalidException, self).__init__(receipt, "Certificate serial invalid.")
+    def __init__(self, rec):
+        super(CertSerialInvalidException, self).__init__(rec, "Certificate serial invalid.")
 
-class NoPublicKeyException(rechnung.ReceiptException):
+class NoPublicKeyException(receipt.ReceiptException):
     """
     Indicates that no public key to verify the signature of the receipt could be
     found.
     """
-    def __init__(self, receipt):
-        super(NoPublicKeyException, self).__init__(receipt, "No public key found.")
+    def __init__(self, rec):
+        super(NoPublicKeyException, self).__init__(rec, "No public key found.")
 
-class InvalidSignatureException(rechnung.ReceiptException):
+class InvalidSignatureException(receipt.ReceiptException):
     """
     Indicates that the signature of the receipt is invalid.
     """
-    def __init__(self, receipt):
-        super(InvalidSignatureException, self).__init__(receipt, "Invalid Signature.")
+    def __init__(self, rec):
+        super(InvalidSignatureException, self).__init__(rec, "Invalid Signature.")
 
-class SignatureSystemFailedException(rechnung.ReceiptException):
+class SignatureSystemFailedException(receipt.ReceiptException):
     """
     Indicates that the signature system failed and that the receipt was not
     signed.
     """
-    def __init__(self, receipt):
-        super(SignatureSystemFailedException, self).__init__(receipt, "Signature System failed.")
+    def __init__(self, rec):
+        super(SignatureSystemFailedException, self).__init__(rec, "Signature System failed.")
 
 class ReceiptVerifierI:
     """
@@ -54,10 +54,10 @@ class ReceiptVerifierI:
     receipt verifier must implement. Do not use this directly.
     """
 
-    def verify(self, receipt, algorithmPrefix):
+    def verify(self, rec, algorithmPrefix):
         """
         Verifies the given receipt using the algorithm specified.
-        :param receipt: The signed receipt object to verify.
+        :param rec: The signed receipt object to verify.
         :param algorithmPrefix: The ID of the algorithm class used as a string.
         This should match the algorithm used to sign the receipt.
         :returns: The receipt object and the used algorithm class object.
@@ -185,14 +185,14 @@ class ReceiptVerifier(ReceiptVerifierI):
         """
         return ReceiptVerifier(keyStore, None)
 
-    def verify(self, receipt, algorithmPrefix):
-        jwsString = receipt.toJWSString(algorithmPrefix)
+    def verify(self, rec, algorithmPrefix):
+        jwsString = rec.toJWSString(algorithmPrefix)
 
         if algorithmPrefix not in algorithms.ALGORITHMS:
-            raise rechnung.UnknownAlgorithmException(jwsString)
+            raise receipt.UnknownAlgorithmException(jwsString)
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
-        certSerial = key_store.preprocCertSerial(receipt.certSerial)
+        certSerial = key_store.preprocCertSerial(rec.certSerial)
         certSerialType = CertSerialType.getCertSerialType(certSerial)
         if certSerialType == CertSerialType.INVALID:
             raise CertSerialInvalidException(jwsString)
@@ -212,22 +212,22 @@ class ReceiptVerifier(ReceiptVerifierI):
         validationSuccessful = algorithm.verify(jwsString, pubKey)
 
         if not validationSuccessful:
-            if receipt.isSignedBroken():
+            if rec.isSignedBroken():
                 raise SignatureSystemFailedException(jwsString)
             else:
                 raise InvalidSignatureException(jwsString)
 
-        return receipt, algorithm
+        return rec, algorithm
 
     def verifyJWS(self, jwsString):
-        receipt, algorithmPrefix = rechnung.Rechnung.fromJWSString(jwsString)
+        rec, algorithmPrefix = receipt.Receipt.fromJWSString(jwsString)
 
-        return self.verify(receipt, algorithmPrefix)
+        return self.verify(rec, algorithmPrefix)
 
     def verifyBasicCode(self, basicCode):
-        receipt, algorithmPrefix = rechnung.Rechnung.fromBasicCode(basicCode)
+        rec, algorithmPrefix = receipt.Receipt.fromBasicCode(basicCode)
 
-        return self.verify(receipt, algorithmPrefix)
+        return self.verify(rec, algorithmPrefix)
 
 import configparser
 import sys

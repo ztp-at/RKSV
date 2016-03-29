@@ -6,7 +6,7 @@ This module provides functions to verify a DEP.
 import base64
 
 import algorithms
-import rechnung
+import receipt
 import utils
 import verify_receipt
 
@@ -23,9 +23,9 @@ class ChainingException(DEPException):
     that the chain of receipts can not be verified.
     """
 
-    def __init__(self, receipt, receiptPrev):
-        super(ChainingException, self).__init__("At receipt \"" + receipt
-                + "\": Previous receipt is not \"" + receiptPrev + "\".")
+    def __init__(self, rec, recPrev):
+        super(ChainingException, self).__init__("At receipt \"" + rec
+                + "\": Previous receipt is not \"" + recPrev + "\".")
 
 class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
     """
@@ -34,17 +34,17 @@ class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
     required.
     """
 
-    def __init__(self, receipt):
-        super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__("At receipt \"" + receipt
+    def __init__(self, rec):
+        super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__("At receipt \"" + rec
                 + "\": Receipt after restored signature system must not have any turnover.")
 
-class InvalidTurnoverCounterException(rechnung.ReceiptException):
+class InvalidTurnoverCounterException(receipt.ReceiptException):
     """
     This exception indicates that the turnover counter is invalid.
     """
 
-    def __init__(self, receipt):
-        super(InvalidTurnoverCounterException, self).__init__(receipt, "Turnover counter invalid.")
+    def __init__(self, rec):
+        super(InvalidTurnoverCounterException, self).__init__(rec, "Turnover counter invalid.")
 
 class NoCertificateGivenException(DEPException):
     """
@@ -65,25 +65,25 @@ class UntrustedCertificateException(DEPException):
     def __init__(self, cert):
         super(UntrustedCertificateException, self).__init__("Certificate \"" + cert + "\" is not trusted.")
 
-class SignatureSystemFailedOnInitialReceiptException(rechnung.ReceiptException):
+class SignatureSystemFailedOnInitialReceiptException(receipt.ReceiptException):
     """
     Indicates that the initial receipt was not signed.
     """
-    def __init__(self, receipt):
-        super(SignatureSystemFailedOnInitialReceiptException, self).__init__(receipt, "Initial receipt not signed.")
+    def __init__(self, rec):
+        super(SignatureSystemFailedOnInitialReceiptException, self).__init__(rec, "Initial receipt not signed.")
 
-def verifyChain(receipt, jwsString, prev, algorithm):
+def verifyChain(rec, jwsString, prev, algorithm):
     """
     Verifies that a receipt is preceeded by another receipt in the receipt
     chain. It returns nothing on success and throws an exception otherwise.
-    :param receipt: The new receipt as a receipt object.
+    :param rec: The new receipt as a receipt object.
     :param prev: The previous receipt as a JWS string.
     :param algorithm: The algorithm class to use.
     :throws: ChainingException
     """
-    chainingValue = algorithm.chain(receipt, prev)
+    chainingValue = algorithm.chain(rec, prev)
     chainingValue = base64.b64encode(chainingValue)
-    if chainingValue.decode("utf-8") != receipt.previousChain:
+    if chainingValue.decode("utf-8") != rec.previousChain:
         raise ChainingException(jwsString, prev)
 
 def verifyCert(cert, chain, keyStore):
@@ -148,7 +148,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     prev = lastReceipt
     prevObj = None
     if prev:
-        prevObj, algorithmPrefix = rechnung.Rechnung.fromJWSString(prev)
+        prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
     for r in group['Belege-kompakt']:
         ro = None
         algorithm = None
@@ -160,7 +160,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
         except verify_receipt.SignatureSystemFailedException as e:
             if not prevObj:
                 raise SignatureSystemFailedOnInitialReceiptException(r)
-            ro, algorithmPrefix = rechnung.Rechnung.fromJWSString(r)
+            ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
             algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
         if not ro.isDummy():

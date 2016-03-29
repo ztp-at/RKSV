@@ -57,10 +57,10 @@ The `del` command deletes the key or certificate with the given ID.
 
 A key store is just a simple `.ini` file.
 
-rechnung.py
+receipt.py
 -----------
 
-	Usage: ./rechnung.py <in format> <out format>
+	Usage: ./receipt.py <in format> <out format>
 
 This script reads receipts from stdin and writes them to stdout, possibly
 converting them to a different format. The supported input formats are

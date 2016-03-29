@@ -56,7 +56,7 @@ def restoreb64padding(data):
         data += '=' * needed
     return data
 
-class Rechnung:
+class Receipt:
     """
     The basic receipt class. Contains methods to convert a receipt to and from
     various string formats.
@@ -149,7 +149,7 @@ class Rechnung:
         certSerial = segments[11]
         previousChain = segments[12]
 
-        receipt = Rechnung(zda, registerId, receiptId, dateTime,
+        receipt = Receipt(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
                 certSerial, previousChain)
         receipt.sign(header, signature)
@@ -245,7 +245,7 @@ class Rechnung:
         signature = base64.urlsafe_b64encode(signature).replace(b'=', b'')
         signature = signature.decode("utf-8")
 
-        receipt = Rechnung(zda, registerId, receiptId, dateTime,
+        receipt = Receipt(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
                 certSerial, previousChain)
         receipt.sign(header, signature)
@@ -377,8 +377,8 @@ class Rechnung:
 import sys
 
 INPUT_FORMATS = {
-        'jws': lambda s: Rechnung.fromJWSString(s),
-        'qr': lambda s: Rechnung.fromBasicCode(s)
+        'jws': lambda s: Receipt.fromJWSString(s),
+        'qr': lambda s: Receipt.fromBasicCode(s)
         }
 
 OUTPUT_FORMATS = {
@@ -390,7 +390,7 @@ OUTPUT_FORMATS = {
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: ./rechnung.py <in format> <out format>")
+        print("Usage: ./receipt.py <in format> <out format>")
         sys.exit(0)
 
     if sys.argv[1] not in INPUT_FORMATS:
