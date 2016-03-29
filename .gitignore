@@ -2,8 +2,8 @@
 *.swo
 *.pyc
 aesBase64.txt
-cert.key
-cert.crt
-cert.pub
+*.key
+*.crt
+*.pub
 *.ini
 *.txt
