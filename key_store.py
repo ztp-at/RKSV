@@ -208,6 +208,12 @@ class KeyStore(KeyStoreI):
         return keyStore
 
     def writeStoreToJson(self):
+        """
+        Writes the store to a JSON structure that is compatible with the JSON
+        crypto container format and can be used with json.dumps().
+        :return: The JSON container.
+        """
+
         kDict = dict()
         for keyId, kt in self.keydict.items():
             cont = dict()
@@ -226,6 +232,12 @@ class KeyStore(KeyStoreI):
 
     @staticmethod
     def readStoreFromJson(json):
+        """
+        Reads a key store from the given JSON crypto container object.
+        :param json: The JSON container.
+        :return: A KeyStore object.
+        """
+
         keyStore = KeyStore()
 
         for value in json['certificateOrPublicKeyMap'].values():
