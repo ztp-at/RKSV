@@ -9,7 +9,7 @@ from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
 import depexport
-import regk
+import cashreg
 import sigeh
 import utils
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         with open(cert) as f:
             serial = "%x" % utils.loadCert(f.read()).serial
 
-    register = regk.Registrierkassa("AT77", "PIGGYBANK-007", None, int(0.0 * 100), key)
+    register = cashreg.CashRegister("AT77", "PIGGYBANK-007", None, int(0.0 * 100), key)
     sigsystem = sigeh.SignaturerstellungseinheitWorking(serial, priv)
     exporter = None
     if len(sys.argv) == 5:

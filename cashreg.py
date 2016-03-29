@@ -6,7 +6,7 @@ import base64
 import algorithms
 import rechnung
 
-class RegistrierkassaI:
+class CashRegisterI:
     """
     The base class for cash registers. It contains functions that every cash
     register must implement. Do not use this directly.
@@ -53,7 +53,7 @@ class RegistrierkassaI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
-class Registrierkassa(RegistrierkassaI):
+class CashRegister(CashRegisterI):
     """
     A concrete implementation of a simple cash register.
     """
