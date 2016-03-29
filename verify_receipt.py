@@ -258,3 +258,5 @@ if __name__ == "__main__":
     else:
         for l in sys.stdin:
             INPUT_FORMATS[sys.argv[1]](rv, l.strip())
+
+    print("All receipts verified successfully.")

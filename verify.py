@@ -272,3 +272,5 @@ if __name__ == "__main__":
         dep = json.loads(f.read())
 
     verifyDEP(dep, keyStore, key)
+
+    print("Verification successful.")
