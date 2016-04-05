@@ -1,7 +1,7 @@
+Actually check for the certificate, not just for the ID in verifyCert
 Implement conversion tool (DEP -> CSV, CSV -> DEP)
-Allow using test service (page 17) for DEP creation http://labs.a-trust.at/developer/pdf/RegistrierkasseMobileDev.pdf
+Remove usage of same name for variables and functions in cashreg and sigsys
 Verify OCR receipts
 Verify URL receipts
 Android app?
 Support both counter update methods described in new doc
-test and integrate registrierkasse mobile? see: https://github.com/a-sit-plus/at-registrierkassen-mustercode/issues/38
