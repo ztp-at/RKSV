@@ -98,8 +98,8 @@ class CashRegister(CashRegisterI):
         previousChain = algorithm.chain(rec, self.lastReceiptSig)
         rec.previousChain = base64.b64encode(previousChain).decode("utf-8")
 
-        jwsString = sigSystem.sign(rec.toPayloadString(prefix).encode("utf-8"),
-                algorithm).decode('utf-8')
+        jwsString = sigSystem.sign(rec.toPayloadString(prefix),
+                algorithm)
         self.lastReceiptSig = jwsString
         
         header, payload, signature = jwsString.split('.')

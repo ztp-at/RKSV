@@ -30,6 +30,13 @@ class AlgorithmI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
+    def sigAlgo(self):
+        """
+        The JWS signature algorithm used.
+        :return: Returns the JWS signature algorithm as a string.
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
     def hash(self, data):
         """
         Hashes the given data with the hash algorithm specified for the
@@ -100,7 +107,10 @@ class R1(AlgorithmI):
         return "R1"
 
     def jwsHeader(self):
-        return '{"alg":"ES256"}'
+        return '{"alg":"%s"}' % self.sigAlgo()
+
+    def sigAlgo(self):
+        return "ES256"
 
     def hash(self, data):
         return utils.sha256(data.encode("utf-8"))
@@ -119,7 +129,8 @@ class R1(AlgorithmI):
         alg = self.jwsHeader().encode("utf-8")
         alg = base64.urlsafe_b64encode(alg).replace(b'=', b'')
 
-        payload = base64.urlsafe_b64encode(payload).replace(b'=', b'')
+        payload = base64.urlsafe_b64encode(payload.encode(
+            "utf-8")).replace(b'=', b'')
 
         key = algo.prepare_key(privKey)
         sig = algo.sign(alg + b'.' + payload, key)

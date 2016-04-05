@@ -13,28 +13,44 @@ import cashreg
 import sigsys
 import utils
 
-if __name__ == "__main__":
-    if len(sys.argv) < 5 or len(sys.argv) > 6:
-        print("Usage: ./demo.py <private key file> <cert file> <base64 AES key file> <number of receipts>")
-        print("       ./demo.py <private key file> <public key file> <key ID> <base64 AES key file> <number of receipts>")
-        sys.exit(0)
+def usage():
+    print("Usage: ./demo.py <private key file> <cert file> <base64 AES key file> <number of receipts>")
+    print("       ./demo.py <private key file> <public key file> <key ID> <base64 AES key file> <number of receipts>")
+    print("       ./demo.py <base64 AES key file> <number of receipts>")
+    sys.exit(0)
 
-    priv = None
+if __name__ == "__main__":
+    if len(sys.argv) < 3 or len(sys.argv) > 6:
+        usage()
+
     cert = None
+    sigsystem = None
     keyf = None
-    serial = None
     num = 0
-    if len(sys.argv) == 5:
+    if len(sys.argv) == 3:
+        sigsystem = sigsys.SignatureSystemATrustMobile("u123456789",
+                "123456789", "A-Trust-Stamm.pem")
+        keyf = sys.argv[1]
+        num = int(sys.argv[2])
+    elif len(sys.argv) == 5:
         priv = sys.argv[1]
         cert = sys.argv[2]
+        serial = None
+        with open(cert) as f:
+            serial = "%x" % utils.loadCert(f.read()).serial
+
+        sigsystem = sigsys.SignatureSystemWorking("AT77", serial, priv)
         keyf = sys.argv[3]
         num = int(sys.argv[4])
-    else:
+    elif len(sys.argv) == 6:
         priv = sys.argv[1]
-        cert = sys.argv[2]
         serial = sys.argv[3]
+
+        sigsystem = sigsys.SignatureSystemWorking("AT77", serial, priv)
         keyf = sys.argv[4]
         num = int(sys.argv[5])
+    else:
+        usage()
 
     if num < 1:
         print("The number of receipts must be at least 1.")
@@ -44,17 +60,8 @@ if __name__ == "__main__":
     with open(keyf) as f:
         key = base64.b64decode(f.read().encode("utf-8"))
 
-    if not serial:
-        with open(cert) as f:
-            serial = "%x" % utils.loadCert(f.read()).serial
-
     register = cashreg.CashRegister("PIGGYBANK-007", None, int(0.0 * 100), key)
-    sigsystem = sigsys.SignatureSystemWorking("AT77", serial, priv)
-    exporter = None
-    if len(sys.argv) == 5:
-        exporter = depexport.DEPExporter('R1', cert)
-    else:
-        exporter = depexport.DEPExporter('R1', None)
+    exporter = depexport.DEPExporter('R1', cert)
 
     receipts = [register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0, 0.0,
         0.0, 0.0, sigsystem)]
