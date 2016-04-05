@@ -25,18 +25,27 @@ class SignatureSystemI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
+    def zda(self):
+        """
+        The ZDA ID of the signature provider.
+        :return: The ZDA ID as a string.
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
 class SignatureSystemBroken(SignatureSystemI):
     """
     A broken signature system. It will \"sign\" all receipts with the standard
     broken message.
     """
 
-    def __init__(self, serial):
+    def __init__(self, zda, serial):
         """
         Creates a broken signature system.
+        :param zda: The ZDA ID as a string.
         :param serial: The serial of the certificate, that would normally be
         used, as a string.
         """
+        self.zda = zda
         self.serial = serial
 
     def sign(self, data, algorithm):
@@ -52,17 +61,22 @@ class SignatureSystemBroken(SignatureSystemI):
     def serial(self):
         return self.serial
 
+    def zda(self):
+        return self.zda
+
 class SignatureSystemWorking(SignatureSystemI):
     """
     A working signature system. It will sign receipts.
     """
 
-    def __init__(self, serial, privKeyFile):
+    def __init__(self, zda, serial, privKeyFile):
         """
         Creates a working signature system.
+        :param zda: The ZDA ID as a string.
         :param serial: The serial of the certificate as a string.
         :param privKeyFile: A file containing the private key in the PEM format.
         """
+        self.zda = zda
         self.serial = serial
 
         with open(privKeyFile) as f:
@@ -80,3 +94,6 @@ class SignatureSystemWorking(SignatureSystemI):
 
     def serial(self):
         return self.serial
+
+    def zda(self):
+        return self.zda

@@ -58,17 +58,15 @@ class CashRegister(CashRegisterI):
     A concrete implementation of a simple cash register.
     """
 
-    def __init__(self, zda, registerId, lastReceiptSig, turnoverCounter, key):
+    def __init__(self, registerId, lastReceiptSig, turnoverCounter, key):
         """
         Creates a new cash register with the specified data.
-        :param zda: The ZDA ID as a string.
         :param registerId: The ID of the register as a string.
         :param lastReceiptSig: The last receipt as a JWS string or None if no
         previous receipts exist.
         :param turnoverCounter: The initial value of the turnover counter.
         :param key: The AES key to encrypt the turnover counter as a byte list.
         """
-        self.zda = zda
         self.registerId = registerId
         self.lastReceiptSig = lastReceiptSig
         self.turnoverCounter = int(turnoverCounter)
@@ -78,8 +76,9 @@ class CashRegister(CashRegisterI):
         algorithm = algorithms.ALGORITHMS[prefix]
 
         certSerial = sigSystem.serial
+        zda = sigSystem.zda
 
-        rec = receipt.Receipt(self.zda, self.registerId, receiptId, dateTime,
+        rec = receipt.Receipt(zda, self.registerId, receiptId, dateTime,
             sumA, sumB, sumC, sumD, sumE, '', certSerial, '')
 
         encTurnoverCounter = None

@@ -48,8 +48,8 @@ if __name__ == "__main__":
         with open(cert) as f:
             serial = "%x" % utils.loadCert(f.read()).serial
 
-    register = cashreg.CashRegister("AT77", "PIGGYBANK-007", None, int(0.0 * 100), key)
-    sigsystem = sigsys.SignatureSystemWorking(serial, priv)
+    register = cashreg.CashRegister("PIGGYBANK-007", None, int(0.0 * 100), key)
+    sigsystem = sigsys.SignatureSystemWorking("AT77", serial, priv)
     exporter = None
     if len(sys.argv) == 5:
         exporter = depexport.DEPExporter('R1', cert)

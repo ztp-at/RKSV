@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     key = base64.b64decode(tcJson['base64AesKey'])
 
-    register = cashreg.CashRegister('AT0', tcJson['cashBoxId'], None,
+    register = cashreg.CashRegister(tcJson['cashBoxId'], None,
             int(0.0 * 100), key)
 
     keyStore = key_store.KeyStore()
@@ -46,8 +46,9 @@ if __name__ == "__main__":
             keyStore.putPEMCert(cert)
             serial = "%x" % utils.loadCert(cert).serial
 
-        sigB = sigsys.SignatureSystemBroken(serial)
-        sigW = sigsys.SignatureSystemWorking(serial, sys.argv[i * 2 + 2])
+        sigB = sigsys.SignatureSystemBroken('AT0', serial)
+        sigW = sigsys.SignatureSystemWorking('AT0', serial,
+                sys.argv[i * 2 + 2])
 
         sigsBroken.append(sigB)
         sigsWorking.append(sigW)
