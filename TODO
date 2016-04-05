@@ -1,4 +1,3 @@
-Actually check for the certificate, not just for the ID in verifyCert
 Implement conversion tool (DEP -> CSV, CSV -> DEP)
 Verify OCR receipts
 Verify URL receipts

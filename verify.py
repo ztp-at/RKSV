@@ -65,6 +65,15 @@ class UntrustedCertificateException(DEPException):
     def __init__(self, cert):
         super(UntrustedCertificateException, self).__init__("Certificate \"" + cert + "\" is not trusted.")
 
+class CertificateSerialCollisionException(DEPException):
+    """
+    This exception indicates that two certificates with matching serials but
+    different fingerprints were detected which could indicate an attempted attack.
+    """
+
+    def __init__(self, serial, cert1FP, cert2FP):
+        super(CertificateSerialCollisionException, self).__init__("Two certificates with serial \"" + serial + "\" detected (fingerprints \"" + cert1FP + "\" and \"" + cert2FP + "\"). This may be an attempted attack.")
+
 class SignatureSystemFailedOnInitialReceiptException(receipt.ReceiptException):
     """
     Indicates that the initial receipt was not signed.
@@ -96,11 +105,18 @@ def verifyCert(cert, chain, keyStore):
     footer. These represent the signing chain for the certificate.
     :param keyStore: The key store.
     :throws: UntrustedCertificateException
+    :throws: CertificateSerialCollisionException
     """
     prev = utils.loadCert(utils.addPEMCertHeaders(cert))
 
     for c in chain:
-        if keyStore.getKey(key_store.preprocCertSerial(prev.serial)):
+        ksCert = keyStore.getCert(key_store.preprocCertSerial(prev.serial))
+        if ksCert:
+            if utils.certFingerprint(ksCert) != utils.certFingerprint(prev):
+                raise CertificateSerialCollisionException(
+                        key_store.preprocCertSerial(prev.serial),
+                        utils.certFingerprint(prev),
+                        utils.certFingerprint(ksCert))
             return
 
         cur = utils.loadCert(utils.addPEMCertHeaders(c))
@@ -110,7 +126,13 @@ def verifyCert(cert, chain, keyStore):
 
         prev = cur
 
-    if keyStore.getKey(key_store.preprocCertSerial(prev.serial)):
+    ksCert = keyStore.getCert(key_store.preprocCertSerial(prev.serial))
+    if ksCert:
+        if utils.certFingerprint(ksCert) != utils.certFingerprint(prev):
+            raise CertificateSerialCollisionException(
+                    key_store.preprocCertSerial(prev.serial),
+                    utils.certFingerprint(prev),
+                    utils.certFingerprint(ksCert))
         return
 
     raise UntrustedCertificateException(cert)
@@ -202,6 +224,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: UnknownAlgorithmException
     :throws: AlgorithmMismatchException
     :throws: UntrustedCertificateException
+    :throws: CertificateSerialCollisionException
     :throws: SignatureSystemFailedOnInitialReceiptException
     """
     lastReceipt = None

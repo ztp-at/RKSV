@@ -133,3 +133,11 @@ def verifyCert(cert, signCert):
         return True
     except InvalidSignature as e:
         return False
+
+def certFingerprint(cert):
+    """
+    Gets a certificates SHA256 fingerprint.
+    :param cert: The certificate as a cryptography certificate object.
+    :return: The fingerprint as a string.
+    """
+    return ':'.join('{:02x}'.format(b) for b in cert.fingerprint(hashes.SHA256()))
