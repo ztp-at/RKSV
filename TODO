@@ -1,4 +1,5 @@
-Update demo tool according to feedback
+Implement conversion tool (DEP -> CSV, CSV -> DEP)
+Allow using test service (page 17) for DEP creation http://labs.a-trust.at/developer/pdf/RegistrierkasseMobileDev.pdf
 Verify OCR receipts
 Verify URL receipts
 Android app?
