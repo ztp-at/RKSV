@@ -17,6 +17,7 @@ demo.py
 -------
 	Usage: ./demo.py <private key file> <cert file> <base64 AES key file> <number of receipts>
 	       ./demo.py <private key file> <public key file> <key ID> <base64 AES key file> <number of receipts>
+	       ./demo.py <base64 AES key file> <number of receipts>
 
 The first invocation generates a DEP with `number of receipts` receipts
 and signs them with the given private key. The certificate is used to
@@ -25,6 +26,12 @@ obtain the serial number to use in the receipts.
 The second invocation generates a DEP file, but uses the given key ID in
 the receipts and does not include a certificate in the DEP export. The
 public key file should contain the public key to the given private key.
+
+The third invocation generates a DEP file but uses the Registrierkasse Mobile
+service from A-Trust to create the signatures. It uses the default test login
+(`u123456789`:`123456789`) and the SSL certificates in `A-Trust-Stamm.pem`. The
+certificate used to sign the receipts is located in `regk-mobile-test.crt` or
+can be downloaded from the A-Trust service.
 
 The AES key file should contain the key used to encrypt the turnover
 counter in each receipt as base64 encoded text.
