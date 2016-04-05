@@ -107,11 +107,14 @@ class SignatureSystemATrustMobile(SignatureSystemI):
     """
     ATrustURL = 'https://hs-abnahme.a-trust.at/RegistrierkasseMobile/v2/'
 
-    def __init__(self, username, password, certFile=False):
+    def __init__(self, username, password, certFile=True):
         """
         Creates a new signature system.
         :param username: The username for the A-Trust REST service as a string.
         :param password: The password for the A-Trust REST service as a string.
+        :param certFile: A path to a PEM certificate file containing the root CA
+        used to verify the servers SSL certificate, or True to use the system's
+        CA store or False to disable verification.
         """
         self.username = username
         self.password = password
