@@ -12,6 +12,24 @@ class CashRegisterI:
     register must implement. Do not use this directly.
     """
 
+    registerId = None
+    """
+    The ID of the register.
+    :return: The ID of the register as a string.
+    """
+
+    lastReceiptSig = None
+    """
+    The last receipt.
+    :return: The last receipt as JWS String
+    """
+
+    turnoverCounter = None
+    """
+    The turnover counter.
+    :return: The turnover counter as int.
+    """
+
     def receipt(self, prefix, receiptId, dateTime, sumA, sumB, sumC, sumD, sumE,
             sigSystem, dummy=False, reversal=False):
         """
@@ -29,27 +47,6 @@ class CashRegisterI:
         :param dummy: Whether the generated receipt is a dummy receipt.
         :param reversal: Whether the generated receipt is a reversal.
         :return: The created receipt as a receipt object.
-        """
-        raise NotImplementedError("Please implement this yourself.")
-
-    def registerId(self):
-        """
-        The ID of the register.
-        :return: The ID of the register as a string.
-        """
-        raise NotImplementedError("Please implement this yourself.")
-
-    def lastReceiptSig(self):
-        """
-        The last receipt.
-        :return: The last receipt as JWS String
-        """
-        raise NotImplementedError("Please implement this yourself.")
-
-    def turnoverCounter(self):
-        """
-        The turnover counter.
-        :return: The turnover counter as int.
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -108,12 +105,3 @@ class CashRegister(CashRegisterI):
         rec.sign(header, signature)
 
         return rec
-
-    def registerId(self):
-        return self.registerId
-
-    def lastReceiptSig(self):
-        return self.lastReceiptSig
-
-    def turnoverCounter(self):
-        return self.turnoverCounter

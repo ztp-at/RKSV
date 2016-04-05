@@ -1,6 +1,5 @@
 Actually check for the certificate, not just for the ID in verifyCert
 Implement conversion tool (DEP -> CSV, CSV -> DEP)
-Remove usage of same name for variables and functions in cashreg and sigsys
 Verify OCR receipts
 Verify URL receipts
 Android app?

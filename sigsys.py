@@ -10,26 +10,24 @@ class SignatureSystemI:
     signature system must implement. Do not use this directly.
     """
 
+    serial = None
+    """
+    The serial of the certificate the signature system uses.
+    :return: The serial as a string.
+    """
+
+    zda = None
+    """
+    The ZDA ID of the signature provider.
+    :return: The ZDA ID as a string.
+    """
+
     def sign(self, data, algorithm):
         """
         Signs the given payload using the given algorithm.
         :param data: The data to be signed as a string.
         :param algorithm: The algorithm object used to perform the signature.
         :return: The signed data as JWS string.
-        """
-        raise NotImplementedError("Please implement this yourself.")
-
-    def serial(self):
-        """
-        The serial of the certificate the signature system uses.
-        :return: The serial as a string.
-        """
-        raise NotImplementedError("Please implement this yourself.")
-
-    def zda(self):
-        """
-        The ZDA ID of the signature provider.
-        :return: The ZDA ID as a string.
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -146,9 +144,3 @@ class SignatureSystemATrustMobile(SignatureSystemI):
         except requests.exceptions.RequestException as e:
             return SignatureSystemBroken(self.zda, self.serial).sign(data,
                     algorithm)
-
-    def serial(self):
-        self.serial
-
-    def zda(self):
-        self.zda
