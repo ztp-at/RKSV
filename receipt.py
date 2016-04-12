@@ -290,11 +290,13 @@ class Receipt:
         segments.append(("%.2f" % self.sumE).replace('.',',').encode("utf-8"))
 
         encTurnoverCounter = self.encTurnoverCounter.encode("utf-8")
+        encTurnoverCounter = base64.b64decode(encTurnoverCounter)
         segments.append(base64.b32encode(encTurnoverCounter))
 
         segments.append(self.certSerial.encode("utf-8"))
 
         previousChain = self.previousChain.encode("utf-8")
+        previousChain = base64.b64decode(previousChain)
         segments.append(base64.b32encode(previousChain))
 
         signature = restoreb64padding(self.signature).encode("utf-8")
