@@ -7,3 +7,4 @@ aesBase64.txt
 *.pub
 *.ini
 *.txt
+*.csv
