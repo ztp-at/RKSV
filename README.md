@@ -91,7 +91,7 @@ converting them to a different format. The supported input formats are
 verify.py
 ---------
 	Usage: ./verify.py keyStore <key store> <dep export file> [<base64 AES key file>]
-               ./verify.py json <json container file> <dep export file>
+	       ./verify.py json <json container file> <dep export file>
 
 This script, when called with the `keyStore` command, verifies the given DEP
 export file. The used certificates or public keys must be available in the given
@@ -114,3 +114,17 @@ If `receipt string` is given, the receipt from the command line is
 verified, otherwise the script reads and verifies receipts from stdin. If
 all receipts are valid the script prints nothing, if the verification fails
 it will print an error message.
+
+convert.py
+----------
+	Usage: ./convert.py json2csv
+	       ./convert.py csv2json
+
+The convert script allows to convert a JSON DEP to CSV and vice-versa. The
+input file is read from stdin and the output is written to stdout.
+
+If a JSON file contains multiple groups of receipts, they are merged. Groups and
+certificates are not mapped into the CSV and hence cannot be restored when
+converting back to JSON.
+
+The CSV contains one receipt per line with `;` serving as the delimiter.

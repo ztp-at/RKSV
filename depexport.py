@@ -50,3 +50,22 @@ class DEPExporter(DEPExporterI):
                 ]
                }
         return json.dumps(data, sort_keys=False, indent=2)
+
+# Supports no certs and no groups
+class CSVExporter(DEPExporterI):
+    """
+    Exports a DEP to CSV format.
+    """
+
+    def __init__(self, prefix):
+        """
+        Creates a CSVExporter.
+        :param prefix: The ID of the algorithm used.
+        """
+        self.prefix = prefix
+
+    def export(self, receipts):
+        ret = 'Alg+ZDA;Register ID;Receipt ID;Date+Time;Sum A;Sum B;Sum C;Sum D;Sum E;Turnover Counter;Cert. Serial;Chaining Value;Signature'
+        for r in receipts:
+            ret = ret + '\n' + r.toBasicCode(self.prefix)[1:].replace('_', ';')
+        return ret
