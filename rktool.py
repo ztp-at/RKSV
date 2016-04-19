@@ -5,13 +5,24 @@ kivy.require('1.9.0')
 
 import os 
 
+from kivy.adapters.dictadapter import DictAdapter
+from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.app import App
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.label import Label
+from kivy.uix.listview import CompositeListItem
+from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
+
+import receipt
+
+class ErrorDialog(FloatLayout):
+    exception = ObjectProperty(None)
+    cancel = ObjectProperty(None)
 
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
@@ -29,6 +40,24 @@ class SingleValueDialog(FloatLayout):
 
 class TreeViewButton(Button, TreeViewNode):
     pass
+
+class ViewReceiptWidget(BoxLayout):
+    adapter = ObjectProperty(None)
+    cancel = ObjectProperty(None)
+
+    def __init__(self, receipt, algorithmPrefix, isValid, key, **kwargs):
+        # TODO: handle isValid and key
+
+        self._receipt = receipt
+        self._algorithmPrefix = algorithmPrefix
+        self.adapter = SimpleListAdapter(data=['asdf', 'qwer'],
+                cls=Label)
+
+        super(ViewReceiptWidget, self).__init__(**kwargs)
+
+    def verify(self):
+        # TODO
+        pass
 
 class VerifyReceiptWidget(BoxLayout):
     receiptInput = ObjectProperty(None)
@@ -52,7 +81,7 @@ class VerifyReceiptWidget(BoxLayout):
 
         self.dismissPopup()
 
-    def viewReceipt(self, btn):
+    def viewReceipt(self):
         # TODO
         pass
 
@@ -69,8 +98,20 @@ class VerifyDEPWidget(BoxLayout):
         App.get_running_app().updateKSWidget()
 
     def viewReceipt(self, btn):
-        # TODO
-        pass
+        try:
+            rec, prefix = receipt.Receipt.fromJWSString(btn.text)
+
+            # TODO: properly pass isValid and key
+            content = ViewReceiptWidget(rec, prefix, False, None,
+                    cancel=self.dismissPopup)
+            self._popup = ModalView(auto_dismiss=False)
+            self._popup.add_widget(content)
+            self._popup.open()
+        except receipt.ReceiptException as e:
+            content = ErrorDialog(exception=e, cancel=self.dismissPopup)
+            self._popup = Popup(title="Error", content=content,
+                    size_hint=(0.9, 0.9))
+            self._popup.open()
 
     def updateDEPDisplay(self):
         tv = self.treeView
@@ -100,8 +141,8 @@ class VerifyDEPWidget(BoxLayout):
                         chainNode)
 
             for receipt in group['Belege-kompakt']:
-                tv.add_node(TreeViewButton(text=receipt, on_press=self.viewReceipt),
-                        receiptsNode)
+                tv.add_node(TreeViewButton(text=receipt,
+                    on_press=self.viewReceipt), receiptsNode)
 
     def dismissPopup(self):
         self._popup.dismiss()

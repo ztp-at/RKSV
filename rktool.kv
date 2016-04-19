@@ -4,6 +4,20 @@
 	text_size: self.size
 	size_hint_y: None
 
+<ErrorDialog>:
+	BoxLayout:
+		size: root.size
+		pos: root.pos
+		orientation: "vertical"
+		Label:
+			text_size: root.width, None
+			size: self.texture_size
+			text: str(root.exception)
+		Button:
+			size_hint_y: None
+			text: "Ok"
+			on_release: root.cancel()
+
 <LoadDialog>:
 	BoxLayout:
 		size: root.size
@@ -76,6 +90,27 @@
 		halign: 'left'
 		valign: 'middle'
 		text: self.parent.text
+
+<ViewReceiptWidget>:
+	id: view_w
+	orientation: 'vertical'
+	ActionBar:
+		pos_hint: {'top': 1}
+		ActionView:
+			use_separator: True
+			ActionPrevious:
+				title: 'Rechnung'
+				on_press: root.cancel()
+			ActionOverflow:
+			ActionButton:
+				text: 'Exit'
+				on_press: app.stop()
+	ListView:
+		adapter: view_w.adapter
+	Button:
+		size_hint_y: None
+		text: 'Verify'
+		on_press: view_w.verify()
 
 <VerifyReceiptWidget>:
 	id: vr_w
