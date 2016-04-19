@@ -6,14 +6,12 @@ kivy.require('1.9.0')
 import os 
 
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.app import App
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.label import Label
-from kivy.uix.listview import CompositeListItem
+from kivy.uix.listview import CompositeListItem, ListItemButton, ListItemLabel
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
@@ -50,8 +48,38 @@ class ViewReceiptWidget(BoxLayout):
 
         self._receipt = receipt
         self._algorithmPrefix = algorithmPrefix
-        self.adapter = SimpleListAdapter(data=['asdf', 'qwer'],
-                cls=Label)
+
+        convert = lambda row_index, rec: \
+                { 'size_hint_y': None
+                , 'cls_dicts': [ { 'cls': ListItemLabel
+                                 , 'kwargs': {'text': rec[0]
+                                             ,'halign': 'right'}
+                                 }
+                               , { 'cls': ListItemLabel
+                                 , 'kwargs': {'text': rec[1]
+                                             ,'halign': 'left'}
+                                 }
+                               ]
+                }
+        keys = list(range(1, 14))
+        maps =  { 1: ( 'ZDA ID', algorithmPrefix + '-' + receipt.zda )
+                , 2: ( 'Cash Register ID', receipt.registerId )
+                , 3: ( 'Receipt ID', receipt.receiptId )
+                , 4: ( 'Timestamp', receipt.dateTime.strftime("%Y-%m-%dT%H:%M:%S") )
+                , 5: ( 'Sum Tax Normal', str(receipt.sumA) )
+                , 6: ( 'Sum Tax Reduced 1', str(receipt.sumB) )
+                , 7: ( 'Sum Tax Reduced 2', str(receipt.sumC) )
+                , 8: ( 'Sum Tax Zero', str(receipt.sumD) )
+                , 9: ( 'Sum Tax Special', str(receipt.sumE) )
+                ,10: ( 'Turnover Counter', receipt.encTurnoverCounter )
+                ,11: ( 'Certificate Serial/Key ID', receipt.certSerial )
+                ,12: ( 'Chaining Value', receipt.previousChain )
+                ,13: ( 'Signature', receipt.signature )
+                }
+
+        self.adapter = DictAdapter(sorted_keys=keys,
+                data=maps, args_converter=convert,
+                cls=CompositeListItem)
 
         super(ViewReceiptWidget, self).__init__(**kwargs)
 
