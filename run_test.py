@@ -12,16 +12,26 @@ import key_store
 import sigsys
 import utils
 
+def usage():
+    print("Usage: ./run_test.py open <JSON test case spec> <cert 1 priv> <cert 1> [<cert 2 priv> <cert 2>]...")
+    print("       ./run_test.py closed <JSON test case spec> <key 1 priv> <pub key 1> [<key 2 priv> <pub key 2>]...")
+    sys.exit(0)
+
 if __name__ == "__main__":
-    if len(sys.argv) < 4 or len(sys.argv) % 2 != 0:
-        print("Usage: ./run_test.py <JSON test case spec> <cert 1 priv> <cert 1> [<cert 2 priv> <cert 2>]...")
-        sys.exit(0)
+    if len(sys.argv) < 4 or len(sys.argv) % 2 != 1:
+        usage()
+
+    closed = False
+    if sys.argv[1] == 'closed':
+        closed = True
+    elif sys.argv[1] != 'open':
+        usage()
 
     tcJson = None
-    with open(sys.argv[1]) as f:
+    with open(sys.argv[2]) as f:
         tcJson = json.loads(f.read())
 
-    if len(sys.argv) != (tcJson['numberOfSignatureDevices'] * 2 + 2):
+    if len(sys.argv) != (tcJson['numberOfSignatureDevices'] * 2 + 3):
         print("I need keys and certificates for %d signature devices." %
                 tcJson['numberOfSignatureDevices'])
         sys.exit(0)
@@ -41,14 +51,18 @@ if __name__ == "__main__":
     sigsWorking = list()
     for i in range(tcJson['numberOfSignatureDevices']):
         serial = None
-        with open(sys.argv[i * 2 + 1 + 2]) as f:
+        with open(sys.argv[i * 2 + 1 + 3]) as f:
             cert = f.read()
-            keyStore.putPEMCert(cert)
-            serial = "%x" % utils.loadCert(cert).serial
+            if closed:
+                serial = "%s-K%d" % (tcJson['companyID'], i)
+                keyStore.putPEMKey(serial, cert)
+            else:
+                keyStore.putPEMCert(cert)
+                serial = "%x" % utils.loadCert(cert).serial
 
         sigB = sigsys.SignatureSystemBroken('AT0', serial)
         sigW = sigsys.SignatureSystemWorking('AT0', serial,
-                sys.argv[i * 2 + 2])
+                sys.argv[i * 2 + 3])
 
         sigsBroken.append(sigB)
         sigsWorking.append(sigW)

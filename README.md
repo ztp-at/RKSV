@@ -40,17 +40,21 @@ Certificate and key files are expected to be in PEM format.
 
 run_test.py
 -----------
-	Usage: ./run_test.py <JSON test case spec> <cert 1 priv> <cert 1> [<cert 2 priv> <cert 2>]...
+	Usage: ./run_test.py open <JSON test case spec> <cert 1 priv> <cert 1> [<cert 2 priv> <cert 2>]...
+	       ./run_test.py closed <JSON test case spec> <key 1 priv> <pub key 1> [<key 2 priv> <pub key 2>]...
 
-This script takes a test run specification in JSON format as the first
-parameter and private key files and certificate files for each used signature
-system as subsequent parameters.
+This script takes the mode and a test run specification in JSON format as the
+first two parameters and private key files and public key/certificate files for
+each used signature system as subsequent parameters.
 
 It simulates a cash register running the specified test case. The output is
 stored in a directory named after the test case (the `simulationRunLabel`
 property). The DEP is stored in the file `dep-export.json` and the cryptographic
 material (AES keys, certificates, public keys etc.) is stored in
 `cryptographicMaterialContainer.json` in the JSON container format.
+
+The `open` mode simulates an open system and uses certificates. The `closed`
+mode simulates a closed system and uses plain public keys.
 
 key_store.py
 ------------
