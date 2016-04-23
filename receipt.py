@@ -320,6 +320,26 @@ class Receipt:
 
         return base64.urlsafe_b64encode((algorithm.hash(payload)[0:8])).decode("utf-8")
 
+    @staticmethod
+    def fromCSV(csv):
+        """
+        Creates a receipt object from a CSV string.
+        :param csv: The CSV string to parse.
+        :return: The new, signed receipt object.
+        :throws: MalformedReceiptException
+        :throws: UnknownAlgorithmException
+        """
+        segs = [ s.strip() for s in csv.split(';') ]
+        return Receipt.fromBasicCode('_' + ('_'.join(segs)))
+
+    def toCSV(self, algorithmPrefix):
+        """
+        Converts the receipt to a CSV string.
+        :param algorithmPrefix: The ID of the algorithm class used as a string.
+        :return The receipt as a CSV string.
+        """
+        return self.toBasicCode(algorithmPrefix)[1:].replace('_', ';')
+
     def sign(self, header, signature):
         """
         Signs the receipt with the given signature and JWS header.

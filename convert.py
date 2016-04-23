@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import csv
 import json
 import sys
 
@@ -24,11 +23,9 @@ if __name__ == "__main__":
                     in g['Belege-kompakt'] ]
         exporter = depexport.CSVExporter('R1')
     elif sys.argv[1] == 'csv2json':
-        reader = csv.reader(sys.stdin, delimiter=';')
-        next(reader)
-        for row in reader:
-            r = '_' + ('_'.join(row))
-            recs.append(receipt.Receipt.fromBasicCode(r)[0])
+        next(sys.stdin)
+        for row in sys.stdin:
+            recs.append(receipt.Receipt.fromCSV(row.strip())[0])
         exporter = depexport.DEPExporter('R1', None)
     else:
         usage()

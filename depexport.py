@@ -67,5 +67,5 @@ class CSVExporter(DEPExporterI):
     def export(self, receipts):
         ret = 'Alg+ZDA;Register ID;Receipt ID;Date+Time;Sum A;Sum B;Sum C;Sum D;Sum E;Turnover Counter;Cert. Serial;Chaining Value;Signature'
         for r in receipts:
-            ret = ret + '\n' + r.toBasicCode(self.prefix)[1:].replace('_', ';')
+            ret = ret + '\n' + r.toCSV(self.prefix)
         return ret
