@@ -400,14 +400,16 @@ import sys
 
 INPUT_FORMATS = {
         'jws': lambda s: Receipt.fromJWSString(s),
-        'qr': lambda s: Receipt.fromBasicCode(s)
+        'qr': lambda s: Receipt.fromBasicCode(s),
+        'csv': lambda s: Receipt.fromCSV(s)
         }
 
 OUTPUT_FORMATS = {
         'jws': lambda r, p: r.toJWSString(p),
         'qr': lambda r, p: r.toBasicCode(p),
         'ocr': lambda r, p: r.toOCRCode(p),
-        'url': lambda r, p: r.toURLHash(p)
+        'url': lambda r, p: r.toURLHash(p),
+        'csv': lambda r, p: r.toCSV(p)
         }
 
 if __name__ == "__main__":

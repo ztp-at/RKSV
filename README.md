@@ -89,8 +89,8 @@ receipt.py
 
 This script reads receipts from stdin and writes them to stdout, possibly
 converting them to a different format. The supported input formats are
-`jws` and `qr`. The supported output formats are `jws`, `qr`, `ocr` and
-`url`.
+`jws`, `qr` and `csv`. The supported output formats are `jws`, `qr`, `ocr`,
+`url` and `csv`.
 
 verify.py
 ---------
@@ -113,11 +113,11 @@ verify_receipt.py
 	Usage: ./verify_receipt.py <format> <key store> [<receipt string>]
 
 This script verifies receipts. The used certificates or public keys must be
-available in the given key store. The formats `jws` and `qr` are supported.
-If `receipt string` is given, the receipt from the command line is
-verified, otherwise the script reads and verifies receipts from stdin. If
-all receipts are valid the script prints nothing, if the verification fails
-it will print an error message.
+available in the given key store. The formats `jws`, `qr` and `csv` are
+supported. If `receipt string` is given, the receipt from the command line is
+verified, otherwise the script reads and verifies receipts from stdin. If all
+receipts are valid the script prints nothing, if the verification fails it will
+print an error message.
 
 convert.py
 ----------

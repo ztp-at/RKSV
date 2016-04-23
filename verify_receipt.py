@@ -104,6 +104,22 @@ class ReceiptVerifierI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
+    def verifyCSV(self, csv):
+        """
+        Verifies the given receipt.
+        :param csv: The receipt as CSV string.
+        :returns: The receipt object and the used algorithm class object.
+        :throws: CertSerialInvalidException
+        :throws: CertSerialMismatchException
+        :throws: NoPublicKeyException
+        :throws: InvalidSignatureException
+        :throws: UnknownAlgorithmException
+        :throws: InvalidSignatureException
+        :throws: SignatureSystemFailedException
+        :throws: MalformedReceiptException
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
 class CertSerialType(enum.Enum):
     """
     An enum for all the different types of certificate serials
@@ -229,12 +245,18 @@ class ReceiptVerifier(ReceiptVerifierI):
 
         return self.verify(rec, algorithmPrefix)
 
+    def verifyCSV(self, csv):
+        rec, algorithmPrefix = receipt.Receipt.fromCSV(csv)
+
+        return self.verify(rec, algorithmPrefix)
+
 import configparser
 import sys
 
 INPUT_FORMATS = {
         'jws': lambda rv, s: rv.verifyJWS(s),
-        'qr': lambda rv, s: rv.verifyBasicCode(s)
+        'qr': lambda rv, s: rv.verifyBasicCode(s),
+        'csv': lambda rv, s: rv.verifyCSV(s)
         }
 
 if __name__ == "__main__":
