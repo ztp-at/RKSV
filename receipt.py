@@ -269,6 +269,33 @@ class Receipt:
 
         return payload + '_' + signature
 
+    @staticmethod
+    def fromOCRCode(ocrCode):
+        """
+        Creates a receipt object from a OCR code string.
+        :param ocrCode: The OCR code string to parse.
+        :return: The new, signed receipt object.
+        :throws: MalformedReceiptException
+        :throws: UnknownAlgorithmException
+        """
+        segments = ocrCode.split('_')
+        if len(segments) != 14 or len(segments[0]) != 0:
+            raise MalformedReceiptException(basicCode)
+
+        encTurnoverCounter = base64.b32decode(segments[10])
+        encTurnoverCounter = base64.b64encode(encTurnoverCounter)
+        segments[10] = encTurnoverCounter.decode('utf-8')
+
+        previousChain = base64.b32decode(segments[12])
+        previousChain = base64.b64encode(previousChain)
+        segments[12] = previousChain.decode('utf-8')
+
+        signature = base64.b32decode(segments[13])
+        signature = base64.b64encode(signature)
+        segments[13] = signature.decode('utf-8')
+
+        return Receipt.fromBasicCode('_'.join(segments))
+
     def toOCRCode(self, algorithmPrefix):
         """
         Converts the receipt to an OCR code string.
@@ -401,6 +428,7 @@ import sys
 INPUT_FORMATS = {
         'jws': lambda s: Receipt.fromJWSString(s),
         'qr': lambda s: Receipt.fromBasicCode(s),
+        'ocr': lambda s: Receipt.fromOCRCode(s),
         'csv': lambda s: Receipt.fromCSV(s)
         }
 

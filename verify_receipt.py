@@ -104,6 +104,22 @@ class ReceiptVerifierI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
+    def verifyOCRCode(self, ocrCode):
+        """
+        Verifies the given receipt.
+        :param ocrCode: The receipt as OCR code string.
+        :returns: The receipt object and the used algorithm class object.
+        :throws: CertSerialInvalidException
+        :throws: CertSerialMismatchException
+        :throws: NoPublicKeyException
+        :throws: InvalidSignatureException
+        :throws: UnknownAlgorithmException
+        :throws: InvalidSignatureException
+        :throws: SignatureSystemFailedException
+        :throws: MalformedReceiptException
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
     def verifyCSV(self, csv):
         """
         Verifies the given receipt.
@@ -245,6 +261,11 @@ class ReceiptVerifier(ReceiptVerifierI):
 
         return self.verify(rec, algorithmPrefix)
 
+    def verifyOCRCode(self, ocrCode):
+        rec, algorithmPrefix = receipt.Receipt.fromOCRCode(ocrCode)
+
+        return self.verify(rec, algorithmPrefix)
+
     def verifyCSV(self, csv):
         rec, algorithmPrefix = receipt.Receipt.fromCSV(csv)
 
@@ -256,6 +277,7 @@ import sys
 INPUT_FORMATS = {
         'jws': lambda rv, s: rv.verifyJWS(s),
         'qr': lambda rv, s: rv.verifyBasicCode(s),
+        'ocr': lambda rv, s: rv.verifyOCRCode(s),
         'csv': lambda rv, s: rv.verifyCSV(s)
         }
 
