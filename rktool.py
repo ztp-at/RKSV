@@ -11,9 +11,11 @@ from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import CompositeListItem, ListItemButton, ListItemLabel
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
+from kivy.uix.selectableview import SelectableView
 from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
 
 import receipt
@@ -39,6 +41,10 @@ class SingleValueDialog(FloatLayout):
 class TreeViewButton(Button, TreeViewNode):
     pass
 
+class ViewReceiptItem(GridLayout, SelectableView):
+    item_name = ObjectProperty(None)
+    item_value = ObjectProperty(None)
+
 class ViewReceiptWidget(BoxLayout):
     adapter = ObjectProperty(None)
     cancel = ObjectProperty(None)
@@ -50,16 +56,8 @@ class ViewReceiptWidget(BoxLayout):
         self._algorithmPrefix = algorithmPrefix
 
         convert = lambda row_index, rec: \
-                { 'size_hint_y': None
-                , 'cls_dicts': [ { 'cls': ListItemLabel
-                                 , 'kwargs': {'text': rec[0]
-                                             ,'halign': 'right'}
-                                 }
-                               , { 'cls': ListItemLabel
-                                 , 'kwargs': {'text': rec[1]
-                                             ,'halign': 'left'}
-                                 }
-                               ]
+                { 'item_name': rec[0]
+                , 'item_value': rec[1]
                 }
         keys = list(range(1, 14))
         maps =  { 1: ( 'ZDA ID', algorithmPrefix + '-' + receipt.zda )
@@ -79,7 +77,7 @@ class ViewReceiptWidget(BoxLayout):
 
         self.adapter = DictAdapter(sorted_keys=keys,
                 data=maps, args_converter=convert,
-                cls=CompositeListItem)
+                cls=ViewReceiptItem)
 
         super(ViewReceiptWidget, self).__init__(**kwargs)
 

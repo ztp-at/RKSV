@@ -112,6 +112,20 @@
 		text: 'Verify'
 		on_press: view_w.verify()
 
+<ViewReceiptItem>:
+	id: vr_i
+	cols: 2
+	rows: 1
+	size_hint_y: None
+	Label:
+		text_size: self.size
+		text: vr_i.item_name
+		halign: 'right'
+	Label:
+		text_size: self.size
+		text: vr_i.item_value
+		halign: 'left'
+
 <VerifyReceiptWidget>:
 	id: vr_w
 	receiptInput: vr_ti
