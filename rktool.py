@@ -3,6 +3,7 @@
 import kivy
 kivy.require('1.9.0')
 
+import base64 
 import os 
 
 from kivy.adapters.dictadapter import DictAdapter
@@ -18,6 +19,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.selectableview import SelectableView
 from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
 
+import algorithms
 import receipt
 
 class ErrorDialog(FloatLayout):
@@ -48,18 +50,57 @@ class ViewReceiptItem(GridLayout, SelectableView):
 class ViewReceiptWidget(BoxLayout):
     adapter = ObjectProperty(None)
     cancel = ObjectProperty(None)
+    verify_button = ObjectProperty(None)
+    decrypt_button = ObjectProperty(None)
+    aes_input = ObjectProperty(None)
+
+    def dismissPopup(self):
+        self._popup.dismiss()
 
     def __init__(self, receipt, algorithmPrefix, isValid, key, **kwargs):
         # TODO: handle isValid and key
 
         self._receipt = receipt
         self._algorithmPrefix = algorithmPrefix
+        self._is_valid = isValid
+
+        if key or receipt.isDummy() or receipt.isReversal():
+            self.decrypt_button.disabled = True
+
+        if isValid:
+            self.verify_button.text = 'Valid Signature'
+            self.verify_button.disabled = True
 
         convert = lambda row_index, rec: \
                 { 'item_name': rec[0]
                 , 'item_value': rec[1]
                 }
         keys = list(range(1, 14))
+        
+        self.adapter = DictAdapter(sorted_keys=keys,
+                data=dict(), args_converter=convert,
+                cls=ViewReceiptItem)
+
+        super(ViewReceiptWidget, self).__init__(**kwargs)
+
+        self.setKey(key)
+        self.updateView()
+
+    def updateView(self):
+        receipt = self._receipt
+        algorithmPrefix = self._algorithmPrefix
+        key = self._key
+
+        turnoverCounter = receipt.encTurnoverCounter
+        if receipt.isDummy():
+            turnoverCounter = 'TRA'
+        elif receipt.isReversal():
+            turnoverCounter = 'STO'
+        elif key and (algorithmPrefix in algorithms.ALGORITHMS):
+            algorithm = algorithms.ALGORITHMS[algorithmPrefix]
+            turnoverCounter = receipt.decryptTurnoverCounter(key, algorithm)
+            turnoverCounter = str(float(turnoverCounter) / 100)
+
         maps =  { 1: ( 'ZDA ID', algorithmPrefix + '-' + receipt.zda )
                 , 2: ( 'Cash Register ID', receipt.registerId )
                 , 3: ( 'Receipt ID', receipt.receiptId )
@@ -69,21 +110,58 @@ class ViewReceiptWidget(BoxLayout):
                 , 7: ( 'Sum Tax Reduced 2', str(receipt.sumC) )
                 , 8: ( 'Sum Tax Zero', str(receipt.sumD) )
                 , 9: ( 'Sum Tax Special', str(receipt.sumE) )
-                ,10: ( 'Turnover Counter', receipt.encTurnoverCounter )
+                ,10: ( 'Turnover Counter', turnoverCounter )
                 ,11: ( 'Certificate Serial/Key ID', receipt.certSerial )
                 ,12: ( 'Chaining Value', receipt.previousChain )
                 ,13: ( 'Signature', receipt.signature )
                 }
+        self.adapter.data = maps
 
-        self.adapter = DictAdapter(sorted_keys=keys,
-                data=maps, args_converter=convert,
-                cls=ViewReceiptItem)
-
-        super(ViewReceiptWidget, self).__init__(**kwargs)
 
     def verify(self):
         # TODO
         pass
+
+    def decrypt(self):
+        if self.aes_input.text != '':
+            self.setKey(self.aes_input.text)
+        else:
+            self.loadAES()
+
+    def loadAES(self):
+        content = LoadDialog(load=self.loadAESCb,
+                cancel=self.dismissPopup)
+        self._popup = Popup(title="Load AES Key", content=content,
+                size_hint=(0.9, 0.9))
+        self._popup.open()
+
+    def loadAESCb(self, path, filename):
+        if not filename or len(filename) < 1:
+            return
+
+        key = None
+        with open(os.path.join(path, filename[0])) as f:
+            key = f.read()
+
+        self.dismissPopup()
+        self.setKey(key)
+
+    def setKey(self, key):
+        self._key = None
+        try:
+            if key:
+                self.aes_input.text = key
+                self._key = base64.b64decode(key.encode('utf-8'))
+        except Exception as e:
+            self.aes_input.text = ''
+            content = ErrorDialog(exception=e, cancel=self.dismissPopup)
+            self._popup = Popup(title="Error", content=content,
+                    size_hint=(0.9, 0.9))
+            self._popup.open()
+
+        if self._key:
+            self.decrypt_button.disabled = True
+            self.updateView()
 
 class VerifyReceiptWidget(BoxLayout):
     receiptInput = ObjectProperty(None)

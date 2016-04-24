@@ -95,6 +95,9 @@
 
 <ViewReceiptWidget>:
 	id: view_w
+	verify_button: view_w_verify
+	decrypt_button: view_w_decrypt
+	aes_input: view_w_aes
 	orientation: 'vertical'
 	ActionBar:
 		pos_hint: {'top': 1}
@@ -109,10 +112,20 @@
 				on_press: app.stop()
 	ListView:
 		adapter: view_w.adapter
-	Button:
+	BoxLayout:
 		size_hint_y: None
-		text: 'Verify'
-		on_press: view_w.verify()
+		orientation: 'horizontal'
+		Button:
+			id: view_w_verify
+			text: 'Verify'
+			on_press: view_w.verify()
+		TextInput:
+			id: view_w_aes
+			multiline: False
+		Button:
+			id: view_w_decrypt
+			text: 'Decrypt Turnover Counter'
+			on_press: view_w.decrypt()
 
 <ViewReceiptItem>:
 	id: vr_i
