@@ -87,6 +87,7 @@ class ViewReceiptWidget(BoxLayout):
 
 class VerifyReceiptWidget(BoxLayout):
     receiptInput = ObjectProperty(None)
+    _input_type = 'JWS'
 
     def dismissPopup(self):
         self._popup.dismiss()
@@ -107,9 +108,32 @@ class VerifyReceiptWidget(BoxLayout):
 
         self.dismissPopup()
 
+    def selectInputType(self, inputType):
+        self._input_type = inputType
+
     def viewReceipt(self):
-        # TODO
-        pass
+        try:
+            rec = None
+            prefix = None
+            if (self._input_type == 'JWS'):
+                rec, prefix = receipt.Receipt.fromJWSString(self.receiptInput.text)
+            elif (self._input_type == 'QR'):
+                rec, prefix = receipt.Receipt.fromBasicCode(self.receiptInput.text)
+            elif (self._input_type == 'OCR'):
+                rec, prefix = receipt.Receipt.fromOCRCode(self.receiptInput.text)
+            else:
+                return
+
+            content = ViewReceiptWidget(rec, prefix, False, None,
+                    cancel=self.dismissPopup)
+            self._popup = ModalView(auto_dismiss=False)
+            self._popup.add_widget(content)
+            self._popup.open()
+        except receipt.ReceiptException as e:
+            content = ErrorDialog(exception=e, cancel=self.dismissPopup)
+            self._popup = Popup(title="Error", content=content,
+                    size_hint=(0.9, 0.9))
+            self._popup.open()
 
 import json
 import utils

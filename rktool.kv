@@ -79,9 +79,11 @@
 	text: ''
 	state: 'normal'
 	group: None
+	change: None
 	orientation: 'horizontal'
 	size_hint_y: None
 	CheckBox:
+		on_active: self.parent.change()
 		size_hint_x: None
 		group: self.parent.group
 		state: self.parent.state
@@ -147,18 +149,22 @@
 			size_hint_y: None
 			height: self.minimum_height
 			RadioButton:
+				change: (lambda: vr_w.selectInputType('JWS'))
 				text: 'JWS string'
 				group: 'input_format'
 				state: 'down'
 			RadioButton:
+				change: (lambda: vr_w.selectInputType('QR'))
 				text: 'QR code'
 				group: 'input_format'
 			RadioButton:
+				change: (lambda: vr_w.selectInputType('OCR'))
 				text: 'OCR code'
 				group: 'input_format'
-			RadioButton:
-				text: 'URL'
-				group: 'input_format'
+			#RadioButton:
+			#	change: vr_w.selectInputType('URL')
+			#	text: 'URL'
+			#	group: 'input_format'
 	Button:
 		size_hint_y: None
 		text: 'Read Receipt'
