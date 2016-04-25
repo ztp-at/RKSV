@@ -66,7 +66,6 @@ class ReceiptVerifierI:
         :throws: NoPublicKeyException
         :throws: InvalidSignatureException
         :throws: UnknownAlgorithmException
-        :throws: InvalidSignatureException
         :throws: SignatureSystemFailedException
         """
         raise NotImplementedError("Please implement this yourself.")
@@ -81,7 +80,6 @@ class ReceiptVerifierI:
         :throws: NoPublicKeyException
         :throws: InvalidSignatureException
         :throws: UnknownAlgorithmException
-        :throws: InvalidSignatureException
         :throws: SignatureSystemFailedException
         :throws: MalformedReceiptException
         :throws: AlgorithmMismatchException
@@ -98,7 +96,6 @@ class ReceiptVerifierI:
         :throws: NoPublicKeyException
         :throws: InvalidSignatureException
         :throws: UnknownAlgorithmException
-        :throws: InvalidSignatureException
         :throws: SignatureSystemFailedException
         :throws: MalformedReceiptException
         """
@@ -114,7 +111,6 @@ class ReceiptVerifierI:
         :throws: NoPublicKeyException
         :throws: InvalidSignatureException
         :throws: UnknownAlgorithmException
-        :throws: InvalidSignatureException
         :throws: SignatureSystemFailedException
         :throws: MalformedReceiptException
         """
@@ -130,7 +126,6 @@ class ReceiptVerifierI:
         :throws: NoPublicKeyException
         :throws: InvalidSignatureException
         :throws: UnknownAlgorithmException
-        :throws: InvalidSignatureException
         :throws: SignatureSystemFailedException
         :throws: MalformedReceiptException
         """
