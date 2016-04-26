@@ -233,16 +233,16 @@ class ReceiptVerifier(ReceiptVerifierI):
         else:
             pubKey = self.keyStore.getKey(certSerial)
 
+        if rec.isSignedBroken():
+            raise SignatureSystemFailedException(jwsString)
+
         if not pubKey:
             raise NoPublicKeyException(jwsString)
 
         validationSuccessful = algorithm.verify(jwsString, pubKey)
 
         if not validationSuccessful:
-            if rec.isSignedBroken():
-                raise SignatureSystemFailedException(jwsString)
-            else:
-                raise InvalidSignatureException(jwsString)
+            raise InvalidSignatureException(jwsString)
 
         return rec, algorithm
 
