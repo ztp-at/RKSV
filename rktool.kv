@@ -112,6 +112,10 @@
 				on_press: app.stop()
 	ListView:
 		adapter: view_w.adapter
+	TextInput:
+		size_hint_y: None
+		id: view_w_aes
+		multiline: False
 	BoxLayout:
 		size_hint_y: None
 		orientation: 'horizontal'
@@ -119,9 +123,6 @@
 			id: view_w_verify
 			text: 'Verify'
 			on_press: view_w.verify()
-		TextInput:
-			id: view_w_aes
-			multiline: False
 		Button:
 			id: view_w_decrypt
 			text: 'Decrypt Turnover Counter'
