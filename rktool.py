@@ -4,8 +4,11 @@ import kivy
 kivy.require('1.9.0')
 
 import base64 
+import configparser
+import json
 import os
 import threading
+import utils
 
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.app import App
@@ -22,6 +25,7 @@ from kivy.uix.selectableview import SelectableView
 from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
 
 import algorithms
+import key_store
 import receipt
 import verify_receipt
 
@@ -242,8 +246,6 @@ class VerifyReceiptWidget(BoxLayout):
                     size_hint=(0.9, 0.9))
             self._popup.open()
 
-import json
-import utils
 class VerifyDEPWidget(BoxLayout):
     # TODO: actual verification of the DEP
 
@@ -336,8 +338,6 @@ class VerifyDEPWidget(BoxLayout):
             self.aesInput.text = f.read()
 
         self.dismissPopup()
-
-import configparser
 
 class KeyStoreWidget(BoxLayout):
     pubKeyGroup = ObjectProperty(None)
@@ -469,8 +469,6 @@ class KeyStoreWidget(BoxLayout):
 
 class MainWidget(BoxLayout):
     pass
-
-import key_store
 
 class RKToolApp(App):
     keyStore = key_store.KeyStore()
