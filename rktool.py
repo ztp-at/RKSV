@@ -4,10 +4,12 @@ import kivy
 kivy.require('1.9.0')
 
 import base64 
-import os 
+import os
+import threading
 
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.app import App
+from kivy.clock import mainthread
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -21,6 +23,7 @@ from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
 
 import algorithms
 import receipt
+import verify_receipt
 
 class ErrorDialog(FloatLayout):
     exception = ObjectProperty(None)
@@ -64,7 +67,7 @@ class ViewReceiptWidget(BoxLayout):
         self._algorithmPrefix = algorithmPrefix
         self._is_valid = isValid
 
-        if key or receipt.isDummy() or receipt.isReversal():
+        if receipt.isDummy() or receipt.isReversal():
             self.decrypt_button.disabled = True
 
         if isValid:
@@ -119,8 +122,36 @@ class ViewReceiptWidget(BoxLayout):
 
 
     def verify(self):
-        # TODO
-        pass
+        self.verify_button.text = 'Verifying...'
+        self.verify_button.disabled = True
+
+        threading.Thread(target=self.verifyReceiptTask,
+                args=(self._receipt, self._algorithmPrefix, )).start()
+
+    @mainthread
+    def verifyCb(self, result):
+        if result:
+            self.verify_button.text = 'Verify'
+            self.verify_button.disabled = False
+
+            content = ErrorDialog(exception=result, cancel=self.dismissPopup)
+            self._popup = Popup(title="Error", content=content,
+                    size_hint=(0.9, 0.9))
+            self._popup.open()
+
+        else:
+            self.verify_button.text = 'Valid Signature'
+            self.verify_button.disabled = True
+
+    # TODO: manage proper termination of this thread
+    def verifyReceiptTask(self, rec, prefix):
+        try:
+            rv = verify_receipt.ReceiptVerifier.fromKeyStore(
+                    App.get_running_app().keyStore)
+            rv.verify(rec, prefix)
+            self.verifyCb(None)
+        except receipt.ReceiptException as e:
+            self.verifyCb(e)
 
     def decrypt(self):
         if self.aes_input.text != '':
