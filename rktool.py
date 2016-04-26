@@ -65,13 +65,6 @@ class ViewReceiptWidget(BoxLayout):
         self._algorithmPrefix = algorithmPrefix
         self._is_valid = isValid
 
-        if receipt.isDummy() or receipt.isReversal():
-            self.decrypt_button.disabled = True
-
-        if isValid:
-            self.verify_button.text = 'Valid Signature'
-            self.verify_button.disabled = True
-
         convert = lambda row_index, rec: \
                 { 'item_name': rec[0]
                 , 'item_value': rec[1]
@@ -84,6 +77,13 @@ class ViewReceiptWidget(BoxLayout):
 
         super(ViewReceiptWidget, self).__init__(**kwargs)
 
+        if receipt.isDummy() or receipt.isReversal():
+            self.decrypt_button.disabled = True
+
+        if isValid:
+            self.verify_button.text = 'Valid Signature'
+            self.verify_button.disabled = True
+        
         self.setKey(key)
         self.updateView()
 
