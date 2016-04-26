@@ -5,6 +5,7 @@ This module contains classes for a key store where certificates or public keys
 can be stored under an identifier. Keys (and certificates) can also be retrieved
 or deleted from the key store.
 """
+import copy
 import numbers
 
 import utils
@@ -118,6 +119,11 @@ class KeyStore(KeyStoreI):
     \"s;...\", \"u;...\" and \"g;...\" respectively because the default config parser
     does not support a colon in the key ID.
     """
+
+    def __deepcopy__(self, memo):
+        cp = KeyStore()
+        cp.keydict = copy.copy(self.keydict)
+        return cp
 
     def __init__(self):
         self.keydict = dict()

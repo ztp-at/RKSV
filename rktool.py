@@ -5,6 +5,7 @@ kivy.require('1.9.0')
 
 import base64 
 import configparser
+import copy
 import json
 import os
 import threading
@@ -127,8 +128,12 @@ class ViewReceiptWidget(BoxLayout):
         self.verify_button.text = 'Verifying...'
         self.verify_button.disabled = True
 
+        rec = copy.deepcopy(self._receipt)
+        prefix = copy.deepcopy(self._algorithmPrefix)
+        store = copy.deepcopy(App.get_running_app().keyStore)
+
         threading.Thread(target=self.verifyReceiptTask,
-                args=(self._receipt, self._algorithmPrefix, )).start()
+                args=(rec, prefix, store,)).start()
 
     @mainthread
     def verifyCb(self, result):
@@ -146,10 +151,9 @@ class ViewReceiptWidget(BoxLayout):
             self.verify_button.disabled = True
 
     # TODO: manage proper termination of this thread
-    def verifyReceiptTask(self, rec, prefix):
+    def verifyReceiptTask(self, rec, prefix, store):
         try:
-            rv = verify_receipt.ReceiptVerifier.fromKeyStore(
-                    App.get_running_app().keyStore)
+            rv = verify_receipt.ReceiptVerifier.fromKeyStore(store)
             rv.verify(rec, prefix)
             self.verifyCb(None)
         except receipt.ReceiptException as e:
