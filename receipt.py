@@ -82,6 +82,26 @@ class Receipt:
         :param previousChain: The chaining value for the previous receipt as a
         base64 encoded string.
         """
+        if not isinstance(receiptId, str):
+            raise MalformedReceiptException("Unknown Receipt")
+        if not isinstance(zda, str) or not isinstance(registerId, str):
+            raise MalformedReceiptException(receiptId)
+        if not isinstance(dateTime, datetime.datetime):
+            raise MalformedReceiptException(receiptId)
+        if not isinstance(sumA, float) or not isinstance(sumB, float) \
+                or not isinstance(sumC, float) or not isinstance(sumD, float) \
+                or not isinstance(sumE, float):
+            raise MalformedReceiptException(receiptId)
+        if not isinstance(encTurnoverCounter, str) \
+                or not isinstance(certSerial, str) \
+                or not isinstance(previousChain, str):
+            raise MalformedReceiptException(receiptId)
+        try:
+            base64.b64decode(encTurnoverCounter.encode('utf-8'))
+            base64.b64decode(previousChain.encode('utf-8'))
+        except TypeError:
+            raise MalformedReceiptException(receiptId)
+
         self.zda = zda
         self.header = None
         self.registerId = registerId
@@ -111,10 +131,16 @@ class Receipt:
         jwsSegs = jwsString.split('.')
         if len(jwsSegs) != 3:
             raise MalformedReceiptException(jwsString)
-        header = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[0]).encode(
-            "utf-8")).decode("utf-8")
-        payload = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[1])
-                .encode("utf-8")).decode("utf-8")
+        header = None
+        payload = None
+        try:
+            header = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[0]).encode(
+                "utf-8")).decode("utf-8")
+            payload = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[1])
+                    .encode("utf-8")).decode("utf-8")
+        except TypeError:
+            raise MalformedReceiptException(jwsString)
+
         signature = jwsSegs[2]
 
         segments = payload.split('_')
@@ -241,7 +267,11 @@ class Receipt:
         certSerial = segments[11]
         previousChain = segments[12]
 
-        signature = base64.b64decode(segments[13].encode("utf-8"))
+        signature = None
+        try:
+            signature = base64.b64decode(segments[13].encode("utf-8"))
+        except TypeError:
+            raise MalformedReceiptException(basicCode)
         signature = base64.urlsafe_b64encode(signature).replace(b'=', b'')
         signature = signature.decode("utf-8")
 
@@ -280,17 +310,24 @@ class Receipt:
         """
         segments = ocrCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:
-            raise MalformedReceiptException(basicCode)
+            raise MalformedReceiptException(ocrCode)
 
-        encTurnoverCounter = base64.b32decode(segments[10])
+        encTurnoverCounter = None
+        previousChain = None
+        signature = None
+        try:
+            encTurnoverCounter = base64.b32decode(segments[10])
+            previousChain = base64.b32decode(segments[12])
+            signature = base64.b32decode(segments[13])
+        except TypeError:
+            raise MalformedReceiptException(ocrCode)
+
         encTurnoverCounter = base64.b64encode(encTurnoverCounter)
         segments[10] = encTurnoverCounter.decode('utf-8')
 
-        previousChain = base64.b32decode(segments[12])
         previousChain = base64.b64encode(previousChain)
         segments[12] = previousChain.decode('utf-8')
 
-        signature = base64.b32decode(segments[13])
         signature = base64.b64encode(signature)
         segments[13] = signature.decode('utf-8')
 
@@ -373,6 +410,15 @@ class Receipt:
         :param header: The JWS header as a string.
         :param signature: The signature as a base64 encoded string.
         """
+        if not isinstance(header, str):
+            raise MalformedReceiptException(self.receiptId)
+        if not isinstance(signature, str):
+            raise MalformedReceiptException(self.receiptId)
+        try:
+            base64.urlsafe_b64decode(restoreb64padding(signature))
+        except TypeError:
+            raise MalformedReceiptException(self.receiptId)
+
         self.header = header
         self.signature = signature
         self.signed = True
