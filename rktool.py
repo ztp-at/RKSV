@@ -61,8 +61,6 @@ class ViewReceiptWidget(BoxLayout):
         self._popup.dismiss()
 
     def __init__(self, receipt, algorithmPrefix, isValid, key, **kwargs):
-        # TODO: handle isValid and key
-
         self._receipt = receipt
         self._algorithmPrefix = algorithmPrefix
         self._is_valid = isValid
