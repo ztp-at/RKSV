@@ -67,6 +67,7 @@ class ViewReceiptWidget(BoxLayout):
 
     def __init__(self, receipt, algorithmPrefix, isValid, key, **kwargs):
         self._receipt = receipt
+        self._key = None
         self._algorithmPrefix = algorithmPrefix
         self._is_valid = isValid
 
@@ -89,6 +90,7 @@ class ViewReceiptWidget(BoxLayout):
             self.verify_button.text = 'Valid Signature'
             self.verify_button.disabled = True
         
+        # TODO: if error occurs in setKey here, it is displayed below the receipt view
         self.setKey(key)
         self.updateView()
 
@@ -186,7 +188,7 @@ class ViewReceiptWidget(BoxLayout):
     def setKey(self, key):
         self._key = None
         try:
-            if key:
+            if key and key != '':
                 self.aes_input.text = key
                 self._key = base64.b64decode(key.encode('utf-8'))
         except Exception as e:
@@ -265,7 +267,7 @@ class VerifyDEPWidget(BoxLayout):
             rec, prefix = receipt.Receipt.fromJWSString(btn.text)
 
             # TODO: properly pass isValid and key
-            content = ViewReceiptWidget(rec, prefix, False, None,
+            content = ViewReceiptWidget(rec, prefix, False, self.aesInput.text,
                     cancel=self.dismissPopup)
             self._popup = ModalView(auto_dismiss=False)
             self._popup.add_widget(content)
