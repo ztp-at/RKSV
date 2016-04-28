@@ -70,6 +70,7 @@ class ViewReceiptWidget(BoxLayout):
         self._key = None
         self._algorithmPrefix = algorithmPrefix
         self._is_valid = isValid
+        self._popup = None
 
         convert = lambda row_index, rec: \
                 { 'item_name': rec[0]
@@ -188,6 +189,7 @@ class ViewReceiptWidget(BoxLayout):
     def setKey(self, key):
         self._key = None
         try:
+            # TODO: more verification for key
             if key and key != '':
                 self.aes_input.text = key
                 self._key = base64.b64decode(key.encode('utf-8'))
