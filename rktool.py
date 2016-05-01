@@ -290,6 +290,7 @@ class VerifyDEPWidget(BoxLayout):
             self._popup.open()
 
     def updateDEPDisplay(self):
+        # TODO handle malformed DEP
         tv = self.treeView
 
         for n in tv.iterate_all_nodes():
