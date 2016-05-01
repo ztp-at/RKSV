@@ -44,6 +44,14 @@ class AlgorithmMismatchException(ReceiptException):
     def __init__(self, receipt):
         super(AlgorithmMismatchException, self).__init__(receipt, "Algorithm mismatch.")
 
+class InvalidKeyException(ReceiptException):
+    """
+    Indicates that a given key is invalid for a receipt.
+    """
+
+    def __init__(self, receipt):
+        super(InvalidKeyException, self).__init__(receipt, "Invalid key.")
+
 def restoreb64padding(data):
     """
     Restores the padding to a base64 string without padding. For internal use
@@ -465,8 +473,9 @@ class Receipt:
             raise Exception("Can't decrypt turnover counter, this is a dummy receipt.")
         if self.isReversal():
             raise Exception("Can't decrypt turnover counter, this is a reversal receipt.")
+
         if not algorithm.verifyKey(key):
-            raise Exception("Invalid key.")
+            raise InvalidKeyException(self.toJWSString(algorithm.id()))
 
         ct = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return algorithm.decryptTurnoverCounter(self, ct, key)
