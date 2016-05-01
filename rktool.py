@@ -299,6 +299,7 @@ class VerifyDEPWidget(BoxLayout):
         # TODO handle malformed DEP
         tv = self.treeView
 
+        # TODO: not all nodes are properly removed
         for n in tv.iterate_all_nodes():
             tv.remove_node(n)
 
