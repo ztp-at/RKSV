@@ -193,6 +193,7 @@
 	id: vd_w
 	treeView: vd_tv
 	aesInput: vd_ti
+	verify_button: vd_w_verify
 	orientation: 'vertical'
 	BoxLayout:
 		size_hint_y: None
@@ -214,6 +215,11 @@
 			size_hint_y: None
 			root_options: {'text': 'Belege-Gruppe'}
 			height: self.minimum_height
+	Button:
+		size_hint_y: None
+		text: 'Verify'
+		id: vd_w_verify
+		on_press: vd_w.verify()
 
 <KeyStoreWidget>:
 	id: ks_w

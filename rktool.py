@@ -29,6 +29,7 @@ import algorithms
 import key_store
 import receipt
 import verify_receipt
+import verify
 
 class ErrorDialog(FloatLayout):
     exception = ObjectProperty(None)
@@ -181,6 +182,7 @@ class ViewReceiptWidget(BoxLayout):
             return
 
         key = None
+        # TODO: catch exceptions of read and open
         with open(os.path.join(path, filename[0])) as f:
             key = f.read()
 
@@ -200,7 +202,7 @@ class ViewReceiptWidget(BoxLayout):
                 algorithm = algorithms.ALGORITHMS[self._algorithmPrefix]
                 if not algorithm.verifyKey(k):
                     raise Exception("Invalid key.")
-                self._key = base64.b64decode(key.encode('utf-8'))
+                self._key = k
         except Exception as e:
             self.aes_input.text = ''
             content = ErrorDialog(exception=e, cancel=self.dismissPopup)
@@ -230,6 +232,7 @@ class VerifyReceiptWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
+        # TODO: catch exceptions of read and open
         with open(os.path.join(path, filename[0])) as f:
             self.receiptInput.text = f.read()
 
@@ -267,6 +270,9 @@ class VerifyDEPWidget(BoxLayout):
 
     treeView = ObjectProperty(None)
     aesInput = ObjectProperty(None)
+    verify_button = ObjectProperty(None)
+
+    _verifying = False
 
     def addCert(self, btn):
         App.get_running_app().keyStore.putPEMCert(utils.addPEMCertHeaders(btn.text))
@@ -321,6 +327,66 @@ class VerifyDEPWidget(BoxLayout):
                 tv.add_node(TreeViewButton(text=receipt,
                     on_press=self.viewReceipt), receiptsNode)
 
+    def verifyAbort(self):
+        # TODO: stop verfication task
+        self._verifying = False
+        self.verify_button.disabled = False
+        self.verify_button.text = 'Verify'
+
+    def verify(self):
+        if self._verifying:
+            self.verifyAbort()
+            return
+
+        key = None
+        try:
+            k = self.aesInput.text
+            if k and k != '':
+                key = base64.b64decode(k.encode('utf-8'))
+        except Exception as e:
+            self.aesInput.text = ''
+            content = ErrorDialog(exception=e, cancel=self.dismissPopup)
+            self._popup = Popup(title="Error", content=content,
+                    size_hint=(0.9, 0.9))
+            self._popup.open()
+            return
+
+        self._verifying = True
+        self.verify_button.text = 'Verifying...'
+
+        store = copy.deepcopy(App.get_running_app().keyStore)
+
+        threading.Thread(target=self.verifyDEPTask,
+                args=(self._jsonDEP, store, key,)).start()
+
+    @mainthread
+    def verifyCb(self, result):
+        if not self._verifying:
+            return
+
+        self._verifying = False
+        if result:
+            self.verify_button.text = 'Verify'
+
+            content = ErrorDialog(exception=result, cancel=self.dismissPopup)
+            self._popup = Popup(title="Error", content=content,
+                    size_hint=(0.9, 0.9))
+            self._popup.open()
+
+        else:
+            self.verify_button.disabled = True
+            self.verify_button.text = 'Valid DEP'
+
+    # TODO: manage proper termination of this thread
+    def verifyDEPTask(self, json, store, key):
+        try:
+            verify.verifyDEP(json, store, key)
+            self.verifyCb(None)
+        except receipt.ReceiptException as e:
+            self.verifyCb(e)
+        except verify.DEPException as e:
+            self.verifyCb(e)
+
     def dismissPopup(self):
         self._popup.dismiss()
 
@@ -335,9 +401,11 @@ class VerifyDEPWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
+        # TODO: catch exceptions of loads and read and open
         with open(os.path.join(path, filename[0])) as f:
             self._jsonDEP = json.loads(f.read())
 
+        self.verifyAbort()
         self.updateDEPDisplay()
         self.dismissPopup()
 
@@ -352,6 +420,7 @@ class VerifyDEPWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
+        # TODO: catch exceptions of read and open
         with open(os.path.join(path, filename[0])) as f:
             self.aesInput.text = f.read()
 
@@ -421,6 +490,7 @@ class KeyStoreWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
+        # TODO: catch exceptions of read and open
         with open(os.path.join(path, filename[0])) as f:
             self._tmpPubKey = f.read()
 
@@ -441,6 +511,7 @@ class KeyStoreWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
+        # TODO: catch exceptions of read and open and putPEMCert
         with open(os.path.join(path, filename[0])) as f:
             App.get_running_app().keyStore.putPEMCert(f.read())
 
@@ -480,6 +551,7 @@ class KeyStoreWidget(BoxLayout):
         config = configparser.RawConfigParser()
         config.optionxform = str
         App.get_running_app().keyStore.writeStore(config)
+        # TODO: catch exceptions of write and open
         with open(os.path.join(path, filename), 'w') as f:
             config.write(f)
 
