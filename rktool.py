@@ -277,12 +277,12 @@ class VerifyDEPWidget(BoxLayout):
             rec, prefix = receipt.Receipt.fromJWSString(btn.text)
 
             # TODO: properly pass isValid and key
-            content = ViewReceiptWidget(rec, prefix, False, self.aesInput.text,
-                    cancel=self.dismissPopup)
-            self._popup = ModalView(auto_dismiss=False)
-            self._popup.add_widget(content)
-            self._popup.bind(on_open=content.firstDisplay)
-            self._popup.open()
+            self._receipt_view = ModalView(auto_dismiss=False)
+            content = ViewReceiptWidget(rec, prefix, False,
+                    self.aesInput.text, cancel=self._receipt_view.dismiss)
+            self._receipt_view.add_widget(content)
+            self._receipt_view.bind(on_open=content.firstDisplay)
+            self._receipt_view.open()
         except receipt.ReceiptException as e:
             content = ErrorDialog(exception=e, cancel=self.dismissPopup)
             self._popup = Popup(title="Error", content=content,
