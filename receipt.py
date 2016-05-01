@@ -465,6 +465,8 @@ class Receipt:
             raise Exception("Can't decrypt turnover counter, this is a dummy receipt.")
         if self.isReversal():
             raise Exception("Can't decrypt turnover counter, this is a reversal receipt.")
+        if not algorithm.verifyKey(key):
+            raise Exception("Invalid key.")
 
         ct = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return algorithm.decryptTurnoverCounter(self, ct, key)

@@ -76,6 +76,15 @@ class AlgorithmI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
+    def verifyKey(self, key):
+        """
+        Checks if the given key is valid for encrypting/decrypting the
+        turnover counter.
+        :param key: The key as a byte list.
+        :return:  True if the key is valid, False otherwise.
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
     def encryptTurnoverCounter(self, receipt, turnoverCounter, key):
         """
         Encrypts the given turnover counter for the given receipt with the key.
@@ -149,6 +158,13 @@ class R1(AlgorithmI):
         if payload:
             return True
         return False
+
+    def verifyKey(self, key):
+        if not isinstance(key, bytes):
+            return False
+        if len(key) != 32:
+            return False
+        return True
 
     def encryptTurnoverCounter(self, receipt, turnoverCounter, key):
         iv = utils.sha256(receipt.registerId.encode("utf-8")
