@@ -66,6 +66,7 @@ class ViewReceiptWidget(BoxLayout):
         self._popup.dismiss()
 
     def __init__(self, receipt, algorithmPrefix, isValid, key, **kwargs):
+        self._init_key = key
         self._receipt = receipt
         self._key = None
         self._algorithmPrefix = algorithmPrefix
@@ -91,9 +92,10 @@ class ViewReceiptWidget(BoxLayout):
             self.verify_button.text = 'Valid Signature'
             self.verify_button.disabled = True
         
-        # TODO: if error occurs in setKey here, it is displayed below the receipt view
-        self.setKey(key)
         self.updateView()
+
+    def firstDisplay(self, inst):
+        self.setKey(self._init_key)
 
     def updateView(self):
         receipt = self._receipt
@@ -125,7 +127,6 @@ class ViewReceiptWidget(BoxLayout):
                 ,13: ( 'Signature', receipt.signature )
                 }
         self.adapter.data = maps
-
 
     def verify(self):
         self.verify_button.text = 'Verifying...'
@@ -189,9 +190,16 @@ class ViewReceiptWidget(BoxLayout):
     def setKey(self, key):
         self._key = None
         try:
-            # TODO: more verification for key
             if key and key != '':
                 self.aes_input.text = key
+                k = base64.b64decode(key.encode('utf-8'))
+                if self._algorithmPrefix not in algorithms.ALGORITHMS:
+                    raise receipt.UnknownAlgorithmException(
+                            self._receipt.toJWSString(
+                                self._algorithmPrefix))
+                algorithm = algorithms.ALGORITHMS[self._algorithmPrefix]
+                if not algorithm.verifyKey(k):
+                    raise Exception("Invalid key.")
                 self._key = base64.b64decode(key.encode('utf-8'))
         except Exception as e:
             self.aes_input.text = ''
@@ -273,6 +281,7 @@ class VerifyDEPWidget(BoxLayout):
                     cancel=self.dismissPopup)
             self._popup = ModalView(auto_dismiss=False)
             self._popup.add_widget(content)
+            self._popup.bind(on_open=content.firstDisplay)
             self._popup.open()
         except receipt.ReceiptException as e:
             content = ErrorDialog(exception=e, cancel=self.dismissPopup)
