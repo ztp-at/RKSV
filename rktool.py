@@ -273,6 +273,7 @@ class VerifyDEPWidget(BoxLayout):
     verify_button = ObjectProperty(None)
 
     _verifying = False
+    _verified = False
 
     def addCert(self, btn):
         App.get_running_app().keyStore.putPEMCert(utils.addPEMCertHeaders(btn.text))
@@ -284,7 +285,7 @@ class VerifyDEPWidget(BoxLayout):
 
             # TODO: properly pass isValid and key
             self._receipt_view = ModalView(auto_dismiss=False)
-            content = ViewReceiptWidget(rec, prefix, False,
+            content = ViewReceiptWidget(rec, prefix, self._verified,
                     self.aesInput.text, cancel=self._receipt_view.dismiss)
             self._receipt_view.add_widget(content)
             self._receipt_view.bind(on_open=content.firstDisplay)
@@ -331,6 +332,7 @@ class VerifyDEPWidget(BoxLayout):
     def verifyAbort(self):
         # TODO: stop verfication task
         self._verifying = False
+        self._verified = False
         self.verify_button.disabled = False
         self.verify_button.text = 'Verify'
 
@@ -375,6 +377,7 @@ class VerifyDEPWidget(BoxLayout):
             self._popup.open()
 
         else:
+            self._verified = True
             self.verify_button.disabled = True
             self.verify_button.text = 'Valid DEP'
 
