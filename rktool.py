@@ -186,9 +186,11 @@ class ViewReceiptWidget(BoxLayout):
             return
 
         key = None
-        # TODO: catch exceptions of read and open
-        with open(os.path.join(path, filename[0])) as f:
-            key = f.read()
+        try:
+            with open(os.path.join(path, filename[0])) as f:
+                key = f.read()
+        except IOError as e:
+            displayError(e)
 
         self.dismissPopup()
         self.setKey(key)
@@ -233,9 +235,11 @@ class VerifyReceiptWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
-        # TODO: catch exceptions of read and open
-        with open(os.path.join(path, filename[0])) as f:
-            self.receiptInput.text = f.read()
+        try:
+            with open(os.path.join(path, filename[0])) as f:
+                self.receiptInput.text = f.read()
+        except IOError as e:
+            displayError(e)
 
         self.dismissPopup()
 
@@ -391,9 +395,13 @@ class VerifyDEPWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
-        # TODO: catch exceptions of loads and read and open
-        with open(os.path.join(path, filename[0])) as f:
-            self._jsonDEP = json.loads(f.read())
+        try:
+            with open(os.path.join(path, filename[0])) as f:
+                self._jsonDEP = json.loads(f.read())
+        except (IOError, ValueError) as e:
+            displayError(e)
+            self.dismissPopup()
+            return
 
         self.verifyAbort()
         self.updateDEPDisplay()
@@ -410,9 +418,11 @@ class VerifyDEPWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
-        # TODO: catch exceptions of read and open
-        with open(os.path.join(path, filename[0])) as f:
-            self.aesInput.text = f.read()
+        try:
+            with open(os.path.join(path, filename[0])) as f:
+                self.aesInput.text = f.read()
+        except IOError as e:
+            displayError(e)
 
         self.dismissPopup()
 
@@ -480,9 +490,13 @@ class KeyStoreWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
-        # TODO: catch exceptions of read and open
-        with open(os.path.join(path, filename[0])) as f:
-            self._tmpPubKey = f.read()
+        try:
+            with open(os.path.join(path, filename[0])) as f:
+                self._tmpPubKey = f.read()
+        except IOError as e:
+            displayError(e)
+            self.dismissPopup()
+            return
 
         content = SingleValueDialog(receive_value=self.addPubKeyCbId,
                 cancel=self.dismissPopup)
@@ -493,7 +507,11 @@ class KeyStoreWidget(BoxLayout):
         self._popup.open()
 
     def addPubKeyCbId(self, keyId):
-        App.get_running_app().keyStore.putPEMKey(keyId, self._tmpPubKey)
+        try:
+            App.get_running_app().keyStore.putPEMKey(keyId, self._tmpPubKey)
+        except ValueError as e:
+            displayError(e)
+
         self.dismissPopup()
         self.buildKSTree()
 
@@ -501,9 +519,11 @@ class KeyStoreWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
-        # TODO: catch exceptions of read and open and putPEMCert
-        with open(os.path.join(path, filename[0])) as f:
-            App.get_running_app().keyStore.putPEMCert(f.read())
+        try:
+            with open(os.path.join(path, filename[0])) as f:
+                App.get_running_app().keyStore.putPEMCert(f.read())
+        except (IOError, ValueError) as e:
+            displayError(e)
 
         self.dismissPopup()
         self.buildKSTree()
@@ -528,9 +548,11 @@ class KeyStoreWidget(BoxLayout):
 
         config = configparser.RawConfigParser()
         config.optionxform = str
-        # TODO: catch exceptions of read and open and config parsing
-        config.read(os.path.join(path, filename[0]))
-        App.get_running_app().keyStore = key_store.KeyStore.readStore(config)
+        try:
+            config.read(os.path.join(path, filename[0]))
+            App.get_running_app().keyStore = key_store.KeyStore.readStore(config)
+        except (IOError, ValueError, configparser.Error) as e:
+            displayError(e)
 
         self.dismissPopup()
         self.buildKSTree()
@@ -542,9 +564,11 @@ class KeyStoreWidget(BoxLayout):
         config = configparser.RawConfigParser()
         config.optionxform = str
         App.get_running_app().keyStore.writeStore(config)
-        # TODO: catch exceptions of write and open
-        with open(os.path.join(path, filename), 'w') as f:
-            config.write(f)
+        try:
+            with open(os.path.join(path, filename), 'w') as f:
+                config.write(f)
+        except IOError as e:
+            displayError(e)
 
         self.dismissPopup()
 
