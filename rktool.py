@@ -296,38 +296,49 @@ class VerifyDEPWidget(BoxLayout):
         except receipt.ReceiptException as e:
             displayError(e)
 
+    def clearDEPDisplay(self):
+        while len(self.treeView.root.nodes) > 0:
+            for n in self.treeView.iterate_all_nodes():
+                self.treeView.remove_node(n)
+
     def updateDEPDisplay(self):
-        # TODO handle malformed DEP
         tv = self.treeView
 
-        # TODO: not all nodes are properly removed
-        for n in tv.iterate_all_nodes():
-            tv.remove_node(n)
+        self.clearDEPDisplay()
 
-        groupIdx = 1
-        for group in self._jsonDEP['Belege-Gruppe']:
-            groupNode = tv.add_node(TreeViewLabel(text=('Gruppe %d' % groupIdx)))
-            groupIdx += 1
+        try:
+            groupIdx = 1
+            for group in self._jsonDEP['Belege-Gruppe']:
+                groupNode = tv.add_node(TreeViewLabel(
+                    text=('Gruppe %d' % groupIdx)))
+                groupIdx += 1
 
-            certNode = tv.add_node(TreeViewLabel(text='Signaturzertifikat'),
-                    groupNode)
-            chainNode = tv.add_node(TreeViewLabel(text='Zertifizierungsstellen'),
-                    groupNode)
-            receiptsNode = tv.add_node(TreeViewLabel(text='Belege-kompakt'),
-                    groupNode)
+                certNode = tv.add_node(TreeViewLabel(
+                    text='Signaturzertifikat'), groupNode)
+                chainNode = tv.add_node(TreeViewLabel(
+                    text='Zertifizierungsstellen'), groupNode)
+                receiptsNode = tv.add_node(TreeViewLabel(
+                    text='Belege-kompakt'), groupNode)
 
-            cert = group['Signaturzertifikat']
-            if cert:
-                tv.add_node(TreeViewButton(text=cert, on_press=self.addCert),
-                        certNode)
+                cert = group['Signaturzertifikat']
+                if cert:
+                    tv.add_node(TreeViewButton(text=cert,
+                        on_press=self.addCert), certNode)
 
-            for cert in group['Zertifizierungsstellen']:
-                tv.add_node(TreeViewButton(text=cert, on_press=self.addCert),
-                        chainNode)
+                for cert in group['Zertifizierungsstellen']:
+                    tv.add_node(TreeViewButton(text=cert,
+                        on_press=self.addCert), chainNode)
 
-            for receipt in group['Belege-kompakt']:
-                tv.add_node(TreeViewButton(text=receipt,
-                    on_press=self.viewReceipt), receiptsNode)
+                for receipt in group['Belege-kompakt']:
+                    tv.add_node(TreeViewButton(text=receipt,
+                        on_press=self.viewReceipt), receiptsNode)
+
+            return True
+
+        except KeyError as e:
+            self.clearDEPDisplay()
+            displayError("Malformed DEP")
+            return False
 
     def verifyAbort(self):
         # TODO: stop verfication task
@@ -409,7 +420,10 @@ class VerifyDEPWidget(BoxLayout):
             return
 
         self.verifyAbort()
-        self.updateDEPDisplay()
+        if not self.updateDEPDisplay():
+            self.verify_button.disabled = True
+            self._jsonDEP = None
+
         self.dismissPopup()
 
     def loadAES(self):
