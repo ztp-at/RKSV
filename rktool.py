@@ -279,7 +279,6 @@ class VerifyDEPWidget(BoxLayout):
         try:
             rec, prefix = receipt.Receipt.fromJWSString(btn.text)
 
-            # TODO: properly pass isValid and key
             self._receipt_view = ModalView(auto_dismiss=False)
             content = ViewReceiptWidget(rec, prefix, self._verified,
                     self.aesInput.text, cancel=self._receipt_view.dismiss)
@@ -529,6 +528,7 @@ class KeyStoreWidget(BoxLayout):
 
         config = configparser.RawConfigParser()
         config.optionxform = str
+        # TODO: catch exceptions of read and open and config parsing
         config.read(os.path.join(path, filename[0]))
         App.get_running_app().keyStore = key_store.KeyStore.readStore(config)
 
