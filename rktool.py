@@ -35,6 +35,13 @@ class ErrorDialog(FloatLayout):
     exception = ObjectProperty(None)
     cancel = ObjectProperty(None)
 
+def displayError(ex):
+    content = ErrorDialog(exception=ex)
+    popup = Popup(title="Error", content=content,
+            size_hint=(0.9, 0.9))
+    content.cancel = popup.dismiss
+    popup.open()
+
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
     cancel = ObjectProperty(None)
@@ -146,10 +153,7 @@ class ViewReceiptWidget(BoxLayout):
             self.verify_button.text = 'Verify'
             self.verify_button.disabled = False
 
-            content = ErrorDialog(exception=result, cancel=self.dismissPopup)
-            self._popup = Popup(title="Error", content=content,
-                    size_hint=(0.9, 0.9))
-            self._popup.open()
+            displayError(result)
 
         else:
             self.verify_button.text = 'Valid Signature'
@@ -205,10 +209,7 @@ class ViewReceiptWidget(BoxLayout):
                 self._key = k
         except Exception as e:
             self.aes_input.text = ''
-            content = ErrorDialog(exception=e, cancel=self.dismissPopup)
-            self._popup = Popup(title="Error", content=content,
-                    size_hint=(0.9, 0.9))
-            self._popup.open()
+            displayError(e)
 
         if self._key:
             self.decrypt_button.disabled = True
@@ -260,14 +261,9 @@ class VerifyReceiptWidget(BoxLayout):
             self._popup.add_widget(content)
             self._popup.open()
         except receipt.ReceiptException as e:
-            content = ErrorDialog(exception=e, cancel=self.dismissPopup)
-            self._popup = Popup(title="Error", content=content,
-                    size_hint=(0.9, 0.9))
-            self._popup.open()
+            displayError(e)
 
 class VerifyDEPWidget(BoxLayout):
-    # TODO: actual verification of the DEP
-
     treeView = ObjectProperty(None)
     aesInput = ObjectProperty(None)
     verify_button = ObjectProperty(None)
@@ -291,10 +287,7 @@ class VerifyDEPWidget(BoxLayout):
             self._receipt_view.bind(on_open=content.firstDisplay)
             self._receipt_view.open()
         except receipt.ReceiptException as e:
-            content = ErrorDialog(exception=e, cancel=self.dismissPopup)
-            self._popup = Popup(title="Error", content=content,
-                    size_hint=(0.9, 0.9))
-            self._popup.open()
+            displayError(e)
 
     def updateDEPDisplay(self):
         # TODO handle malformed DEP
@@ -348,10 +341,7 @@ class VerifyDEPWidget(BoxLayout):
                 key = base64.b64decode(k.encode('utf-8'))
         except Exception as e:
             self.aesInput.text = ''
-            content = ErrorDialog(exception=e, cancel=self.dismissPopup)
-            self._popup = Popup(title="Error", content=content,
-                    size_hint=(0.9, 0.9))
-            self._popup.open()
+            displayError(e)
             return
 
         self._verifying = True
@@ -371,10 +361,7 @@ class VerifyDEPWidget(BoxLayout):
         if result:
             self.verify_button.text = 'Verify'
 
-            content = ErrorDialog(exception=result, cancel=self.dismissPopup)
-            self._popup = Popup(title="Error", content=content,
-                    size_hint=(0.9, 0.9))
-            self._popup.open()
+            displayError(result)
 
         else:
             self._verified = True
