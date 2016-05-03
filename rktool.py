@@ -276,7 +276,11 @@ class VerifyDEPWidget(BoxLayout):
     _verified = False
 
     def addCert(self, btn):
-        App.get_running_app().keyStore.putPEMCert(utils.addPEMCertHeaders(btn.text))
+        try:
+            App.get_running_app().keyStore.putPEMCert(utils.addPEMCertHeaders(btn.text))
+        except ValueError as e:
+            displayError(e)
+
         App.get_running_app().updateKSWidget()
 
     def viewReceipt(self, btn):
@@ -376,9 +380,10 @@ class VerifyDEPWidget(BoxLayout):
         try:
             verify.verifyDEP(json, store, key)
             self.verifyCb(None)
-        except receipt.ReceiptException as e:
+        except (receipt.ReceiptException, verify.DEPException) as e:
             self.verifyCb(e)
-        except verify.DEPException as e:
+        # In case one of the certs is malformed.
+        except ValueError as e:
             self.verifyCb(e)
 
     def dismissPopup(self):
