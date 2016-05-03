@@ -191,9 +191,9 @@
 
 <VerifyDEPWidget>:
 	id: vd_w
+	verify_button: vd_w_verify
 	treeView: vd_tv
 	aesInput: vd_ti
-	verify_button: vd_w_verify
 	orientation: 'vertical'
 	BoxLayout:
 		size_hint_y: None
@@ -218,6 +218,7 @@
 	Button:
 		size_hint_y: None
 		text: 'Verify'
+		disabled: True
 		id: vd_w_verify
 		on_press: vd_w.verify()
 
