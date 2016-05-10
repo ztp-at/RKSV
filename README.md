@@ -4,6 +4,7 @@ Dependencies
 >=Kivy-1.9 (for the UI)
 >=cryptography-1.2
 >=dev-python/pyjwt-1.3
+>=dev-python/six-1.10.0
 
 setup.sh:
 ---------

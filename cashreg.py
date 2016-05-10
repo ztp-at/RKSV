@@ -103,7 +103,8 @@ class CashRegister(CashRegisterI):
         
         header, payload, signature = jwsString.split('.')
         header = base64.urlsafe_b64decode(
-                receipt.restoreb64padding(header)).decode('utf-8')
+                receipt.restoreb64padding(header).encode('utf-8')
+                ).decode('utf-8')
         rec.sign(header, signature)
 
         return rec

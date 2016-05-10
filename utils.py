@@ -12,6 +12,8 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key, En
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
 
+from six import string_types
+
 def loadKeyFromJson(json):
     """
     Loads an AES-256 key from a cryptographic material container JSON.
@@ -140,4 +142,10 @@ def certFingerprint(cert):
     :param cert: The certificate as a cryptography certificate object.
     :return: The fingerprint as a string.
     """
-    return ':'.join('{:02x}'.format(b) for b in cert.fingerprint(hashes.SHA256()))
+    fp = cert.fingerprint(hashes.SHA256())
+    if isinstance(fp, string_types):
+        # Python 2
+        return ':'.join('{:02x}'.format(ord(b)) for b in fp)
+    else:
+        # Python 3
+        return ':'.join('{:02x}'.format(b) for b in fp)

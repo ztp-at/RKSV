@@ -7,6 +7,8 @@ functions.
 import base64
 import datetime
 
+from six import string_types
+
 import algorithms
 
 class ReceiptException(Exception):
@@ -90,9 +92,9 @@ class Receipt:
         :param previousChain: The chaining value for the previous receipt as a
         base64 encoded string.
         """
-        if not isinstance(receiptId, str):
+        if not isinstance(receiptId, string_types):
             raise MalformedReceiptException("Unknown Receipt")
-        if not isinstance(zda, str) or not isinstance(registerId, str):
+        if not isinstance(zda, string_types) or not isinstance(registerId, string_types):
             raise MalformedReceiptException(receiptId)
         if not isinstance(dateTime, datetime.datetime):
             raise MalformedReceiptException(receiptId)
@@ -100,9 +102,9 @@ class Receipt:
                 or not isinstance(sumC, float) or not isinstance(sumD, float) \
                 or not isinstance(sumE, float):
             raise MalformedReceiptException(receiptId)
-        if not isinstance(encTurnoverCounter, str) \
-                or not isinstance(certSerial, str) \
-                or not isinstance(previousChain, str):
+        if not isinstance(encTurnoverCounter, string_types) \
+                or not isinstance(certSerial, string_types) \
+                or not isinstance(previousChain, string_types):
             raise MalformedReceiptException(receiptId)
         try:
             base64.b64decode(encTurnoverCounter.encode('utf-8'))
@@ -418,12 +420,12 @@ class Receipt:
         :param header: The JWS header as a string.
         :param signature: The signature as a base64 encoded string.
         """
-        if not isinstance(header, str):
+        if not isinstance(header, string_types):
             raise MalformedReceiptException(self.receiptId)
-        if not isinstance(signature, str):
+        if not isinstance(signature, string_types):
             raise MalformedReceiptException(self.receiptId)
         try:
-            base64.urlsafe_b64decode(restoreb64padding(signature))
+            base64.urlsafe_b64decode(restoreb64padding(signature).encode("utf-8"))
         except TypeError:
             raise MalformedReceiptException(self.receiptId)
 
