@@ -258,10 +258,17 @@ class ViewReceiptWidget(BoxLayout):
 
         key = None
         try:
-            with open(os.path.join(path, filename[0])) as f:
-                key = f.read()
-        except IOError as e:
+            full = os.path.join(path, filename[0])
+            with open(full) as f:
+                if full.endswith(".json"):
+                    jsonAES = json.loads(f.read())
+                    key = jsonAES["base64AESKey"]
+                else:
+                    key = f.read()
+        except (IOError, ValueError) as e:
             displayError(e)
+        except KeyError:
+            displayError("Malformed crypto container")
 
         self.dismissPopup()
         self.setKey(key)
@@ -519,10 +526,17 @@ class VerifyDEPWidget(BoxLayout):
             return
 
         try:
-            with open(os.path.join(path, filename[0])) as f:
-                self.aesInput.text = f.read()
-        except IOError as e:
+            full = os.path.join(path, filename[0])
+            with open(full) as f:
+                if full.endswith(".json"):
+                    jsonAES = json.loads(f.read())
+                    self.aesInput.text = jsonAES["base64AESKey"]
+                else:
+                    self.aesInput.text = f.read()
+        except (IOError, ValueError) as e:
             displayError(e)
+        except KeyError:
+            displayError("Malformed crypto container")
 
         self.dismissPopup()
 
@@ -646,13 +660,23 @@ class KeyStoreWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
-        config = configparser.RawConfigParser()
-        config.optionxform = str
         try:
-            config.read(os.path.join(path, filename[0]))
-            App.get_running_app().keyStore = key_store.KeyStore.readStore(config)
+            full = os.path.join(path, filename[0])
+            if full.endswith(".json"):
+                with open(full) as f:
+                    jsonKS = json.loads(f.read())
+                    App.get_running_app().keyStore = \
+                            key_store.KeyStore.readStoreFromJson(jsonKS)
+            else:
+                config = configparser.RawConfigParser()
+                config.optionxform = str
+                config.read(full)
+                App.get_running_app().keyStore = \
+                        key_store.KeyStore.readStore(config)
         except (IOError, ValueError, configparser.Error) as e:
             displayError(e)
+        except KeyError:
+            displayError("Malformed crypto container")
 
         self.dismissPopup()
         self.buildKSTree()
