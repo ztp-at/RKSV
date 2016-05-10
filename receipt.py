@@ -392,7 +392,8 @@ class Receipt:
             raise UnknownAlgorithmException(self.toJWSString(algorithmPrefix))
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
-        return base64.urlsafe_b64encode((algorithm.hash(payload)[0:8])).decode("utf-8")
+        return base64.urlsafe_b64encode((algorithm.hash(payload)[0:8]
+            )).decode("utf-8").replace('=', '')
 
     @staticmethod
     def fromCSV(csv):
@@ -485,6 +486,11 @@ class Receipt:
 import requests
 
 def getBasicCodeFromURL(url):
+    """
+    Downloads the basic code representation of a receipt from the given URL.
+    :param url: The URL as a string.
+    :return: The basic code representation as a string.
+    """
     r = requests.get(url)
     r.raise_for_status()
     return r.json()['code']
