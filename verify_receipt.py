@@ -3,6 +3,7 @@
 """
 This module contains classes to verify receipts.
 """
+import base64
 import enum
 
 import algorithms
@@ -47,6 +48,14 @@ class SignatureSystemFailedException(receipt.ReceiptException):
     """
     def __init__(self, rec):
         super(SignatureSystemFailedException, self).__init__(rec, "Signature System failed.")
+
+class InvalidURLHashException(receipt.ReceiptException):
+    """
+    Indicates that the given URL hash does not match the URL hash computed
+    from the receipt.
+    """
+    def __init__(self, rec):
+        super(InvalidURLHashException, self).__init__(rec, "Invalid URL hash.")
 
 class ReceiptVerifierI:
     """
@@ -113,6 +122,23 @@ class ReceiptVerifierI:
         :throws: UnknownAlgorithmException
         :throws: SignatureSystemFailedException
         :throws: MalformedReceiptException
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
+    def verifyURLHash(self, basicCode, urlHash):
+        """
+        Verifies the given receipt and URL hash.
+        :param basicCode: The receipt as QR code string.
+        :param urlHash: The URL hash of the receipt.
+        :returns: The receipt object and the used algorithm class object.
+        :throws: CertSerialInvalidException
+        :throws: CertSerialMismatchException
+        :throws: NoPublicKeyException
+        :throws: InvalidSignatureException
+        :throws: UnknownAlgorithmException
+        :throws: SignatureSystemFailedException
+        :throws: MalformedReceiptException
+        :throws: InvalidURLHashException
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -261,6 +287,16 @@ class ReceiptVerifier(ReceiptVerifierI):
 
         return self.verify(rec, algorithmPrefix)
 
+    def verifyURLHash(self, basicCode, urlHash):
+        rec, algorithm = self.verifyBasicCode(basicCode)
+
+        calcHash = base64.urlsafe_b64encode((algorithm.hash(basicCode)[0:8]
+            )).decode("utf-8").replace('=', '')
+        if calcHash != urlHash:
+            raise InvalidURLHashException(urlHash)
+
+        return rec, algorithm
+
     def verifyCSV(self, csv):
         rec, algorithmPrefix = receipt.Receipt.fromCSV(csv)
 
@@ -269,10 +305,24 @@ class ReceiptVerifier(ReceiptVerifierI):
 import configparser
 import sys
 
+def getBasicCodeAndURLHashFromURL(url):
+    """
+    Downloads the basic code representation of a receipt from the given URL
+    and extracts the URL hash value of the receipt from the anchor part of
+    the URL.
+    :param url: The URL as a string. It has to contain the used URL hash in
+    the anchor part.
+    :return: The basic code representation and the URL hash as strings.
+    """
+    url, urlHash = url.split('#')
+    basicCode = receipt.getBasicCodeFromURL(url)
+    return basicCode, urlHash
+
 INPUT_FORMATS = {
         'jws': lambda rv, s: rv.verifyJWS(s),
         'qr': lambda rv, s: rv.verifyBasicCode(s),
         'ocr': lambda rv, s: rv.verifyOCRCode(s),
+        'url': lambda rv, s: rv.verifyURLHash(*getBasicCodeAndURLHashFromURL(s)),
         'csv': lambda rv, s: rv.verifyCSV(s)
         }
 

@@ -115,11 +115,14 @@ verify_receipt.py
 	Usage: ./verify_receipt.py <format> <key store> [<receipt string>]
 
 This script verifies receipts. The used certificates or public keys must be
-available in the given key store. The formats `jws`, `qr`, `ocr` and `csv` are
-supported. If `receipt string` is given, the receipt from the command line is
-verified, otherwise the script reads and verifies receipts from stdin. If all
-receipts are valid the script prints nothing, if the verification fails it will
-print an error message.
+available in the given key store. The formats `jws`, `qr`, `ocr`, `url` and
+`csv` are supported. If `receipt string` is given, the receipt from the command
+line is verified, otherwise the script reads and verifies receipts from stdin.
+If all receipts are valid the script prints nothing, if the verification fails
+it will print an error message.
+
+If the `url` input format is used, the script expects each URL to contain the
+URL hash in the anchor element.
 
 convert.py
 ----------
