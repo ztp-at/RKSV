@@ -133,3 +133,9 @@ certificates are not mapped into the CSV and hence cannot be restored when
 converting back to JSON.
 
 The CSV contains one receipt per line with `;` serving as the delimiter.
+
+rktool.py
+---------
+This script provides a GUI to access some of the functionality provided by the
+previously mentioned tools. It provides interfaces to manage key stores, verify
+DEP files and import and verify single receipts from various sources.
