@@ -91,8 +91,8 @@ receipt.py
 
 This script reads receipts from stdin and writes them to stdout, possibly
 converting them to a different format. The supported input formats are
-`jws`, `qr`, `ocr` and `csv`. The supported output formats are `jws`, `qr`,
-`ocr`, `url` and `csv`.
+`jws`, `qr`, `ocr`, `url` and `csv`. The supported output formats are `jws`,
+`qr`, `ocr`, `url` and `csv`.
 
 verify.py
 ---------

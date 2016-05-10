@@ -482,12 +482,20 @@ class Receipt:
         ct = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return algorithm.decryptTurnoverCounter(self, ct, key)
 
+import requests
+
+def getBasicCodeFromURL(url):
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.json()['code']
+
 import sys
 
 INPUT_FORMATS = {
         'jws': lambda s: Receipt.fromJWSString(s),
         'qr': lambda s: Receipt.fromBasicCode(s),
         'ocr': lambda s: Receipt.fromOCRCode(s),
+        'url': lambda s: Receipt.fromBasicCode(getBasicCodeFromURL(s)),
         'csv': lambda s: Receipt.fromCSV(s)
         }
 
