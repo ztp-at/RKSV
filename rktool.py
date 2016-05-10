@@ -345,6 +345,7 @@ class VerifyReceiptWidget(BoxLayout):
         except receipt.ReceiptException as e:
             displayError(e)
 
+# TODO: add a visual way to determine where an error happened?
 class VerifyDEPWidget(BoxLayout):
     treeView = ObjectProperty(None)
     aesInput = ObjectProperty(None)
