@@ -31,6 +31,78 @@ import receipt
 import verify_receipt
 import verify
 
+# This code blatantly copied from https://stackoverflow.com/a/325528
+import ctypes
+import inspect
+
+def _async_raise(tid, exctype):
+    '''Raises an exception in the threads with id tid'''
+    if not inspect.isclass(exctype):
+        raise TypeError("Only types can be raised (not instances)")
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid,
+            ctypes.py_object(exctype))
+    if res == 0:
+        raise ValueError("invalid thread id")
+    elif res != 1:
+        # "if it returns a number greater than one, you're in trouble,
+        # and you should call it again with exc=NULL to revert the effect"
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+        raise SystemError("PyThreadState_SetAsyncExc failed")
+
+class ThreadWithExc(threading.Thread):
+    '''A thread class that supports raising exception in the thread from
+       another thread.
+    '''
+    def _get_my_tid(self):
+        """determines this (self's) thread id
+
+        CAREFUL : this function is executed in the context of the caller
+        thread, to get the identity of the thread represented by this
+        instance.
+        """
+        if not self.isAlive():
+            raise threading.ThreadError("the thread is not active")
+
+        # do we have it cached?
+        if hasattr(self, "_thread_id"):
+            return self._thread_id
+
+        # no, look for it in the _active dict
+        for tid, tobj in threading._active.items():
+            if tobj is self:
+                self._thread_id = tid
+                return tid
+
+        # TODO: in python 2.6, there's a simpler way to do : self.ident
+
+        raise AssertionError("could not determine the thread's id")
+
+    def raiseExc(self, exctype):
+        """Raises the given exception type in the context of this thread.
+
+        If the thread is busy in a system call (time.sleep(),
+        socket.accept(), ...), the exception is simply ignored.
+
+        If you are sure that your exception should terminate the thread,
+        one way to ensure that it works is:
+
+            t = ThreadWithExc( ... )
+            ...
+            t.raiseExc( SomeException )
+            while t.isAlive():
+                time.sleep( 0.1 )
+                t.raiseExc( SomeException )
+
+        If the exception is to be caught by the thread, you need a way to
+        check that your thread has caught it.
+
+        CAREFUL : this function is executed in the context of the
+        caller thread, to raise an excpetion in the context of the
+        thread represented by this instance.
+        """
+        _async_raise( self._get_my_tid(), exctype )
+
+# original work starts here, donut steel
 class ErrorDialog(FloatLayout):
     exception = ObjectProperty(None)
     cancel = ObjectProperty(None)
@@ -144,7 +216,7 @@ class ViewReceiptWidget(BoxLayout):
         prefix = copy.deepcopy(self._algorithmPrefix)
         store = copy.deepcopy(App.get_running_app().keyStore)
 
-        threading.Thread(target=self.verifyReceiptTask,
+        ThreadWithExc(target=self.verifyReceiptTask,
                 args=(rec, prefix, store,)).start()
 
     @mainthread
@@ -159,7 +231,6 @@ class ViewReceiptWidget(BoxLayout):
             self.verify_button.text = 'Valid Signature'
             self.verify_button.disabled = True
 
-    # TODO: manage proper termination of this thread
     def verifyReceiptTask(self, rec, prefix, store):
         try:
             rv = verify_receipt.ReceiptVerifier.fromKeyStore(store)
@@ -274,6 +345,7 @@ class VerifyDEPWidget(BoxLayout):
 
     _verifying = False
     _verified = False
+    _verifyThread = None
 
     def addCert(self, btn):
         try:
@@ -341,7 +413,13 @@ class VerifyDEPWidget(BoxLayout):
             return False
 
     def verifyAbort(self):
-        # TODO: stop verfication task
+        try:
+            if self._verifyThread:
+                self._verifyThread.raiseExc(threading.ThreadError)
+        except (threading.ThreadError, TypeError, ValueError, SystemError):
+            pass
+
+        self._verifyThread = None
         self._verifying = False
         self._verified = False
         self.verify_button.disabled = False
@@ -367,8 +445,9 @@ class VerifyDEPWidget(BoxLayout):
 
         store = copy.deepcopy(App.get_running_app().keyStore)
 
-        threading.Thread(target=self.verifyDEPTask,
-                args=(self._jsonDEP, store, key,)).start()
+        self._verifyThread = ThreadWithExc(target=self.verifyDEPTask,
+                args=(self._jsonDEP, store, key,))
+        self._verifyThread.start()
 
     @mainthread
     def verifyCb(self, result):
@@ -376,6 +455,7 @@ class VerifyDEPWidget(BoxLayout):
             return
 
         self._verifying = False
+        self._verifyThread = None
         if result:
             self.verify_button.text = 'Verify'
 
@@ -386,7 +466,6 @@ class VerifyDEPWidget(BoxLayout):
             self.verify_button.disabled = True
             self.verify_button.text = 'Valid DEP'
 
-    # TODO: manage proper termination of this thread
     def verifyDEPTask(self, json, store, key):
         try:
             verify.verifyDEP(json, store, key)
@@ -396,6 +475,8 @@ class VerifyDEPWidget(BoxLayout):
         # In case one of the certs is malformed.
         except ValueError as e:
             self.verifyCb(e)
+        except threading.ThreadError:
+            pass
 
     def dismissPopup(self):
         self._popup.dismiss()
