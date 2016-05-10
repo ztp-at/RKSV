@@ -134,6 +134,18 @@ converting back to JSON.
 
 The CSV contains one receipt per line with `;` serving as the delimiter.
 
+receipt_host.py
+---------------
+	Usage: ./receipt_host.py dep
+       	       ./receipt_host.py jws
+
+This script reads receipts from stdin and launches a web server on
+`127.0.0.1:5000` that hosts each receipt under `/<url_hash>`, where `<url_hash>`
+is the URL format of the receipt as returned by the `receipt.py` script.
+
+The first invocation expects the receipts in a DEP formatted file, while the
+second one expects one JWS formatted receipt per line.
+
 rktool.py
 ---------
 This script provides a GUI to access some of the functionality provided by the
