@@ -562,15 +562,17 @@ class KeyStoreWidget(BoxLayout):
 
         tv = self.treeView
 
-        iterator = iter(tv.iterate_all_nodes(node=self.pubKeyGroup))
-        next(iterator)
-        for n in iterator:
-            tv.remove_node(n)
+        while len(self.pubKeyGroup.nodes) > 0:
+            iterator = iter(tv.iterate_all_nodes(node=self.pubKeyGroup))
+            next(iterator)
+            for n in iterator:
+                tv.remove_node(n)
 
-        iterator = iter(tv.iterate_all_nodes(node=self.certGroup))
-        next(iterator)
-        for n in iterator:
-            tv.remove_node(n)
+        while len(self.certGroup.nodes) > 0:
+            iterator = iter(tv.iterate_all_nodes(node=self.certGroup))
+            next(iterator)
+            for n in iterator:
+                tv.remove_node(n)
 
         ks = App.get_running_app().keyStore
         for kid in ks.getKeyIds():
