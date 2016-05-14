@@ -3,6 +3,7 @@ Dependencies
 >=python-3.4
 >=Kivy-1.9 (for the UI)
 >=cryptography-1.2
+>=dev-python/configparser-3.3.0.2
 >=dev-python/flask-0.10.1-r1
 >=dev-python/pyjwt-1.3
 >=dev-python/six-1.10.0
