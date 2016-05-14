@@ -6,6 +6,7 @@ Dependencies
 >=dev-python/configparser-3.3.0.2
 >=dev-python/flask-0.10.1-r1
 >=dev-python/pyjwt-1.3
+>=dev-python/requests-2.8.1
 >=dev-python/six-1.10.0
 
 setup.sh:
