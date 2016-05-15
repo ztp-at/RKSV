@@ -11,6 +11,8 @@ import os
 import threading
 import utils
 
+from requests.exceptions import RequestException
+
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.app import App
 from kivy.clock import mainthread
@@ -334,6 +336,17 @@ class VerifyReceiptWidget(BoxLayout):
                 rec, prefix = receipt.Receipt.fromBasicCode(self.receiptInput.text)
             elif (self._input_type == 'OCR'):
                 rec, prefix = receipt.Receipt.fromOCRCode(self.receiptInput.text)
+            elif (self._input_type == 'URL'):
+                urlHash = utils.getURLHashFromURL(self.receiptInput.text)
+                basicCode = utils.getBasicCodeFromURL(self.receiptInput.text)
+
+                rec, prefix = receipt.Receipt.fromBasicCode(basicCode)
+
+                if prefix not in algorithms.ALGORITHMS:
+                    raise receipt.UnknownAlgorithmException(basicCode)
+                algorithm = algorithms.ALGORITHMS[prefix]
+
+                verify_receipt.verifyURLHash(rec, algorithm, urlHash)
             else:
                 return
 
@@ -342,7 +355,7 @@ class VerifyReceiptWidget(BoxLayout):
             self._popup = ModalView(auto_dismiss=False)
             self._popup.add_widget(content)
             self._popup.open()
-        except receipt.ReceiptException as e:
+        except (receipt.ReceiptException, RequestException) as e:
             displayError(e)
 
 # TODO: add a visual way to determine where an error happened?

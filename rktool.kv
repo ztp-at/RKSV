@@ -158,7 +158,7 @@
 			multiline: False
 		Button:
 			size_hint_x: None
-			text: 'Load Receipt'
+			text: '...'
 			on_press: vr_w.loadReceipt()
 	ScrollView:
 		do_scroll_x: False
@@ -179,10 +179,10 @@
 				change: (lambda: vr_w.selectInputType('OCR'))
 				text: 'OCR code'
 				group: 'input_format'
-			#RadioButton:
-			#	change: vr_w.selectInputType('URL')
-			#	text: 'URL'
-			#	group: 'input_format'
+			RadioButton:
+				change: (lambda: vr_w.selectInputType('URL'))
+				text: 'URL'
+				group: 'input_format'
 	Button:
 		size_hint_y: None
 		text: 'Read Receipt'
