@@ -290,26 +290,17 @@ def verifyURLHash(rec, algorithm, urlHash):
     calcHash = base64.urlsafe_b64encode((algorithm.hash(basicCode)[0:8]
         )).decode("utf-8").replace('=', '')
     if calcHash != urlHash:
-        raise InvalidURLHashException(urlHash)
+        if urlHash:
+            raise InvalidURLHashException(urlHash)
+        else:
+            raise InvalidURLHashException(basicCode)
 
 import configparser
 import sys
 
-def getBasicCodeAndURLHashFromURL(url):
-    """
-    Downloads the basic code representation of a receipt from the given URL
-    and extracts the URL hash value of the receipt from the anchor part of
-    the URL.
-    :param url: The URL as a string. It has to contain the used URL hash in
-    the anchor part.
-    :return: The basic code representation and the URL hash as strings.
-    """
-    url, urlHash = url.split('#')
-    basicCode = utils.getBasicCodeFromURL(url)
-    return basicCode, urlHash
-
 def getAndVerifyReceiptURL(rv, url):
-    basicCode, urlHash = getBasicCodeAndURLHashFromURL(url)
+    basicCode = utils.getBasicCodeFromURL(url)
+    urlHash = utils.getURLHashFromURL(url)
     rec, algorithm = rv.verifyBasicCode(basicCode)
     verifyURLHash(rec, algorithm, urlHash)
 

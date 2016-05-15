@@ -4,6 +4,7 @@ key handling, as well has hashing, encoding and downloading receipts.
 """
 import base64
 import requests
+import re
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -172,3 +173,23 @@ def getBasicCodeFromURL(url):
     r = requests.get(url)
     r.raise_for_status()
     return r.json()['code']
+
+def getURLHashFromURL(url):
+    """
+    Extracts the URL hash from the given URL. If an anchor part is given,
+    it is used as the hash.
+    :param url: The URL to search for the hash.
+    :return: The hash as a base64 URL encoded string without padding or
+    None if the hash could not be found.
+    """
+    urlParts = url.split('#')
+    if len(urlParts) >= 2:
+        return urlParts[1]
+
+    matches = re.findall(
+            r'(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{11}(?![A-Za-z0-9_-])',
+            urlParts[0])
+    if len(matches) == 0:
+        return None
+
+    return matches[-1]
