@@ -10,6 +10,7 @@ import datetime
 from six import string_types
 
 import algorithms
+import utils
 
 class ReceiptException(Exception):
     """
@@ -53,18 +54,6 @@ class InvalidKeyException(ReceiptException):
 
     def __init__(self, receipt):
         super(InvalidKeyException, self).__init__(receipt, "Invalid key.")
-
-def restoreb64padding(data):
-    """
-    Restores the padding to a base64 string without padding. For internal use
-    only.
-    :param data: The base64 encoded string without padding.
-    :return: The base64 encoded string with padding.
-    """
-    needed = 4 - len(data) % 4
-    if needed:
-        data += '=' * needed
-    return data
 
 class Receipt:
     """
@@ -144,10 +133,10 @@ class Receipt:
         header = None
         payload = None
         try:
-            header = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[0]).encode(
-                "utf-8")).decode("utf-8")
-            payload = base64.urlsafe_b64decode(restoreb64padding(jwsSegs[1])
-                    .encode("utf-8")).decode("utf-8")
+            header = base64.urlsafe_b64decode(utils.restoreb64padding(
+                jwsSegs[0]).encode("utf-8")).decode("utf-8")
+            payload = base64.urlsafe_b64decode(utils.restoreb64padding(
+                jwsSegs[1]).encode("utf-8")).decode("utf-8")
         except TypeError:
             raise MalformedReceiptException(jwsString)
 
@@ -303,7 +292,8 @@ class Receipt:
 
         payload = self.toPayloadString(algorithmPrefix)
 
-        signature = restoreb64padding(self.signature).encode("utf-8")
+        signature = utils.restoreb64padding(
+                self.signature).encode("utf-8")
         signature = base64.urlsafe_b64decode(signature)
         signature = base64.b64encode(signature).decode("utf-8")
 
@@ -373,7 +363,8 @@ class Receipt:
         previousChain = base64.b64decode(previousChain)
         segments.append(base64.b32encode(previousChain))
 
-        signature = restoreb64padding(self.signature).encode("utf-8")
+        signature = utils.restoreb64padding(
+                self.signature).encode("utf-8")
         signature = base64.urlsafe_b64decode(signature)
         segments.append(base64.b32encode(signature))
 
@@ -426,7 +417,8 @@ class Receipt:
         if not isinstance(signature, string_types):
             raise MalformedReceiptException(self.receiptId)
         try:
-            base64.urlsafe_b64decode(restoreb64padding(signature).encode("utf-8"))
+            base64.urlsafe_b64decode(utils.restoreb64padding(
+                signature).encode("utf-8"))
         except TypeError:
             raise MalformedReceiptException(self.receiptId)
 
@@ -483,25 +475,14 @@ class Receipt:
         ct = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return algorithm.decryptTurnoverCounter(self, ct, key)
 
-import requests
-
-def getBasicCodeFromURL(url):
-    """
-    Downloads the basic code representation of a receipt from the given URL.
-    :param url: The URL as a string.
-    :return: The basic code representation as a string.
-    """
-    r = requests.get(url)
-    r.raise_for_status()
-    return r.json()['code']
-
 import sys
 
 INPUT_FORMATS = {
         'jws': lambda s: Receipt.fromJWSString(s),
         'qr': lambda s: Receipt.fromBasicCode(s),
         'ocr': lambda s: Receipt.fromOCRCode(s),
-        'url': lambda s: Receipt.fromBasicCode(getBasicCodeFromURL(s)),
+        'url': lambda s: Receipt.fromBasicCode(utils.getBasicCodeFromURL(
+            s)),
         'csv': lambda s: Receipt.fromCSV(s)
         }
 

@@ -1,8 +1,9 @@
 """
-This module contains several utility functions regarding certificate and key
-handling.
+This module contains several utility functions regarding certificate and
+key handling, as well has hashing, encoding and downloading receipts.
 """
 import base64
+import requests
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -149,3 +150,25 @@ def certFingerprint(cert):
     else:
         # Python 3
         return ':'.join('{:02x}'.format(b) for b in fp)
+
+def restoreb64padding(data):
+    """
+    Restores the padding to a base64 string without padding.
+    :param data: The base64 encoded string without padding.
+    :return: The base64 encoded string with padding.
+    """
+    needed = 4 - len(data) % 4
+    if needed:
+        data += '=' * needed
+    return data
+
+def getBasicCodeFromURL(url):
+    """
+    Downloads the basic code representation of a receipt from
+    the given URL.
+    :param url: The URL as a string.
+    :return: The basic code representation as a string.
+    """
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.json()['code']
