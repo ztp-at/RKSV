@@ -317,7 +317,7 @@ class VerifyReceiptWidget(BoxLayout):
 
         try:
             with open(os.path.join(path, filename[0])) as f:
-                self.receiptInput.text = f.read()
+                self.receiptInput.text = f.read().strip()
         except IOError as e:
             displayError(e)
 
@@ -686,7 +686,8 @@ class KeyStoreWidget(BoxLayout):
             else:
                 config = configparser.RawConfigParser()
                 config.optionxform = str
-                config.read(full)
+                with open(full) as f:
+                    config.readfp(f)
                 App.get_running_app().keyStore = \
                         key_store.KeyStore.readStore(config)
         except (IOError, ValueError, configparser.Error) as e:

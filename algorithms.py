@@ -8,6 +8,8 @@ import jwt
 import jwt.algorithms
 import struct
 
+from six import binary_type
+
 import utils
 
 class AlgorithmI:
@@ -184,6 +186,7 @@ class R1(AlgorithmI):
             decCtr = bytearray([255] * needed) + bytearray(decCtr)
         else:
             decCtr = bytearray([0] * needed) + bytearray(decCtr)
+        decCtr = binary_type(decCtr)
 
         return struct.unpack(">q", decCtr)[0]
 
