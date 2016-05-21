@@ -137,6 +137,10 @@ class TreeViewReceiptButton(TreeViewButton):
     group_id = ObjectProperty(None)
     receipt_id = ObjectProperty(None)
 
+class TreeViewKeyButton(TreeViewButton):
+    key_id = ObjectProperty(None)
+    key = ObjectProperty(None)
+
 class ViewReceiptItem(GridLayout, SelectableView):
     item_name = ObjectProperty(None)
     item_value = ObjectProperty(None)
@@ -373,11 +377,8 @@ class VerifyDEPWidget(BoxLayout):
     _verifyThread = None
 
     def addCert(self, btn):
-        try:
-            App.get_running_app().keyStore.putPEMCert(utils.addPEMCertHeaders(btn.text))
-        except ValueError as e:
-            displayError(e)
-
+        pubKey = btn.key.public_key()
+        App.get_running_app().keyStore.putKey(btn.key_id, pubKey, btn.key)
         App.get_running_app().updateKSWidget()
 
     def viewReceipt(self, btn):
@@ -418,13 +419,21 @@ class VerifyDEPWidget(BoxLayout):
                 receiptsNode = tv.add_node(TreeViewLabel(
                     text='Belege-kompakt'), groupNode)
 
-                cert = group['Signaturzertifikat']
-                if cert:
-                    tv.add_node(TreeViewButton(text=cert,
+                pem = group['Signaturzertifikat']
+                if pem:
+                    cert = utils.loadCert(utils.addPEMCertHeaders(pem))
+                    serial = "%x" % cert.serial
+                    tv.add_node(TreeViewKeyButton(
+                        text=serial,
+                        key_id=serial, key=cert,
                         on_press=self.addCert), certNode)
 
-                for cert in group['Zertifizierungsstellen']:
-                    tv.add_node(TreeViewButton(text=cert,
+                for pem in group['Zertifizierungsstellen']:
+                    cert = utils.loadCert(utils.addPEMCertHeaders(pem))
+                    serial = "%x" % cert.serial
+                    tv.add_node(TreeViewKeyButton(
+                        text=serial,
+                        key_id=serial, key=cert,
                         on_press=self.addCert), chainNode)
 
                 receiptIdx = 0
@@ -439,6 +448,8 @@ class VerifyDEPWidget(BoxLayout):
 
             return True
 
+        except ValueError as e:
+            displayError(e)
         except receipt.ReceiptException as e:
             displayError(e)
         except KeyError as e:
@@ -604,15 +615,20 @@ class KeyStoreWidget(BoxLayout):
 
         ks = App.get_running_app().keyStore
         for kid in ks.getKeyIds():
-            if ks.getCert(kid):
-                tv.add_node(TreeViewButton(text=kid, on_press=self.delKey),
-                        self.certGroup)
+            cert = ks.getCert(kid)
+            if cert:
+                tv.add_node(TreeViewKeyButton(
+                    text=kid,
+                    on_press=self.delKey,
+                    key_id=kid), self.certGroup)
             else:
-                tv.add_node(TreeViewButton(text=kid, on_press=self.delKey),
-                        self.pubKeyGroup)
+                tv.add_node(TreeViewKeyButton(
+                    text=kid,
+                    on_press=self.delKey,
+                    key_id=kid), self.pubKeyGroup)
 
     def delKey(self, btn):
-        App.get_running_app().keyStore.delKey(btn.text)
+        App.get_running_app().keyStore.delKey(btn.key_id)
         self.buildKSTree()
 
     def dismissPopup(self):
