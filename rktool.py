@@ -16,7 +16,7 @@ from requests.exceptions import RequestException
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.app import App
 from kivy.core.window import Window
-Window.softinput_mode = 'pan'
+Window.softinput_mode = 'below_target'
 from kivy.clock import mainthread
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
