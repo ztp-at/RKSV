@@ -133,6 +133,10 @@ class SingleValueDialog(FloatLayout):
 class TreeViewButton(Button, TreeViewNode):
     pass
 
+class TreeViewReceiptButton(TreeViewButton):
+    group_id = ObjectProperty(None)
+    receipt_id = ObjectProperty(None)
+
 class ViewReceiptItem(GridLayout, SelectableView):
     item_name = ObjectProperty(None)
     item_value = ObjectProperty(None)
@@ -378,7 +382,9 @@ class VerifyDEPWidget(BoxLayout):
 
     def viewReceipt(self, btn):
         try:
-            rec, prefix = receipt.Receipt.fromJWSString(btn.text)
+            group = self._jsonDEP['Belege-Gruppe'][btn.group_id]
+            jws = group['Belege-kompakt'][btn.receipt_id]
+            rec, prefix = receipt.Receipt.fromJWSString(jws)
 
             self._receipt_view = ModalView(auto_dismiss=False)
             content = ViewReceiptWidget(rec, prefix, self._verified,
@@ -404,7 +410,6 @@ class VerifyDEPWidget(BoxLayout):
             for group in self._jsonDEP['Belege-Gruppe']:
                 groupNode = tv.add_node(TreeViewLabel(
                     text=('Gruppe %d' % groupIdx)))
-                groupIdx += 1
 
                 certNode = tv.add_node(TreeViewLabel(
                     text='Signaturzertifikat'), groupNode)
@@ -422,16 +427,25 @@ class VerifyDEPWidget(BoxLayout):
                     tv.add_node(TreeViewButton(text=cert,
                         on_press=self.addCert), chainNode)
 
-                for receipt in group['Belege-kompakt']:
-                    tv.add_node(TreeViewButton(text=receipt,
+                receiptIdx = 0
+                for jws in group['Belege-kompakt']:
+                    rec, prefix = receipt.Receipt.fromJWSString(jws)
+                    tv.add_node(TreeViewReceiptButton(text=rec.receiptId,
+                        group_id=groupIdx - 1, receipt_id=receiptIdx,
                         on_press=self.viewReceipt), receiptsNode)
+                    receiptIdx += 1
+
+                groupIdx += 1
 
             return True
 
+        except receipt.ReceiptException as e:
+            displayError(e)
         except KeyError as e:
-            self.clearDEPDisplay()
             displayError("Malformed DEP")
-            return False
+
+        self.clearDEPDisplay()
+        return False
 
     def verifyAbort(self):
         try:

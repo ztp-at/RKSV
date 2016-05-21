@@ -1,5 +1,4 @@
 Find a way around the rounding errors in the turnover counter
-DEP View, show receipt ID instead of jws string
 Figure out how we can use zbar to read QR codes
 Test things on android, fix UI glitches and add functionality for the camera
 Write a test suite for the verification functions, see if a-sit tests can help here
