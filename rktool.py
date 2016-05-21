@@ -15,6 +15,8 @@ from requests.exceptions import RequestException
 
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.app import App
+from kivy.core.window import Window
+Window.softinput_mode = 'pan'
 from kivy.clock import mainthread
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -749,6 +751,9 @@ class MainWidget(BoxLayout):
 class RKToolApp(App):
     keyStore = key_store.KeyStore()
     ksWidget = None
+
+    def on_pause(self):
+        return True
 
     def updateKSWidget(self):
         if self.ksWidget:
