@@ -5,6 +5,7 @@ This module provides an abstraction for a receipt and several basic conversion
 functions.
 """
 import base64
+import binascii
 import datetime
 
 from six import string_types
@@ -98,7 +99,7 @@ class Receipt:
         try:
             base64.b64decode(encTurnoverCounter.encode('utf-8'))
             base64.b64decode(previousChain.encode('utf-8'))
-        except TypeError:
+        except (TypeError, binascii.Error):
             raise MalformedReceiptException(receiptId)
 
         self.zda = zda
@@ -137,7 +138,7 @@ class Receipt:
                 jwsSegs[0]).encode("utf-8")).decode("utf-8")
             payload = base64.urlsafe_b64decode(utils.restoreb64padding(
                 jwsSegs[1]).encode("utf-8")).decode("utf-8")
-        except TypeError:
+        except (TypeError, binascii.Error):
             raise MalformedReceiptException(jwsString)
 
         signature = jwsSegs[2]
@@ -269,7 +270,7 @@ class Receipt:
         signature = None
         try:
             signature = base64.b64decode(segments[13].encode("utf-8"))
-        except TypeError:
+        except (TypeError, binascii.Error):
             raise MalformedReceiptException(basicCode)
         signature = base64.urlsafe_b64encode(signature).replace(b'=', b'')
         signature = signature.decode("utf-8")
@@ -319,7 +320,7 @@ class Receipt:
             encTurnoverCounter = base64.b32decode(segments[10])
             previousChain = base64.b32decode(segments[12])
             signature = base64.b32decode(segments[13])
-        except TypeError:
+        except (TypeError, binascii.Error):
             raise MalformedReceiptException(ocrCode)
 
         encTurnoverCounter = base64.b64encode(encTurnoverCounter)
@@ -419,7 +420,7 @@ class Receipt:
         try:
             base64.urlsafe_b64decode(utils.restoreb64padding(
                 signature).encode("utf-8"))
-        except TypeError:
+        except (TypeError, binascii.Error):
             raise MalformedReceiptException(self.receiptId)
 
         self.header = header
