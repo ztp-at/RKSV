@@ -36,7 +36,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
-requirements = requests,configparser,cryptography,flask,pyjwt,six,kivy
+requirements = requests,configparser,pyasn1,cryptography,flask,pyjwt,six,kivy
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -110,7 +110,7 @@ android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
 # android.skip_update = False
 
 # (str) Bootstrap to use for android builds (android_new only)
-# android.bootstrap = sdl2
+android.bootstrap = pygame
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
@@ -160,7 +160,7 @@ android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
 #android.logcat_filters = *:S python:D
 
 # (bool) Copy library instead of making a libpymodules.so
-#android.copy_libs = 1
+android.copy_libs = 0
 
 #
 # iOS specific
