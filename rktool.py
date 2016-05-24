@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python2
 
 from builtins import int
 
@@ -14,13 +14,14 @@ import threading
 import utils
 
 from requests.exceptions import RequestException
+from PIL import Image
 
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.app import App
 from kivy.core.window import Window
 Window.softinput_mode = 'resize'
 from kivy.clock import mainthread
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, DictProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
@@ -32,6 +33,7 @@ from kivy.uix.selectableview import SelectableView
 from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
 
 import algorithms
+import img_decode
 import key_store
 import receipt
 import verify_receipt
@@ -311,6 +313,7 @@ class ViewReceiptWidget(BoxLayout):
 
 class VerifyReceiptWidget(BoxLayout):
     receiptInput = ObjectProperty(None)
+    buttons = DictProperty(None)
     _input_type = 'JWS'
 
     def dismissPopup(self):
@@ -327,16 +330,32 @@ class VerifyReceiptWidget(BoxLayout):
         if not filename or len(filename) < 1:
             return
 
+        full = os.path.join(path, filename[0])
         try:
-            with open(os.path.join(path, filename[0])) as f:
-                self.receiptInput.text = f.read().strip()
-        except IOError as e:
-            displayError(e)
+            with Image.open(full) as f:
+                codes = img_decode.read_qr_codes(f)
+                if len(codes) < 1:
+                    displayError("No QR codes found.")
+                else:
+                    self.receiptInput.text = img_decode.read_qr_codes(f)[0]
+                    self.selectInputType('QR')
+        except IOError:
+            try:
+                with open(full) as f:
+                    self.receiptInput.text = f.read().strip()
+            except IOError as e:
+                displayError(e)
 
         self.dismissPopup()
 
     def selectInputType(self, inputType):
+        if self._input_type == inputType:
+            return
+
         self._input_type = inputType
+        for b in self.buttons.values():
+            b.state = 'normal'
+        self.buttons[inputType].state = 'down'
 
     def viewReceipt(self):
         try:
