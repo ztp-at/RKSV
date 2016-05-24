@@ -2,7 +2,7 @@ handle failed signature system in UI
 get resize to work instead of below_target
 Support german language in rktool
 Find a way around the rounding errors in the turnover counter
-Figure out how we can use zbar to read QR codes
+make zbar work on android too
 Test things on android, fix UI glitches and add functionality for the camera
 Write a test suite for the verification functions, see if a-sit tests can help here
 Support both counter update methods described in new doc
