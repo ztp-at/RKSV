@@ -3,6 +3,8 @@ This module abstracts an algorithm class used for creating and verifying
 receipts. The available algorithms are stored in the ALGORITHMS dictionary which
 is indexed by the algorithm codes specified in the regulation.
 """
+from builtins import int
+
 import base64
 import jwt
 import jwt.algorithms

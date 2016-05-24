@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from builtins import int
+
 import kivy
 kivy.require('1.9.0')
 

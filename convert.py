@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from builtins import int
+
 import json
 import sys
 

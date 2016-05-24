@@ -1,6 +1,8 @@
 """
 This module provides classes that can act as a simple cash register.
 """
+from builtins import int
+
 import base64
 
 import algorithms

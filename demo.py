@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from builtins import int
+
 import base64
 import datetime
 import random

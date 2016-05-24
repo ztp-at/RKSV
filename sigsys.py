@@ -1,6 +1,8 @@
 """
 This module provides classes to work as signature systems.
 """
+from builtins import int
+
 import base64
 import requests
 

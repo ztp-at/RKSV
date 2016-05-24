@@ -3,6 +3,8 @@
 """
 This module provides functions to verify a DEP.
 """
+from builtins import int
+
 import base64
 
 import algorithms

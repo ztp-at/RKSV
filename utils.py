@@ -2,6 +2,8 @@
 This module contains several utility functions regarding certificate and
 key handling, as well has hashing, encoding and downloading receipts.
 """
+from builtins import int
+
 import base64
 import requests
 import re

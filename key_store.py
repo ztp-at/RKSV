@@ -5,6 +5,8 @@ This module contains classes for a key store where certificates or public keys
 can be stored under an identifier. Keys (and certificates) can also be retrieved
 or deleted from the key store.
 """
+from builtins import int
+
 import copy
 import numbers
 

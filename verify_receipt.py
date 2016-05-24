@@ -3,6 +3,8 @@
 """
 This module contains classes to verify receipts.
 """
+from builtins import int
+
 import base64
 import enum
 
