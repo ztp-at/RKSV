@@ -8,7 +8,6 @@ from builtins import int
 import base64
 import jwt
 import jwt.algorithms
-import struct
 
 from six import binary_type
 
@@ -173,8 +172,9 @@ class R1(AlgorithmI):
     def encryptTurnoverCounter(self, receipt, turnoverCounter, key):
         iv = utils.sha256(receipt.registerId.encode("utf-8")
                 + receipt.receiptId.encode("utf-8"))[0:16]
-        # TODO: We always use an 8 byte long counter.
-        pt = struct.pack(">q", turnoverCounter)
+
+        pt = turnoverCounter.to_bytes(8, byteorder='big', signed=True)
+
         return utils.aes256ctr(iv, key, pt)
 
     def decryptTurnoverCounter(self, receipt, encTurnoverCounter, key):
@@ -182,14 +182,6 @@ class R1(AlgorithmI):
                 + receipt.receiptId.encode("utf-8"))[0:16]
         decCtr = utils.aes256ctr(iv, key, encTurnoverCounter)
 
-        # TODO: We only support up to 8 byte long counters.
-        needed = 8 - len(decCtr)
-        if decCtr[0] >= 128:
-            decCtr = bytearray([255] * needed) + bytearray(decCtr)
-        else:
-            decCtr = bytearray([0] * needed) + bytearray(decCtr)
-        decCtr = binary_type(decCtr)
-
-        return struct.unpack(">q", decCtr)[0]
+        return int.from_bytes(decCtr, byteorder='big', signed=True)
 
 ALGORITHMS = { 'R1': R1() }
