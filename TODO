@@ -1,3 +1,4 @@
+make different lengths for the turnover counters work somehow
 Find a way around the rounding errors in the turnover counter
 Figure out how we can use zbar to read QR codes
 Test things on android, fix UI glitches and add functionality for the camera
