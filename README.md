@@ -6,9 +6,11 @@ Dependencies
 >=dev-python/configparser-3.3.0.2
 >=dev-python/flask-0.10.1-r1
 >=dev-python/future-0.15.2
+>=dev-python/pillow-3.1.1
 >=dev-python/pyjwt-1.3
 >=dev-python/requests-2.8.1
 >=dev-python/six-1.10.0
+>=zbar-0.10-r5 + python bindings
 
 setup.sh:
 ---------
@@ -152,6 +154,13 @@ is the URL format of the receipt as returned by the `receipt.py` script.
 
 The first invocation expects the receipts in a DEP formatted file, while the
 second one expects one JWS formatted receipt per line.
+
+img_decode.py
+-------------
+	Usage: ./img_decode.py <image file>...
+
+This script reads all image files given on the command line and extracts all QR
+codes contained.
 
 rktool.py
 ---------
