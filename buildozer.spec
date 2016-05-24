@@ -36,7 +36,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
-requirements = future,requests,configparser,pyasn1,cryptography,flask,pyjwt,six,kivy
+requirements = future,pillow,requests,configparser,pyasn1,cryptography,flask,pyjwt,six,zbar,kivy
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
