@@ -67,6 +67,7 @@ key_store.py
 ------------
 	Usage: ./key_store.py <key store> create
 	       ./key_store.py <key store> list
+	       ./key_store.py <key store> toJson
 	       ./key_store.py <key store> fromJson <json container file>
 	       ./key_store.py <key store> add <pem cert file>
 	       ./key_store.py <key store> add <pem pubkey file> <pubkey id>
@@ -75,6 +76,9 @@ key_store.py
 The `create` command creates a new empty key store in the file `key store`.
 
 The `list` command lists the known certificate serials and key IDs
+
+The `toJson` command prints the key store in the new JSON crypto container
+format defined in version 0.6 of the reference implementation.
 
 The `fromJson` command creates a new key store from the new JSON crypto
 container format defined in version 0.6 of the reference implementation.

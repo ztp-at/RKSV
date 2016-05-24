@@ -271,6 +271,7 @@ import sys
 def usage():
     print("Usage: ./key_store.py <key store> create")
     print("       ./key_store.py <key store> list")
+    print("       ./key_store.py <key store> toJson")
     print("       ./key_store.py <key store> fromJson <json container file>")
     print("       ./key_store.py <key store> add <pem cert file>")
     print("       ./key_store.py <key store> add <pem pubkey file> <pubkey id>")
@@ -301,6 +302,18 @@ if __name__ == "__main__":
 
         for keyId in keyStore.getKeyIds():
             print(keyId)
+
+    elif sys.argv[2] == 'toJson':
+        if len(sys.argv) != 3:
+            usage()
+
+        config = configparser.RawConfigParser()
+        config.optionxform = str
+        config.read(filename)
+        keyStore = KeyStore.readStore(config)
+
+        data = keyStore.writeStoreToJson()
+        print(json.dumps(data, sort_keys=False, indent=2))
 
     elif sys.argv[2] == 'fromJson':
         if len(sys.argv) != 4:
