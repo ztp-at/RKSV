@@ -1,3 +1,4 @@
+handle failed signature system in UI
 get resize to work instead of below_target
 Support german language in rktool
 Find a way around the rounding errors in the turnover counter
