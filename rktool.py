@@ -187,6 +187,10 @@ class ViewReceiptWidget(BoxLayout):
         if isValid:
             self.verify_button.text = 'Valid Signature'
             self.verify_button.disabled = True
+
+        if receipt.isSignedBroken():
+            self.verify_button.text = 'No Signature'
+            self.verify_button.disabled = True
         
         self.updateView()
 
@@ -208,6 +212,10 @@ class ViewReceiptWidget(BoxLayout):
             turnoverCounter = receipt.decryptTurnoverCounter(key, algorithm)
             turnoverCounter = str(float(turnoverCounter) / 100)
 
+        signature = receipt.signature
+        if receipt.isSignedBroken():
+            signature = 'Signature system broken'
+
         maps =  { 1: ( 'ZDA ID', algorithmPrefix + '-' + receipt.zda )
                 , 2: ( 'Cash Register ID', receipt.registerId )
                 , 3: ( 'Receipt ID', receipt.receiptId )
@@ -220,7 +228,7 @@ class ViewReceiptWidget(BoxLayout):
                 ,10: ( 'Turnover Counter', turnoverCounter )
                 ,11: ( 'Certificate Serial/Key ID', receipt.certSerial )
                 ,12: ( 'Chaining Value', receipt.previousChain )
-                ,13: ( 'Signature', receipt.signature )
+                ,13: ( 'Signature', signature )
                 }
         self.adapter.data = maps
 
