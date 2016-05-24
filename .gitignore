@@ -8,3 +8,4 @@ aesBase64.txt
 *.ini
 *.txt
 *.csv
+*.json
