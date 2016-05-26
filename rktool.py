@@ -19,7 +19,6 @@ from PIL import Image
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.app import App
 from kivy.core.window import Window
-Window.softinput_mode = 'resize'
 from kivy.clock import mainthread
 from kivy.properties import ObjectProperty, DictProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -111,14 +110,23 @@ class ThreadWithExc(threading.Thread):
         _async_raise( self._get_my_tid(), exctype )
 
 # original work starts here, donut steel
+def getModalView():
+    return ModalView(size_hint=(1, None), pos_hint={'top': 1},
+            height=Window.height - Window.keyboard_height,
+            auto_dismiss=False)
+
+def getPopup(title, content):
+    return Popup(title=title, content=content,
+            size_hint=(0.9, None), pos_hint={'top': 1},
+            height=Window.height - Window.keyboard_height)
+
 class ErrorDialog(FloatLayout):
     exception = ObjectProperty(None)
     cancel = ObjectProperty(None)
 
 def displayError(ex):
     content = ErrorDialog(exception=ex)
-    popup = Popup(title="Error", content=content,
-            size_hint=(0.9, 0.9))
+    popup = getPopup("Error", content)
     content.cancel = popup.dismiss
     popup.open()
 
@@ -272,8 +280,7 @@ class ViewReceiptWidget(BoxLayout):
     def loadAES(self):
         content = LoadDialog(load=self.loadAESCb,
                 cancel=self.dismissPopup)
-        self._popup = Popup(title="Load AES Key", content=content,
-                size_hint=(0.9, 0.9))
+        self._popup = getPopup("Load AES Key", content)
         self._popup.open()
 
     def loadAESCb(self, path, filename):
@@ -330,8 +337,7 @@ class VerifyReceiptWidget(BoxLayout):
     def loadReceipt(self):
         content = LoadDialog(load=self.loadReceiptCb,
                 cancel=self.dismissPopup)
-        self._popup = Popup(title="Load Receipt", content=content,
-                size_hint=(0.9, 0.9))
+        self._popup = getPopup("Load Receipt", content)
         self._popup.open()
 
     def loadReceiptCb(self, path, filename):
@@ -392,7 +398,7 @@ class VerifyReceiptWidget(BoxLayout):
 
             content = ViewReceiptWidget(rec, prefix, False, None,
                     cancel=self.dismissPopup)
-            self._popup = ModalView(auto_dismiss=False)
+            self._popup = getModalView()
             self._popup.add_widget(content)
             self._popup.open()
         except (receipt.ReceiptException, RequestException) as e:
@@ -419,7 +425,7 @@ class VerifyDEPWidget(BoxLayout):
             jws = group['Belege-kompakt'][btn.receipt_id]
             rec, prefix = receipt.Receipt.fromJWSString(jws)
 
-            self._receipt_view = ModalView(auto_dismiss=False)
+            self._receipt_view = getModalView()
             content = ViewReceiptWidget(rec, prefix, self._verified,
                     self.aesInput.text, cancel=self._receipt_view.dismiss)
             self._receipt_view.add_widget(content)
@@ -562,8 +568,7 @@ class VerifyDEPWidget(BoxLayout):
     def loadDEP(self):
         content = LoadDialog(load=self.loadDEPCb,
                 cancel=self.dismissPopup)
-        self._popup = Popup(title="Load DEP", content=content,
-                size_hint=(0.9, 0.9))
+        self._popup = getPopup("Load DEP", content)
         self._popup.open()
 
     def loadDEPCb(self, path, filename):
@@ -588,8 +593,7 @@ class VerifyDEPWidget(BoxLayout):
     def loadAES(self):
         content = LoadDialog(load=self.loadAESCb,
                 cancel=self.dismissPopup)
-        self._popup = Popup(title="Load AES Key", content=content,
-                size_hint=(0.9, 0.9))
+        self._popup = getPopup("Load AES Key", content)
         self._popup.open()
 
     def loadAESCb(self, path, filename):
@@ -668,14 +672,12 @@ class KeyStoreWidget(BoxLayout):
 
     def addPubKey(self, btn):
         content = LoadDialog(load=self.addPubKeyCbKey, cancel=self.dismissPopup)
-        self._popup = Popup(title="Load PEM Public Key", content=content,
-                size_hint=(0.9, 0.9))
+        self._popup = getPopup("Load PEM Public Key", content)
         self._popup.open()
 
     def addCert(self, btn):
         content = LoadDialog(load=self.addCertCb, cancel=self.dismissPopup)
-        self._popup = Popup(title="Load PEM Certificate", content=content,
-                size_hint=(0.9, 0.9))
+        self._popup = getPopup("Load PEM Certificate", content)
         self._popup.open()
 
     def addPubKeyCbKey(self, path, filename):
@@ -694,8 +696,7 @@ class KeyStoreWidget(BoxLayout):
                 cancel=self.dismissPopup)
 
         self.dismissPopup()
-        self._popup = Popup(title="Enter Public Key ID", content=content,
-                size_hint=(0.9, 0.9))
+        self._popup = getPopup("Enter Public Key ID", content)
         self._popup.open()
 
     def addPubKeyCbId(self, keyId):
@@ -723,15 +724,13 @@ class KeyStoreWidget(BoxLayout):
     def importKeyStore(self):
         content = LoadDialog(load=self.importKeyStoreCb,
                 cancel=self.dismissPopup)
-        self._popup = Popup(title="Load Key Store", content=content,
-                size_hint=(0.9, 0.9))
+        self._popup = getPopup("Load Key Store", content)
         self._popup.open()
 
     def exportKeyStore(self):
         content = SaveDialog(save=self.exportKeyStoreCb,
                 cancel=self.dismissPopup)
-        self._popup = Popup(title="Save Key Store", content=content,
-                size_hint=(0.9, 0.9))
+        self._popup = getPopup("Save Key Store", content)
         self._popup.open()
 
     def importKeyStoreCb(self, path, filename):
@@ -789,7 +788,12 @@ class RKToolApp(App):
         if self.ksWidget:
             self.ksWidget.buildKSTree()
 
+    def updateHeight(self, instance, value):
+        for c in Window.children:
+            c.height = Window.height - Window.keyboard_height
+
     def build(self):
+        Window.bind(keyboard_height=self.updateHeight)
         return MainWidget()
 
 if __name__ == '__main__':

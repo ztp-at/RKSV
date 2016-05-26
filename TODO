@@ -1,5 +1,4 @@
 improve UI, make long text in text fields wrap, not scroll, add hint texts to tfs...
-get resize to work instead of below_target
 Support german language in rktool
 Find a way around the rounding errors in the turnover counter
 Test things on android, fix UI glitches and add functionality for the camera
