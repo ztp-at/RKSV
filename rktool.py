@@ -340,12 +340,13 @@ class VerifyReceiptWidget(BoxLayout):
 
         full = os.path.join(path, filename[0])
         try:
-            with Image.open(full) as f:
-                codes = img_decode.read_qr_codes(f)
+            with open(full) as f:
+                img = Image.open(f)
+                codes = img_decode.read_qr_codes(img)
                 if len(codes) < 1:
                     displayError("No QR codes found.")
                 else:
-                    self.receiptInput.text = img_decode.read_qr_codes(f)[0]
+                    self.receiptInput.text = codes[0]
                     self.selectInputType('QR')
         except IOError:
             try:
