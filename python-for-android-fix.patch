@@ -1,0 +1,71 @@
+diff --git a/pythonforandroid/bootstraps/pygame/build/jni/application/Android.mk b/pythonforandroid/bootstraps/pygame/build/jni/application/Android.mk
+index 75fb5d5..76956ca 100644
+--- a/pythonforandroid/bootstraps/pygame/build/jni/application/Android.mk
++++ b/pythonforandroid/bootstraps/pygame/build/jni/application/Android.mk
+@@ -18,7 +18,8 @@ LOCAL_CFLAGS := $(foreach D, $(APP_SUBDIRS), -I$(LOCAL_PATH)/$(D)) \
+ 				-I$(LOCAL_PATH)/../jpeg \
+ 				-I$(LOCAL_PATH)/../intl \
+ 				-I$(LOCAL_PATH)/.. \
+-                -I$(LOCAL_PATH)/../../../../other_builds/python2/$(ARCH)/python2/python-install/include/python2.7
++                -I$(LOCAL_PATH)/../../../../other_builds/python2/$(ARCH)/python2/python-install/include/python2.7 \
++		-I$(LOCAL_PATH)/../../../../python-installs/rktool/include/python2.7
+ 				# -I$(LOCAL_PATH)/../../../../python-install/include/python2.7
+ 				# -I$(LOCAL_PATH)/../../../build/python-install/include/python2.7
+ 
+@@ -40,7 +41,8 @@ LOCAL_LDLIBS := -lpython2.7 -lGLESv1_CM -ldl -llog -lz
+ 
+ # AND: Another hardcoded path that should be templated
+ # AND: NOT TEMPALTED! We can use $ARCH
+-LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../other_builds/python2/$(ARCH)/python2/python-install/lib $(APPLICATION_ADDITIONAL_LDFLAGS)
++LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../other_builds/python2/$(ARCH)/python2/python-install/lib \
++		-L$(LOCAL_PATH)/../../../../python-installs/rktool/lib $(APPLICATION_ADDITIONAL_LDFLAGS)
+ 
+ LIBS_WITH_LONG_SYMBOLS := $(strip $(shell \
+ 	for f in $(LOCAL_PATH)/../../libs/$ARCH/*.so ; do \
+diff --git a/pythonforandroid/recipes/cffi/__init__.py b/pythonforandroid/recipes/cffi/__init__.py
+index 450c32a..0f78350 100644
+--- a/pythonforandroid/recipes/cffi/__init__.py
++++ b/pythonforandroid/recipes/cffi/__init__.py
+@@ -1,4 +1,5 @@
+ from pythonforandroid.recipe import CompiledComponentsPythonRecipe
++import sh
+ 
+ 
+ class CffiRecipe(CompiledComponentsPythonRecipe):
+@@ -13,6 +14,12 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
+ 	# call_hostpython_via_targetpython = False
+ 	install_in_hostpython = True
+ 
++	def get_hostrecipe_env(self, arch=None):
++		env = super(CffiRecipe, self).get_hostrecipe_env(arch)
++                cf = sh.Command('pkg-config')('--cflags', 'libffi')
++		env['CFLAGS'] = ' '.join([env.get('CFLAGS', ''), str(cf)])
++                return env
++
+ 	def get_recipe_env(self, arch=None):
+ 		env = super(CffiRecipe, self).get_recipe_env(arch)
+ 		libffi = self.get_recipe('libffi', self.ctx)
+diff --git a/pythonforandroid/recipes/jpeg/build-static.patch b/pythonforandroid/recipes/jpeg/build-static.patch
+index 0aa9c70..47c265d 100644
+--- a/pythonforandroid/recipes/jpeg/build-static.patch
++++ b/pythonforandroid/recipes/jpeg/build-static.patch
+@@ -1,13 +1,16 @@
+ diff -Naur jpeg/Android.mk b/Android.mk
+ --- jpeg/Android.mk	2015-12-14 11:37:25.900190235 -0600
+ +++ b/Android.mk	2015-12-14 11:41:27.532182210 -0600
+-@@ -54,8 +54,7 @@
++@@ -52,10 +52,9 @@
++	turbojpeg.c transupp.c jdatadst-tj.c jdatasrc-tj.c \
++	turbojpeg-mapfile
+  
+- LOCAL_SRC_FILES:= $(libjpeg_SOURCES_DIST)
++-LOCAL_SRC_FILES:= $(libjpeg_SOURCES_DIST)
+++LOCAL_SRC_FILES := $(libsimd_SOURCES_DIST) $(libjpeg_SOURCES_DIST)
+   
+ -LOCAL_SHARED_LIBRARIES := libcutils
+ -LOCAL_STATIC_LIBRARIES := libsimd
+-+LOCAL_STATIC_LIBRARIES := libsimd libcutils
+++LOCAL_STATIC_LIBRARIES := libcutils
+   
+  LOCAL_C_INCLUDES := $(LOCAL_PATH) 
+   
