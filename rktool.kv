@@ -149,9 +149,11 @@
 <VerifyReceiptWidget>:
 	id: vr_w
 	receiptInput: vr_ti
+	loadLayout: vr_load
 	buttons: { 'JWS': vr_jws, 'QR': vr_qr, 'OCR': vr_ocr, 'URL': vr_url }
 	orientation: 'vertical'
 	BoxLayout:
+		id: vr_load
 		orientation: 'horizontal'
 		size_hint_y: None
 		TextInput:

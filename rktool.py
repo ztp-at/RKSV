@@ -19,7 +19,7 @@ from PIL import Image
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.app import App
 from kivy.core.window import Window
-from kivy.clock import mainthread
+from kivy.clock import mainthread, Clock
 from kivy.properties import ObjectProperty, DictProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -30,6 +30,18 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.selectableview import SelectableView
 from kivy.uix.treeview import TreeView, TreeViewNode, TreeViewLabel
+from kivy.utils import platform
+
+if platform == 'android':
+    from android import activity
+    from cStringIO import StringIO
+    from jnius import autoclass
+    Activity = autoclass('android.app.Activity')
+    CompressFormat = autoclass('android.graphics.Bitmap$CompressFormat')
+    ByteArrayOutputStream = autoclass('java.io.ByteArrayOutputStream')
+    Intent = autoclass('android.content.Intent')
+    MediaStore = autoclass('android.provider.MediaStore')
+    PythonActivity = autoclass('org.renpy.android.PythonActivity')
 
 import algorithms
 import img_decode
@@ -326,13 +338,69 @@ class ViewReceiptWidget(BoxLayout):
             self.decrypt_button.disabled = True
             self.updateView()
 
+CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 7
 class VerifyReceiptWidget(BoxLayout):
     receiptInput = ObjectProperty(None)
+    loadLayout = ObjectProperty(None)
     buttons = DictProperty(None)
     _input_type = 'JWS'
 
+    def __init__(self, **kwargs):
+        super(VerifyReceiptWidget, self).__init__(**kwargs)
+        if platform == 'android':
+            def addCamButton(instance):
+                self.loadLayout.add_widget(Button(size_hint=(None, 1),
+                        text='C', on_press=self.takePicture))
+            Clock.schedule_once(addCamButton, 0)
+            activity.bind(on_activity_result=self.takePictureCb)
+
     def dismissPopup(self):
         self._popup.dismiss()
+
+    def takePicture(self, button):
+        intent = Intent()
+        intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE)
+        PythonActivity.mActivity.startActivityForResult(intent,
+            CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE)
+
+    @mainthread
+    def takePictureCb(self, requestCode, resultCode, intent):
+        if requestCode != CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE:
+            return
+
+        if resultCode != Activity.RESULT_OK:
+            displayError("No image taken.")
+            return
+
+        stream = ByteArrayOutputStream()
+        done = intent.getExtras().get('data').compress(
+            CompressFormat.PNG, 100, stream)
+        stream.close()
+
+        if not done:
+            displayError("Failed to compress image.")
+            return
+        ba = stream.toByteArray()
+
+        stream = None
+        img = None
+        try:
+            stream = StringIO(str(bytearray(ba)))
+            img = Image.open(stream)
+        except IOError as e:
+            if stream:
+                stream.close()
+            displayError(e)
+            return
+
+        codes = img_decode.read_qr_codes(img)
+        stream.close()
+
+        if len(codes) < 1:
+            displayError("No QR codes found.")
+        else:
+            self.receiptInput.text = codes[0]
+            self.selectInputType('QR')
 
     def loadReceipt(self):
         content = LoadDialog(load=self.loadReceiptCb,
@@ -346,7 +414,7 @@ class VerifyReceiptWidget(BoxLayout):
 
         full = os.path.join(path, filename[0])
         try:
-            with open(full) as f:
+            with open(full, mode='rb') as f:
                 img = Image.open(f)
                 codes = img_decode.read_qr_codes(img)
                 if len(codes) < 1:
@@ -783,6 +851,9 @@ class RKToolApp(App):
 
     def on_pause(self):
         return True
+
+    def on_resume(self):
+        pass
 
     def updateKSWidget(self):
         if self.ksWidget:
