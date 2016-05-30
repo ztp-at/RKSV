@@ -9,3 +9,5 @@ aesBase64.txt
 *.txt
 *.csv
 *.json
+*.pot
+*.mo
