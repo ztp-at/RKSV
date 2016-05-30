@@ -51,11 +51,13 @@ except ImportError:
 
         return syms
 
-import sys
-
-from PIL import Image
-
 if __name__ == "__main__":
+    import gettext
+    gettext.install('rktool', './lang', True)
+
+    import sys
+    from PIL import Image
+
     if len(sys.argv) < 2:
         print("Usage: ./img_decode.py <image file>...")
         sys.exit(0)

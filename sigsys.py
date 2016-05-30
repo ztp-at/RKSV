@@ -135,7 +135,7 @@ class SignatureSystemATrustMobile(SignatureSystemI):
         SignEndpoint = '/%s/Sign/JWS' % self.username
 
         if algorithm.sigAlgo() != self.algo:
-            raise Exception("Selected algorithm not supported.")
+            raise Exception(_("Selected algorithm not supported."))
 
         rdata = { 'password': self.password, 'jws_payload': data }
         try:

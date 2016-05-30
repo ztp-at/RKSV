@@ -20,6 +20,9 @@ def usage():
     sys.exit(0)
 
 if __name__ == "__main__":
+    import gettext
+    gettext.install('rktool', './lang', True)
+
     if len(sys.argv) < 4 or len(sys.argv) % 2 != 1:
         usage()
 
@@ -34,7 +37,7 @@ if __name__ == "__main__":
         tcJson = json.loads(f.read())
 
     if len(sys.argv) != (tcJson['numberOfSignatureDevices'] * 2 + 3):
-        print("I need keys and certificates for %d signature devices." %
+        print(_("I need keys and certificates for %d signature devices.") %
                 tcJson['numberOfSignatureDevices'])
         sys.exit(0)
 

@@ -28,10 +28,10 @@
 		BoxLayout:
 			size_hint_y: None
 			Button:
-				text: "Cancel"
+				text: _("Cancel")
 				on_release: root.cancel()
 			Button:
-				text: "Load"
+				text: _("Load")
 				on_release: root.load(filechooser.path, filechooser.selection)
 
 <SaveDialog>:
@@ -50,10 +50,10 @@
 		BoxLayout:
 			size_hint_y: None
 			Button:
-				text: "Cancel"
+				text: _("Cancel")
 				on_release: root.cancel()
 			Button:
-				text: "Save"
+				text: _("Save")
 				on_release: root.save(filechooser.path, text_input.text)
 
 <SingleValueDialog>:
@@ -68,10 +68,10 @@
 		BoxLayout:
 			size_hint_y: None
 			Button:
-				text: "Cancel"
+				text: _("Cancel")
 				on_release: root.cancel()
 			Button:
-				text: "Ok"
+				text: _("Ok")
 				on_release: root.receive_value(text_input.text)
 
 <RadioButton@BoxLayout>:
@@ -103,11 +103,11 @@
 		ActionView:
 			use_separator: True
 			ActionPrevious:
-				title: 'Rechnung'
+				title: _('Receipt')
 				on_press: root.cancel()
 			ActionOverflow:
 			ActionButton:
-				text: 'Exit'
+				text: _('Exit')
 				on_press: app.stop()
 	ListView:
 		adapter: view_w.adapter
@@ -120,11 +120,11 @@
 		orientation: 'horizontal'
 		Button:
 			id: view_w_verify
-			text: 'Verify'
+			text: _('Verify')
 			on_press: view_w.verify()
 		Button:
 			id: view_w_decrypt
-			text: 'Decrypt Turnover Counter'
+			text: _('Decrypt Turnover Counter')
 			on_press: view_w.decrypt()
 
 <ViewReceiptItem>:
@@ -172,27 +172,27 @@
 			RadioButton:
 				id: vr_jws
 				change: (lambda: vr_w.selectInputType('JWS'))
-				text: 'JWS string'
+				text: _('JWS string')
 				group: 'input_format'
 				state: 'down'
 			RadioButton:
 				id: vr_qr
 				change: (lambda: vr_w.selectInputType('QR'))
-				text: 'QR code'
+				text: _('QR code')
 				group: 'input_format'
 			RadioButton:
 				id: vr_ocr
 				change: (lambda: vr_w.selectInputType('OCR'))
-				text: 'OCR code'
+				text: _('OCR code')
 				group: 'input_format'
 			RadioButton:
 				id: vr_url
 				change: (lambda: vr_w.selectInputType('URL'))
-				text: 'URL'
+				text: _('URL')
 				group: 'input_format'
 	Button:
 		size_hint_y: None
-		text: 'Read Receipt'
+		text: _('Read Receipt')
 		on_press: vr_w.viewReceipt()
 
 <VerifyDEPWidget>:
@@ -205,10 +205,10 @@
 		size_hint_y: None
 		orientation: 'horizontal'
 		Button:
-			text: 'Load DEP'
+			text: _('Load DEP')
 			on_press: vd_w.loadDEP()
 		Button:
-			text: 'Load AES Key'
+			text: _('Load AES Key')
 			on_press: vd_w.loadAES()
 	TextInput:
 		id: vd_ti
@@ -223,7 +223,7 @@
 			height: self.minimum_height
 	Button:
 		size_hint_y: None
-		text: 'Verify'
+		text: _('Verify')
 		disabled: True
 		id: vd_w_verify
 		on_press: vd_w.verify()
@@ -243,10 +243,10 @@
 		size_hint_y: None
 		orientation: 'horizontal'
 		Button:
-			text: 'Import'
+			text: _('Import')
 			on_press: ks_w.importKeyStore()
 		Button:
-			text: 'Export'
+			text: _('Export')
 			on_press: ks_w.exportKeyStore()
 
 <RKToolActionBar@ActionBar>:
@@ -254,10 +254,10 @@
 	ActionView:
 		use_separator: True
 		ActionPrevious:
-			title: 'Registrierkassen Tool'
+			title: _('Registrierkassen Tool')
 		ActionOverflow:
 		ActionButton:
-			text: 'Exit'
+			text: _('Exit')
 			on_press: app.stop()
 
 <MainWidget>:
@@ -268,11 +268,11 @@
 	TabbedPanel:
 		do_default_tab: False
 		TabbedPanelItem:
-			text: 'Verify Receipt'
+			text: _('Verify Receipt')
 			VerifyReceiptWidget:
 		TabbedPanelItem:
-			text: 'Verify DEP'
+			text: _('Verify DEP')
 			VerifyDEPWidget:
 		TabbedPanelItem:
-			text: 'Key Store'
+			text: _('Key Store')
 			KeyStoreWidget:

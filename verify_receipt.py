@@ -19,14 +19,14 @@ class CertSerialMismatchException(receipt.ReceiptException):
     the DEP group to not match.
     """
     def __init__(self, rec):
-        super(CertSerialMismatchException, self).__init__(rec, "Certificate serial mismatch.")
+        super(CertSerialMismatchException, self).__init__(rec, _("Certificate serial mismatch."))
 
 class CertSerialInvalidException(receipt.ReceiptException):
     """
     Indicates that the certificate serial in the receipt is malformed.
     """
     def __init__(self, rec):
-        super(CertSerialInvalidException, self).__init__(rec, "Certificate serial invalid.")
+        super(CertSerialInvalidException, self).__init__(rec, _("Certificate serial invalid."))
 
 class NoPublicKeyException(receipt.ReceiptException):
     """
@@ -34,14 +34,14 @@ class NoPublicKeyException(receipt.ReceiptException):
     found.
     """
     def __init__(self, rec):
-        super(NoPublicKeyException, self).__init__(rec, "No public key found.")
+        super(NoPublicKeyException, self).__init__(rec, _("No public key found."))
 
 class InvalidSignatureException(receipt.ReceiptException):
     """
     Indicates that the signature of the receipt is invalid.
     """
     def __init__(self, rec):
-        super(InvalidSignatureException, self).__init__(rec, "Invalid Signature.")
+        super(InvalidSignatureException, self).__init__(rec, _("Invalid Signature."))
 
 class SignatureSystemFailedException(receipt.ReceiptException):
     """
@@ -49,7 +49,7 @@ class SignatureSystemFailedException(receipt.ReceiptException):
     signed.
     """
     def __init__(self, rec):
-        super(SignatureSystemFailedException, self).__init__(rec, "Signature System failed.")
+        super(SignatureSystemFailedException, self).__init__(rec, _("Signature System failed."))
 
 class InvalidURLHashException(receipt.ReceiptException):
     """
@@ -57,7 +57,7 @@ class InvalidURLHashException(receipt.ReceiptException):
     from the receipt.
     """
     def __init__(self, rec):
-        super(InvalidURLHashException, self).__init__(rec, "Invalid URL hash.")
+        super(InvalidURLHashException, self).__init__(rec, _("Invalid URL hash."))
 
 class ReceiptVerifierI:
     """
@@ -297,9 +297,6 @@ def verifyURLHash(rec, algorithm, urlHash):
         else:
             raise InvalidURLHashException(basicCode)
 
-import configparser
-import sys
-
 def getAndVerifyReceiptURL(rv, url):
     basicCode = utils.getBasicCodeFromURL(url)
     urlHash = utils.getURLHashFromURL(url)
@@ -315,12 +312,18 @@ INPUT_FORMATS = {
         }
 
 if __name__ == "__main__":
+    import gettext
+    gettext.install('rktool', './lang', True)
+
+    import configparser
+    import sys
+
     if len(sys.argv) < 3 or len(sys.argv) > 4:
         print("Usage: ./verify_receipt.py <format> <key store> [<receipt string>]")
         sys.exit(0)
 
     if sys.argv[1] not in INPUT_FORMATS:
-        print("Input format must be one of %s." % INPUT_FORMATS.keys())
+        print(_("Input format must be one of %s.") % INPUT_FORMATS.keys())
         sys.exit(0)
 
     rv = None
@@ -336,4 +339,4 @@ if __name__ == "__main__":
         for l in sys.stdin:
             INPUT_FORMATS[sys.argv[1]](rv, l.strip())
 
-    print("All receipts verified successfully.")
+    print(_("All receipts verified successfully."))

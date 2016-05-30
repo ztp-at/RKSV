@@ -26,8 +26,9 @@ class ChainingException(DEPException):
     """
 
     def __init__(self, rec, recPrev):
-        super(ChainingException, self).__init__("At receipt \"" + rec
-                + "\": Previous receipt is not \"" + recPrev + "\".")
+        super(ChainingException, self).__init__(
+                _("At receipt \"%s\": Previous receipt is not \"%s\".") %
+                (rec, recPrev))
 
 class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
     """
@@ -37,8 +38,9 @@ class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
     """
 
     def __init__(self, rec):
-        super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__("At receipt \"" + rec
-                + "\": Receipt after restored signature system must not have any turnover.")
+        super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__(
+                _("At receipt \"%s\": Receipt after restored signature system must not have any turnover.") %
+                rec)
 
 class InvalidTurnoverCounterException(receipt.ReceiptException):
     """
@@ -46,7 +48,7 @@ class InvalidTurnoverCounterException(receipt.ReceiptException):
     """
 
     def __init__(self, rec):
-        super(InvalidTurnoverCounterException, self).__init__(rec, "Turnover counter invalid.")
+        super(InvalidTurnoverCounterException, self).__init__(rec, _("Turnover counter invalid."))
 
 class NoCertificateGivenException(DEPException):
     """
@@ -55,7 +57,7 @@ class NoCertificateGivenException(DEPException):
     """
 
     def __init__(self):
-        super(NoCertificateGivenException, self).__init__("No certificate specified in DEP and multiple groups used.")
+        super(NoCertificateGivenException, self).__init__(_("No certificate specified in DEP and multiple groups used."))
 
 class UntrustedCertificateException(DEPException):
     """
@@ -65,7 +67,8 @@ class UntrustedCertificateException(DEPException):
     """
 
     def __init__(self, cert):
-        super(UntrustedCertificateException, self).__init__("Certificate \"" + cert + "\" is not trusted.")
+        super(UntrustedCertificateException, self).__init__(
+                _("Certificate \"%s\" is not trusted.") % cert)
 
 class CertificateSerialCollisionException(DEPException):
     """
@@ -74,14 +77,16 @@ class CertificateSerialCollisionException(DEPException):
     """
 
     def __init__(self, serial, cert1FP, cert2FP):
-        super(CertificateSerialCollisionException, self).__init__("Two certificates with serial \"" + serial + "\" detected (fingerprints \"" + cert1FP + "\" and \"" + cert2FP + "\"). This may be an attempted attack.")
+        super(CertificateSerialCollisionException, self).__init__(
+                _("Two certificates with serial \"%s\" detected (fingerprints \"%s\" and \"%s\"). This may be an attempted attack.") %
+                (serial, cert1FP, cert2FP))
 
 class SignatureSystemFailedOnInitialReceiptException(receipt.ReceiptException):
     """
     Indicates that the initial receipt was not signed.
     """
     def __init__(self, rec):
-        super(SignatureSystemFailedOnInitialReceiptException, self).__init__(rec, "Initial receipt not signed.")
+        super(SignatureSystemFailedOnInitialReceiptException, self).__init__(rec, _("Initial receipt not signed."))
 
 def verifyChain(rec, jwsString, prev, algorithm):
     """
@@ -251,18 +256,21 @@ def verifyDEP(dep, keyStore, key):
         lastReceipt, lastTurnoverCounter = verifyGroup(group, lastReceipt,
                 rv, lastTurnoverCounter, key)
 
-import configparser
-import json
-import sys
-
-import key_store
-
 def usage():
     print("Usage: ./verify.py keyStore <key store> <dep export file> [<base64 AES key file>]")
     print("       ./verify.py json <json container file> <dep export file>")
     sys.exit(0)
 
 if __name__ == "__main__":
+    import gettext
+    gettext.install('rktool', './lang', True)
+
+    import configparser
+    import json
+    import sys
+
+    import key_store
+
     if len(sys.argv) < 4 or len(sys.argv) > 5:
         usage()
 
@@ -298,4 +306,4 @@ if __name__ == "__main__":
 
     verifyDEP(dep, keyStore, key)
 
-    print("Verification successful.")
+    print(_("Verification successful."))

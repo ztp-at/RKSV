@@ -32,6 +32,9 @@ def usage():
     sys.exit(0)
 
 if __name__ == "__main__":
+    import gettext
+    gettext.install('rktool', './lang', True)
+
     if len(sys.argv) != 2:
         usage()
 

@@ -138,7 +138,7 @@ class ErrorDialog(FloatLayout):
 
 def displayError(ex):
     content = ErrorDialog(exception=ex)
-    popup = getPopup("Error", content)
+    popup = getPopup(_("Error"), content)
     content.cancel = popup.dismiss
     popup.open()
 
@@ -205,11 +205,11 @@ class ViewReceiptWidget(BoxLayout):
             self.decrypt_button.disabled = True
 
         if isValid:
-            self.verify_button.text = 'Valid Signature'
+            self.verify_button.text = _('Valid Signature')
             self.verify_button.disabled = True
 
         if receipt.isSignedBroken():
-            self.verify_button.text = 'No Signature'
+            self.verify_button.text = _('No Signature')
             self.verify_button.disabled = True
         
         self.updateView()
@@ -234,26 +234,26 @@ class ViewReceiptWidget(BoxLayout):
 
         signature = receipt.signature
         if receipt.isSignedBroken():
-            signature = 'Signature system broken'
+            signature = _('Signature system broken')
 
-        maps =  { 1: ( 'ZDA ID', algorithmPrefix + '-' + receipt.zda )
-                , 2: ( 'Cash Register ID', receipt.registerId )
-                , 3: ( 'Receipt ID', receipt.receiptId )
-                , 4: ( 'Timestamp', receipt.dateTime.strftime("%Y-%m-%dT%H:%M:%S") )
-                , 5: ( 'Sum Tax Normal', str(receipt.sumA) )
-                , 6: ( 'Sum Tax Reduced 1', str(receipt.sumB) )
-                , 7: ( 'Sum Tax Reduced 2', str(receipt.sumC) )
-                , 8: ( 'Sum Tax Zero', str(receipt.sumD) )
-                , 9: ( 'Sum Tax Special', str(receipt.sumE) )
-                ,10: ( 'Turnover Counter', turnoverCounter )
-                ,11: ( 'Certificate Serial/Key ID', receipt.certSerial )
-                ,12: ( 'Chaining Value', receipt.previousChain )
-                ,13: ( 'Signature', signature )
+        maps =  { 1: ( _('ZDA ID'), algorithmPrefix + '-' + receipt.zda )
+                , 2: ( _('Cash Register ID'), receipt.registerId )
+                , 3: ( _('Receipt ID'), receipt.receiptId )
+                , 4: ( _('Timestamp'), receipt.dateTime.strftime("%Y-%m-%dT%H:%M:%S") )
+                , 5: ( _('Sum Tax Normal'), str(receipt.sumA) )
+                , 6: ( _('Sum Tax Reduced 1'), str(receipt.sumB) )
+                , 7: ( _('Sum Tax Reduced 2'), str(receipt.sumC) )
+                , 8: ( _('Sum Tax Zero'), str(receipt.sumD) )
+                , 9: ( _('Sum Tax Special'), str(receipt.sumE) )
+                ,10: ( _('Turnover Counter'), turnoverCounter )
+                ,11: ( _('Certificate Serial/Key ID'), receipt.certSerial )
+                ,12: ( _('Chaining Value'), receipt.previousChain )
+                ,13: ( _('Signature'), signature )
                 }
         self.adapter.data = maps
 
     def verify(self):
-        self.verify_button.text = 'Verifying...'
+        self.verify_button.text = _('Verifying...')
         self.verify_button.disabled = True
 
         rec = copy.deepcopy(self._receipt)
@@ -266,13 +266,13 @@ class ViewReceiptWidget(BoxLayout):
     @mainthread
     def verifyCb(self, result):
         if result:
-            self.verify_button.text = 'Verify'
+            self.verify_button.text = _('Verify')
             self.verify_button.disabled = False
 
             displayError(result)
 
         else:
-            self.verify_button.text = 'Valid Signature'
+            self.verify_button.text = _('Valid Signature')
             self.verify_button.disabled = True
 
     def verifyReceiptTask(self, rec, prefix, store):
@@ -292,7 +292,7 @@ class ViewReceiptWidget(BoxLayout):
     def loadAES(self):
         content = LoadDialog(load=self.loadAESCb,
                 cancel=self.dismissPopup)
-        self._popup = getPopup("Load AES Key", content)
+        self._popup = getPopup(_("Load AES Key"), content)
         self._popup.open()
 
     def loadAESCb(self, path, filename):
@@ -311,7 +311,7 @@ class ViewReceiptWidget(BoxLayout):
         except (IOError, ValueError) as e:
             displayError(e)
         except KeyError:
-            displayError("Malformed crypto container")
+            displayError(_("Malformed crypto container"))
 
         self.dismissPopup()
         self.setKey(key)
@@ -328,7 +328,7 @@ class ViewReceiptWidget(BoxLayout):
                                 self._algorithmPrefix))
                 algorithm = algorithms.ALGORITHMS[self._algorithmPrefix]
                 if not algorithm.verifyKey(k):
-                    raise Exception("Invalid key.")
+                    raise Exception(_("Invalid key."))
                 self._key = k
         except Exception as e:
             self.aes_input.text = ''
@@ -369,7 +369,7 @@ class VerifyReceiptWidget(BoxLayout):
             return
 
         if resultCode != Activity.RESULT_OK:
-            displayError("No image taken.")
+            displayError(_("No image taken."))
             return
 
         stream = ByteArrayOutputStream()
@@ -378,7 +378,7 @@ class VerifyReceiptWidget(BoxLayout):
         stream.close()
 
         if not done:
-            displayError("Failed to compress image.")
+            displayError(_("Failed to compress image."))
             return
         ba = stream.toByteArray()
 
@@ -397,7 +397,7 @@ class VerifyReceiptWidget(BoxLayout):
         stream.close()
 
         if len(codes) < 1:
-            displayError("No QR codes found.")
+            displayError(_("No QR codes found."))
         else:
             self.receiptInput.text = codes[0]
             self.selectInputType('QR')
@@ -405,7 +405,7 @@ class VerifyReceiptWidget(BoxLayout):
     def loadReceipt(self):
         content = LoadDialog(load=self.loadReceiptCb,
                 cancel=self.dismissPopup)
-        self._popup = getPopup("Load Receipt", content)
+        self._popup = getPopup(_("Load Receipt"), content)
         self._popup.open()
 
     def loadReceiptCb(self, path, filename):
@@ -418,7 +418,7 @@ class VerifyReceiptWidget(BoxLayout):
                 img = Image.open(f)
                 codes = img_decode.read_qr_codes(img)
                 if len(codes) < 1:
-                    displayError("No QR codes found.")
+                    displayError(_("No QR codes found."))
                 else:
                     self.receiptInput.text = codes[0]
                     self.selectInputType('QR')
@@ -516,7 +516,7 @@ class VerifyDEPWidget(BoxLayout):
             groupIdx = 1
             for group in self._jsonDEP['Belege-Gruppe']:
                 groupNode = tv.add_node(TreeViewLabel(
-                    text=('Gruppe %d' % groupIdx)))
+                    text=(_('Group %d') % groupIdx)))
 
                 certNode = tv.add_node(TreeViewLabel(
                     text='Signaturzertifikat'), groupNode)
@@ -559,7 +559,7 @@ class VerifyDEPWidget(BoxLayout):
         except receipt.ReceiptException as e:
             displayError(e)
         except KeyError as e:
-            displayError("Malformed DEP")
+            displayError(_("Malformed DEP"))
 
         self.clearDEPDisplay()
         return False
@@ -575,7 +575,7 @@ class VerifyDEPWidget(BoxLayout):
         self._verifying = False
         self._verified = False
         self.verify_button.disabled = False
-        self.verify_button.text = 'Verify'
+        self.verify_button.text = _('Verify')
 
     def verify(self):
         if self._verifying:
@@ -593,7 +593,7 @@ class VerifyDEPWidget(BoxLayout):
             return
 
         self._verifying = True
-        self.verify_button.text = 'Verifying...'
+        self.verify_button.text = _('Verifying...')
 
         store = copy.deepcopy(App.get_running_app().keyStore)
 
@@ -609,14 +609,14 @@ class VerifyDEPWidget(BoxLayout):
         self._verifying = False
         self._verifyThread = None
         if result:
-            self.verify_button.text = 'Verify'
+            self.verify_button.text = _('Verify')
 
             displayError(result)
 
         else:
             self._verified = True
             self.verify_button.disabled = True
-            self.verify_button.text = 'Valid DEP'
+            self.verify_button.text = _('Valid DEP')
 
     def verifyDEPTask(self, json, store, key):
         try:
@@ -636,7 +636,7 @@ class VerifyDEPWidget(BoxLayout):
     def loadDEP(self):
         content = LoadDialog(load=self.loadDEPCb,
                 cancel=self.dismissPopup)
-        self._popup = getPopup("Load DEP", content)
+        self._popup = getPopup(_("Load DEP"), content)
         self._popup.open()
 
     def loadDEPCb(self, path, filename):
@@ -661,7 +661,7 @@ class VerifyDEPWidget(BoxLayout):
     def loadAES(self):
         content = LoadDialog(load=self.loadAESCb,
                 cancel=self.dismissPopup)
-        self._popup = getPopup("Load AES Key", content)
+        self._popup = getPopup(_("Load AES Key"), content)
         self._popup.open()
 
     def loadAESCb(self, path, filename):
@@ -679,7 +679,7 @@ class VerifyDEPWidget(BoxLayout):
         except (IOError, ValueError) as e:
             displayError(e)
         except KeyError:
-            displayError("Malformed crypto container")
+            displayError(_("Malformed crypto container"))
 
         self.dismissPopup()
 
@@ -690,9 +690,9 @@ class KeyStoreWidget(BoxLayout):
 
     def on_treeView(self, instance, value):
         tv = self.treeView
-        self.pubKeyGroup = tv.add_node(TreeViewButton(text='Public Keys',
+        self.pubKeyGroup = tv.add_node(TreeViewButton(text=_('Public Keys'),
                 on_press=self.addPubKey))
-        self.certGroup = tv.add_node(TreeViewButton(text='Certificates',
+        self.certGroup = tv.add_node(TreeViewButton(text=_('Certificates'),
                 on_press=self.addCert))
 
         App.get_running_app().ksWidget = self
@@ -740,12 +740,12 @@ class KeyStoreWidget(BoxLayout):
 
     def addPubKey(self, btn):
         content = LoadDialog(load=self.addPubKeyCbKey, cancel=self.dismissPopup)
-        self._popup = getPopup("Load PEM Public Key", content)
+        self._popup = getPopup(_("Load PEM Public Key"), content)
         self._popup.open()
 
     def addCert(self, btn):
         content = LoadDialog(load=self.addCertCb, cancel=self.dismissPopup)
-        self._popup = getPopup("Load PEM Certificate", content)
+        self._popup = getPopup(_("Load PEM Certificate"), content)
         self._popup.open()
 
     def addPubKeyCbKey(self, path, filename):
@@ -764,7 +764,7 @@ class KeyStoreWidget(BoxLayout):
                 cancel=self.dismissPopup)
 
         self.dismissPopup()
-        self._popup = getPopup("Enter Public Key ID", content)
+        self._popup = getPopup(_("Enter Public Key ID"), content)
         self._popup.open()
 
     def addPubKeyCbId(self, keyId):
@@ -792,13 +792,13 @@ class KeyStoreWidget(BoxLayout):
     def importKeyStore(self):
         content = LoadDialog(load=self.importKeyStoreCb,
                 cancel=self.dismissPopup)
-        self._popup = getPopup("Load Key Store", content)
+        self._popup = getPopup(_("Load Key Store"), content)
         self._popup.open()
 
     def exportKeyStore(self):
         content = SaveDialog(save=self.exportKeyStoreCb,
                 cancel=self.dismissPopup)
-        self._popup = getPopup("Save Key Store", content)
+        self._popup = getPopup(_("Save Key Store"), content)
         self._popup.open()
 
     def importKeyStoreCb(self, path, filename):
@@ -822,7 +822,7 @@ class KeyStoreWidget(BoxLayout):
         except (IOError, ValueError, configparser.Error) as e:
             displayError(e)
         except KeyError:
-            displayError("Malformed crypto container")
+            displayError(_("Malformed crypto container"))
 
         self.dismissPopup()
         self.buildKSTree()
@@ -868,4 +868,7 @@ class RKToolApp(App):
         return MainWidget()
 
 if __name__ == '__main__':
+    import gettext
+    gettext.install('rktool', './lang', True)
+
     RKToolApp().run()

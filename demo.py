@@ -22,6 +22,9 @@ def usage():
     sys.exit(0)
 
 if __name__ == "__main__":
+    import gettext
+    gettext.install('rktool', './lang', True)
+
     if len(sys.argv) < 3 or len(sys.argv) > 6:
         usage()
 
@@ -55,7 +58,7 @@ if __name__ == "__main__":
         usage()
 
     if num < 1:
-        print("The number of receipts must be at least 1.")
+        print(_("The number of receipts must be at least 1."))
         sys.exit(0)
 
     key = None

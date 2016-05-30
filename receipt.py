@@ -22,7 +22,7 @@ class ReceiptException(Exception):
     """
 
     def __init__(self, receipt, message):
-        super(ReceiptException, self).__init__("At receipt \"" + receipt + "\": " + message)
+        super(ReceiptException, self).__init__(_("At receipt \"%s\": %s") % (receipt, message))
 
 class MalformedReceiptException(ReceiptException):
     """
@@ -31,7 +31,7 @@ class MalformedReceiptException(ReceiptException):
     """
 
     def __init__(self, receipt):
-        super(MalformedReceiptException, self).__init__(receipt, "Malformed receipt.")
+        super(MalformedReceiptException, self).__init__(receipt, _("Malformed receipt."))
 
 class UnknownAlgorithmException(ReceiptException):
     """
@@ -40,7 +40,7 @@ class UnknownAlgorithmException(ReceiptException):
     """
 
     def __init__(self, receipt):
-        super(UnknownAlgorithmException, self).__init__(receipt, "Unknown algorithm.")
+        super(UnknownAlgorithmException, self).__init__(receipt, _("Unknown algorithm."))
 
 class AlgorithmMismatchException(ReceiptException):
     """
@@ -48,7 +48,7 @@ class AlgorithmMismatchException(ReceiptException):
     """
 
     def __init__(self, receipt):
-        super(AlgorithmMismatchException, self).__init__(receipt, "Algorithm mismatch.")
+        super(AlgorithmMismatchException, self).__init__(receipt, _("Algorithm mismatch."))
 
 class InvalidKeyException(ReceiptException):
     """
@@ -56,7 +56,7 @@ class InvalidKeyException(ReceiptException):
     """
 
     def __init__(self, receipt):
-        super(InvalidKeyException, self).__init__(receipt, "Invalid key.")
+        super(InvalidKeyException, self).__init__(receipt, _("Invalid key."))
 
 class Receipt:
     """
@@ -85,7 +85,7 @@ class Receipt:
         base64 encoded string.
         """
         if not isinstance(receiptId, string_types):
-            raise MalformedReceiptException("Unknown Receipt")
+            raise MalformedReceiptException(_("Unknown Receipt"))
         if not isinstance(zda, string_types) or not isinstance(registerId, string_types):
             raise MalformedReceiptException(receiptId)
         if not isinstance(dateTime, datetime.datetime):
@@ -193,7 +193,7 @@ class Receipt:
         :return: The receipt as a JWS string.
         """
         if not self.signed:
-            raise Exception("You need to sign the receipt first.")
+            raise Exception(_("You need to sign the receipt first."))
 
         payload = self.toPayloadString(algorithmPrefix).encode("utf-8")
         payload = base64.urlsafe_b64encode(payload)
@@ -291,7 +291,7 @@ class Receipt:
         :return The receipt as a QR code string.
         """
         if not self.signed:
-            raise Exception("You need to sign the receipt first.")
+            raise Exception(_("You need to sign the receipt first."))
 
         payload = self.toPayloadString(algorithmPrefix)
 
@@ -343,7 +343,7 @@ class Receipt:
         :return The receipt as an OCR code string.
         """
         if not self.signed:
-            raise Exception("You need to sign the receipt first.")
+            raise Exception(_("You need to sign the receipt first."))
 
         segments = [b'_' + algorithmPrefix.encode("utf-8") + b'-' + self.zda.encode("utf-8")]
         segments.append(self.registerId.encode("utf-8"))
@@ -436,7 +436,7 @@ class Receipt:
         :return: True if the signature system was broken, False otherwise.
         """
         if not self.signed:
-            raise Exception("You need to sign the receipt first.")
+            raise Exception(_("You need to sign the receipt first."))
 
         failStr = base64.urlsafe_b64encode(b'Sicherheitseinrichtung ausgefallen').replace(
                 b'=', b'').decode("utf-8")
@@ -468,17 +468,15 @@ class Receipt:
         :return: The decrypted turnover counter as int.
         """
         if self.isDummy():
-            raise Exception("Can't decrypt turnover counter, this is a dummy receipt.")
+            raise Exception(_("Can't decrypt turnover counter, this is a dummy receipt."))
         if self.isReversal():
-            raise Exception("Can't decrypt turnover counter, this is a reversal receipt.")
+            raise Exception(_("Can't decrypt turnover counter, this is a reversal receipt."))
 
         if not algorithm.verifyKey(key):
             raise InvalidKeyException(self.toJWSString(algorithm.id()))
 
         ct = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return algorithm.decryptTurnoverCounter(self, ct, key)
-
-import sys
 
 INPUT_FORMATS = {
         'jws': lambda s: Receipt.fromJWSString(s),
@@ -498,16 +496,21 @@ OUTPUT_FORMATS = {
         }
 
 if __name__ == "__main__":
+    import gettext
+    gettext.install('rktool', './lang', True)
+
+    import sys
+
     if len(sys.argv) != 3:
         print("Usage: ./receipt.py <in format> <out format>")
         sys.exit(0)
 
     if sys.argv[1] not in INPUT_FORMATS:
-        print("Input format must be one of %s." % INPUT_FORMATS.keys())
+        print(_("Input format must be one of %s.") % INPUT_FORMATS.keys())
         sys.exit(0)
 
     if sys.argv[2] not in OUTPUT_FORMATS:
-        print("Output format must be one of %s." % OUTPUT_FORMATS.keys())
+        print(_("Output format must be one of %s.") % OUTPUT_FORMATS.keys())
         sys.exit(0)
 
     for l in sys.stdin:
