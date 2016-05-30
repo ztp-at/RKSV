@@ -90,7 +90,7 @@ class CashRegister(CashRegisterI):
                 encTurnoverCounter = b'STO'
             else:
                 if not algorithm.verifyKey(self.key):
-                    raise Exception(_("Invalid Key."))
+                    raise Exception(_("Invalid key."))
                 encTurnoverCounter = algorithm.encryptTurnoverCounter(rec,
                         self.turnoverCounter, self.key)
         encTurnoverCounter = base64.b64encode(encTurnoverCounter)
