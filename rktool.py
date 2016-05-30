@@ -42,6 +42,10 @@ if platform == 'android':
     Intent = autoclass('android.content.Intent')
     MediaStore = autoclass('android.provider.MediaStore')
     PythonActivity = autoclass('org.renpy.android.PythonActivity')
+    Locale = autoclass('java.util.Locale')
+
+    import os
+    os.environ['LANG'] = Locale.getDefault().toString()
 
 import algorithms
 import img_decode
