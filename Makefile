@@ -1,3 +1,5 @@
+LANGS	= de
+
 setup: aesBase64_1.txt cert_1.key cert_1.crt cert_1.pub
 
 aesBase64_%.txt:
@@ -12,9 +14,9 @@ cert_%.crt: cert_%.key
 cert_%.key:
 	openssl ecparam -name prime256v1 -genkey -out $@
 
-trans-de: lang/de/LC_MESSAGES/rktool.mo
+update-trans: $(addprefix lang/,$(addsuffix /LC_MESSAGES/rktool.po, $(LANGS)))
 
-update-de: lang/de/LC_MESSAGES/rktool.po
+compile-trans: $(addprefix lang/,$(addsuffix /LC_MESSAGES/rktool.mo, $(LANGS)))
 
 lang/%/LC_MESSAGES/rktool.mo: lang/%/LC_MESSAGES/rktool.po
 	msgfmt -o $@ $<
@@ -37,4 +39,4 @@ clean:
 	rm -f aesBase64*.txt
 	rm -f cert*.key cert*.crt cert*.pub
 
-.PHONY: clean setup trans-de update-de
+.PHONY: clean setup update-trans compile-trans
