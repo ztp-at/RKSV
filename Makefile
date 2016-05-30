@@ -34,6 +34,8 @@ lang/rktool.pot:
 	pygettext.py -o lang/rktool.pot *.py *.kv
 
 clean:
+	rm -rf __pycache__
+	rm -f *.pyc
 	rm -f lang/rktool.pot
 	rm -f lang/*/LC_MESSAGES/rktool.mo
 	rm -f aesBase64*.txt
