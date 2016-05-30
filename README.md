@@ -10,14 +10,15 @@ Dependencies
 >=dev-python/pyjwt-1.3
 >=dev-python/requests-2.8.1
 >=dev-python/six-1.10.0
+>=gnu-make-4.1-r1
 >=zbar-0.10-r5 + python bindings
 
-setup.sh:
----------
+make setup
+----------
 
-Generates an AES key (`aesBase64.txt`), a private key (`cert.key`),
-a public key (`cert.pub`) and a certificate signed with the private key
-(`cert.crt`). The keys and certificates are stored in PEM format while the
+Generates an AES key (`aesBase64_1.txt`), a private key (`cert_1.key`),
+a public key (`cert_1.pub`) and a certificate signed with the private key
+(`cert_1.crt`). The keys and certificates are stored in PEM format while the
 AES key is stored as base64 encoded text.
 
 demo.py

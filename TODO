@@ -1,3 +1,4 @@
+document remaining makefile targets
 improve UI, make long text in text fields wrap, not scroll, add hint texts to tfs...
 Support german language in rktool
 Find a way around the rounding errors in the turnover counter
