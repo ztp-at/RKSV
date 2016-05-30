@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-05-30 23:25+CEST\n"
+"POT-Creation-Date: 2016-05-30 23:58+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -270,15 +270,15 @@ msgstr "Exportieren"
 msgid "Registrierkassen Tool"
 msgstr "Registrierkassen Tool"
 
-#: rktool.kv:271
+#: rktool.kv:272
 msgid "Verify Receipt"
 msgstr "Rechnung überprüfen"
 
-#: rktool.kv:274
+#: rktool.kv:276
 msgid "Verify DEP"
 msgstr "DEP überprüfen"
 
-#: rktool.kv:277
+#: rktool.kv:280
 msgid "Key Store"
 msgstr "Schlüsselspeicher"
 
@@ -318,7 +318,9 @@ msgstr "Zertifikat \"%s\" wird nicht vertraut."
 msgid ""
 "Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and "
 "\"{2}\"). This may be an attempted attack."
-msgstr "Zwei Zertifikate mit Seriennummer \"{0}\" gefunden (Fingerabdrücke \"{1}\" und \"{2}\"). Dies könnte ein versuchter Angriff sein."
+msgstr ""
+"Zwei Zertifikate mit Seriennummer \"{0}\" gefunden (Fingerabdrücke \"{1}\" "
+"und \"{2}\"). Dies könnte ein versuchter Angriff sein."
 
 #: verify.py:89
 msgid "Initial receipt not signed."
