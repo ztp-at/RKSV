@@ -27,8 +27,8 @@ class ChainingException(DEPException):
 
     def __init__(self, rec, recPrev):
         super(ChainingException, self).__init__(
-                _("At receipt \"%s\": Previous receipt is not \"%s\".") %
-                (rec, recPrev))
+                _("At receipt \"{0}\": Previous receipt is not \"{1}\".").format(
+                    rec, recPrev))
 
 class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
     """
@@ -78,8 +78,8 @@ class CertificateSerialCollisionException(DEPException):
 
     def __init__(self, serial, cert1FP, cert2FP):
         super(CertificateSerialCollisionException, self).__init__(
-                _("Two certificates with serial \"%s\" detected (fingerprints \"%s\" and \"%s\"). This may be an attempted attack.") %
-                (serial, cert1FP, cert2FP))
+                _("Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and \"{2}\"). This may be an attempted attack.").format(
+                    serial, cert1FP, cert2FP))
 
 class SignatureSystemFailedOnInitialReceiptException(receipt.ReceiptException):
     """
