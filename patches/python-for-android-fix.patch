@@ -22,8 +22,21 @@ index 75fb5d5..76956ca 100644
  
  LIBS_WITH_LONG_SYMBOLS := $(strip $(shell \
  	for f in $(LOCAL_PATH)/../../libs/$ARCH/*.so ; do \
+diff --git a/pythonforandroid/build.py b/pythonforandroid/build.py
+index c9f9d99..bc9f9ed 100644
+--- a/pythonforandroid/build.py
++++ b/pythonforandroid/build.py
+@@ -582,7 +582,7 @@ def build_recipes(build_order, python_modules, ctx):
+ 
+ 
+ def run_pymodules_install(ctx, modules):
+-    modules = filter(ctx.not_has_package, modules)
++    modules = list(filter(ctx.not_has_package, modules))
+ 
+     if not modules:
+         info('There are no Python modules to install, skipping')
 diff --git a/pythonforandroid/recipes/cffi/__init__.py b/pythonforandroid/recipes/cffi/__init__.py
-index 450c32a..0f78350 100644
+index 450c32a..64e0ee9 100644
 --- a/pythonforandroid/recipes/cffi/__init__.py
 +++ b/pythonforandroid/recipes/cffi/__init__.py
 @@ -1,4 +1,5 @@
