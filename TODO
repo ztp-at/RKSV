@@ -1,3 +1,4 @@
+Investigate hang and crash bugs on screen lock, support landscape
 Actually check if a device even has a camera before displaying the button
 currently serials without [A-F] will be interpreted as decimal, should be hex and then allow fallback to decimal for old stuff
 investigate UnicodeDecodeErrors
