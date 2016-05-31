@@ -1,17 +1,24 @@
 Dependencies
 ------------
 >=python-3.4
->=Kivy-1.9 (for the UI)
->=cryptography-1.2
+>=python-2.7
+>=Kivy-1.9
+>=dev-python/appdirs-1.4.0
+>=dev-python/colorama-0.33
 >=dev-python/configparser-3.3.0.2
+>=dev-python/cryptography-1.2
+>=dev-python/enum34-1.0.4
 >=dev-python/flask-0.10.1-r1
 >=dev-python/future-0.15.2
 >=dev-python/pillow-3.1.1
 >=dev-python/pyjwt-1.3
 >=dev-python/requests-2.8.1
 >=dev-python/six-1.10.0
+>=dev-python/sh-1.11
+>=dev-python/virtualenv-13.1.2
 >=gnu-make-4.1-r1
 >=zbar-0.10-r5 + python bindings
+pygettext.py in PATH
 
 make setup
 ----------
@@ -20,6 +27,36 @@ Generates an AES key (`aesBase64_1.txt`), a private key (`cert_1.key`),
 a public key (`cert_1.pub`) and a certificate signed with the private key
 (`cert_1.crt`). The keys and certificates are stored in PEM format while the
 AES key is stored as base64 encoded text.
+
+make update-trans
+-----------------
+
+Updates the `*.po` files in `lang` by merging them with a newly created `*.pot`
+file based on the extracted translatable strings.
+
+make compile-trans
+------------------
+
+Compiles the `*.po` files in `lang` to `*.mo` files so that they can be used to
+read the translations for various strings in the Python scripts.
+
+make apk
+--------
+
+Packages the `rktool.py` application into an `*.apk` file which can be installed
+on an Android device.
+
+make clean
+----------
+
+Removes all intermediate files created by the Python interpreters or by the
+translation facilities. Also removes all certificates and keys created by `make
+setup`.
+
+make dist-clean
+---------------
+
+Like `make clean` but also removes all intermediate files created by `make apk`.
 
 demo.py
 -------

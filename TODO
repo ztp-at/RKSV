@@ -1,5 +1,4 @@
 investigate UnicodeDecodeErrors
-document remaining makefile targets
 improve UI, make long text in text fields wrap, not scroll, add hint texts to tfs...
 Find a way around the rounding errors in the turnover counter
 Write a test suite for the verification functions, see if a-sit tests can help here
