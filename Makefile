@@ -33,8 +33,12 @@ lang/rktool.pot:
 	mkdir -p lang
 	pygettext.py -o lang/rktool.pot *.py *.kv
 
-apk: .builddata/pyvirt/bin/buildozer .builddata/libs .builddata/p4a compile-trans
-	LD_PRELOAD=/lib/libutil.so* .builddata/pyvirt/bin/buildozer -v android_new debug
+apk: .builddata/pyvirt/bin/buildozer .builddata/libs .builddata/p4a .builddata/bin/python compile-trans
+	PATH=".builddata/bin:${PATH}" LD_PRELOAD=/lib/libutil.so.1 .builddata/pyvirt/bin/buildozer -v android_new debug
+
+.builddata/bin/python:
+	mkdir -p .builddata/bin
+	ln -s `which python2` .builddata/bin/python
 
 .builddata/p4a: patches/python-for-android-fix.patch
 	mkdir -p .builddata
@@ -43,6 +47,8 @@ apk: .builddata/pyvirt/bin/buildozer .builddata/libs .builddata/p4a compile-tran
 	cd .builddata/p4a && patch -p1 < ../../patches/python-for-android-fix.patch
 
 .builddata/libs: .builddata/zbar-android.zip
+	rm -rf .builddata/libs
+	rm -rf .builddata/ZBarAndroidSDK-*
 	cd .builddata && unzip zbar-android.zip
 	mv .builddata/ZBarAndroidSDK-*/libs .builddata/
 	rm -rf .builddata/ZBarAndroidSDK-*
@@ -55,7 +61,7 @@ apk: .builddata/pyvirt/bin/buildozer .builddata/libs .builddata/p4a compile-tran
 	mkdir -p .builddata
 	rm -rf .builddata/pyvirt
 	virtualenv -p python2 .builddata/pyvirt
-	.builddata/pyvirt/bin/pip install buildozer
+	.builddata/pyvirt/bin/pip install https://github.com/kivy/buildozer/archive/master.zip
 
 clean:
 	rm -rf __pycache__

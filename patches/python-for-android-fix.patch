@@ -38,9 +38,9 @@ index 450c32a..0f78350 100644
  
 +	def get_hostrecipe_env(self, arch=None):
 +		env = super(CffiRecipe, self).get_hostrecipe_env(arch)
-+                cf = sh.Command('pkg-config')('--cflags', 'libffi')
++		cf = sh.Command('pkg-config')('--cflags', 'libffi')
 +		env['CFLAGS'] = ' '.join([env.get('CFLAGS', ''), str(cf)])
-+                return env
++		return env
 +
  	def get_recipe_env(self, arch=None):
  		env = super(CffiRecipe, self).get_recipe_env(arch)
