@@ -33,6 +33,30 @@ lang/rktool.pot:
 	mkdir -p lang
 	pygettext.py -o lang/rktool.pot *.py *.kv
 
+apk: .builddata/pyvirt/bin/buildozer .builddata/libs .builddata/p4a compile-trans
+	LD_PRELOAD=/lib/libutil.so* .builddata/pyvirt/bin/buildozer -v android_new debug
+
+.builddata/p4a: patches/python-for-android-fix.patch
+	mkdir -p .builddata
+	rm -rf .builddata/p4a
+	git clone https://github.com/kivy/python-for-android.git .builddata/p4a
+	cd .builddata/p4a && patch -p1 < ../../patches/python-for-android-fix.patch
+
+.builddata/libs: .builddata/zbar-android.zip
+	cd .builddata && unzip zbar-android.zip
+	mv .builddata/ZBarAndroidSDK-*/libs .builddata/
+	rm -rf .builddata/ZBarAndroidSDK-*
+
+.builddata/zbar-android.zip:
+	mkdir -p .builddata
+	wget https://sourceforge.net/projects/zbar/files/AndroidSDK/ZBarAndroidSDK-0.2.zip/download -O .builddata/zbar-android.zip
+
+.builddata/pyvirt/bin/buildozer:
+	mkdir -p .builddata
+	rm -rf .builddata/pyvirt
+	virtualenv -p python2 .builddata/pyvirt
+	.builddata/pyvirt/bin/pip install buildozer
+
 clean:
 	rm -rf __pycache__
 	rm -f *.pyc
@@ -41,4 +65,8 @@ clean:
 	rm -f aesBase64*.txt
 	rm -f cert*.key cert*.crt cert*.pub
 
-.PHONY: clean setup update-trans compile-trans
+dist-clean: clean
+	rm -rf .builddata
+	rm -rf .buildozer
+
+.PHONY: clean dist-clean setup update-trans compile-trans apk

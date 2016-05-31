@@ -11,3 +11,6 @@ aesBase64.txt
 *.json
 *.pot
 *.mo
+bin/
+.builddata
+.buildozer

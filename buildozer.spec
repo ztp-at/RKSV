@@ -22,7 +22,7 @@ source.include_exts = py,png,jpg,kv,atlas,crt,pem,mo
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = libs, bin, builds, patches, p4a
+source.exclude_dirs = bin, builds, patches, .builddata
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
@@ -99,7 +99,7 @@ android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
 #android.ant_path =
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-android.p4a_dir = p4a
+android.p4a_dir = .builddata/p4a
 
 # (list) python-for-android whitelist
 android.p4a_whitelist = lib-dynload/future_builtins.so
@@ -120,7 +120,7 @@ android.bootstrap = pygame
 # down the build process. Allows wildcards matching, for example:
 # OUYA-ODK/libs/*.jar
 #android.add_jars = foo.jar,bar.jar,path/to/more/*.jar
-android.add_jars = libs/*.jar
+android.add_jars = .builddata/libs/*.jar
 
 # (list) List of Java files to add to the android project (can be java or a
 # directory containing the files)
@@ -141,9 +141,9 @@ android.add_jars = libs/*.jar
 #android.manifest.intent_filters =
 
 # (list) Android additionnal libraries to copy into libs/armeabi
-#android.add_libs_armeabi = libs/armeabi/*.so
-android.add_libs_armeabi_v7a = libs/armeabi-v7a/*.so
-#android.add_libs_x86 = libs/x86/*.so
+#android.add_libs_armeabi = .builddata/libs/armeabi/*.so
+android.add_libs_armeabi_v7a = .builddata/libs/armeabi-v7a/*.so
+#android.add_libs_x86 = .builddata/libs/x86/*.so
 #android.add_libs_mips = libs/android-mips/*.so
 
 # (bool) Indicate whether the screen should stay on
