@@ -117,11 +117,11 @@ def verifyCert(cert, chain, keyStore):
     prev = utils.loadCert(utils.addPEMCertHeaders(cert))
 
     for c in chain:
-        ksCert = keyStore.getCert(key_store.preprocCertSerial(prev.serial))
+        ksCert = keyStore.getCert(key_store.numSerialToKeyId(prev.serial))
         if ksCert:
             if utils.certFingerprint(ksCert) != utils.certFingerprint(prev):
                 raise CertificateSerialCollisionException(
-                        key_store.preprocCertSerial(prev.serial),
+                        key_store.numSerialToKeyId(prev.serial),
                         utils.certFingerprint(prev),
                         utils.certFingerprint(ksCert))
             return
@@ -133,11 +133,11 @@ def verifyCert(cert, chain, keyStore):
 
         prev = cur
 
-    ksCert = keyStore.getCert(key_store.preprocCertSerial(prev.serial))
+    ksCert = keyStore.getCert(key_store.numSerialToKeyId(prev.serial))
     if ksCert:
         if utils.certFingerprint(ksCert) != utils.certFingerprint(prev):
             raise CertificateSerialCollisionException(
-                    key_store.preprocCertSerial(prev.serial),
+                    key_store.numSerialToKeyId(prev.serial),
                     utils.certFingerprint(prev),
                     utils.certFingerprint(ksCert))
         return

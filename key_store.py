@@ -76,31 +76,41 @@ class KeyStoreI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
-def preprocCertSerial(serial):
+def numSerialToKeyId(serial):
     """
-    Prepares a certificate serial for usage with a key store.
-    :param serial: The serial as a string or number.
-    :return: The normalized serial as a string.
+    Converts a certificate serial to a hexadecimal key ID.
+    :param serial: The serial as a number.
+    :return: The key ID as a string.
     """
-    if isinstance(serial, numbers.Number):
-        return ('%x' % abs(serial))
+    return ('%x' % abs(serial))
 
+def strSerialToKeyIds(serial):
+    """
+    Generates all possible key IDs as which a certificate serial could be
+    interpreted. As serials may be represented as either decimal or hexadecimal
+    strings there may be multiple valid conversions to key IDs.
+    :param serial: The serial as a decimal or hexadecimal string.
+    :return: A list of possible key IDs, where each entry is a string. May be
+    empty if the serial is invalid.
+    """
     # for some reason the ref impl has a negative serial on some certs
     if serial[0] == '-':
         serial = serial[1:]
 
+    validKeyIds = list()
+
     try:
         int(serial, 16)
-        serial = serial.lower()
+        validKeyIds.append(serial.lower())
     except ValueError as e:
         pass
 
     try:
-        serial = ('%x' % int(serial, 10))
+        validKeyIds.append('%x' % int(serial, 10))
     except ValueError as e:
         pass
 
-    return serial
+    return validKeyIds
 
 class KeyTuple:
     """
@@ -249,15 +259,17 @@ class KeyStore(KeyStoreI):
         keyStore = KeyStore()
 
         for value in json['certificateOrPublicKeyMap'].values():
-            keyId = preprocCertSerial(value['id'])
             keyStr = value['signatureCertificateOrPublicKey']
 
+            keyId = None
             key = None
             cert = None
             if value['signatureDeviceType'] == 'CERTIFICATE':
+                keyId = strSerialToKeyIds(value['id'])[0]
                 cert = utils.loadCert(utils.addPEMCertHeaders(keyStr))
                 key = cert.public_key()
             else:
+                keyId = value['id']
                 key = utils.loadPubKey(utils.addPEMPubKeyHeaders(keyStr))
 
             keyStore.putKey(keyId, key, cert)

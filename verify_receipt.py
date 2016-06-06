@@ -159,6 +159,13 @@ class CertSerialType(enum.Enum):
         :param certSerial: The serial from a receipt as string.
         :return: The type of the serial or INVALID if the serial is malformed.
         """
+        if len(certSerial) <= 0:
+            return CertSerialType.INVALID
+
+        # for some reason the ref impl has a negative serial on some certs
+        if certSerial[0] == '-' and '-' not in certSerial[1:]:
+            certSerial = certSerial[1:]
+
         parts = certSerial.split('-')
         certSerial = parts[0]
         if len(parts) > 2:
@@ -169,7 +176,7 @@ class CertSerialType(enum.Enum):
 
         if len(certSerial) == 11 and certSerial[0:2] == 'S:' and certSerial[2:].isdigit():
             return CertSerialType.TAX
-        elif len(certSerial) >= 3 and len(certSerial) <= 16 and certSerial[0:2] == 'U:'  and certSerial[2:].isalnum():
+        elif len(certSerial) >= 3 and len(certSerial) <= 16 and certSerial[0:2] == 'U:'  and certSerial[2:].isalnum() and certSerial[2:] == certSerial[2:].upper():
             return CertSerialType.UID
         elif len(certSerial) == 15 and certSerial[0:2] == 'G:' and certSerial[2:].isdigit():
             return CertSerialType.GLN
@@ -230,19 +237,28 @@ class ReceiptVerifier(ReceiptVerifierI):
             raise receipt.UnknownAlgorithmException(jwsString)
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
-        certSerial = key_store.preprocCertSerial(rec.certSerial)
-        certSerialType = CertSerialType.getCertSerialType(certSerial)
+        certSerialType = CertSerialType.getCertSerialType(rec.certSerial)
         if certSerialType == CertSerialType.INVALID:
             raise CertSerialInvalidException(jwsString)
 
         pubKey = None
-        if self.cert:
-            if certSerialType == CertSerialType.SERIAL:
-                if key_store.preprocCertSerial(self.cert.serial) != certSerial:
+        if certSerialType == CertSerialType.SERIAL:
+            serials = key_store.strSerialToKeyIds(rec.certSerial)
+            if self.cert:
+                certSerial = key_store.numSerialToKeyId(self.cert.serial)
+                if not certSerial in serials:
                     raise CertSerialMismatchException(jwsString)
-            pubKey = self.cert.public_key()
+                pubKey = self.cert.public_key()
+            else:
+                for serial in serials:
+                    pubKey = self.keyStore.getKey(serial)
+                    if pubKey:
+                        break
         else:
-            pubKey = self.keyStore.getKey(certSerial)
+            if self.cert:
+                pubKey = self.cert.public_key()
+            else:
+                pubKey = self.keyStore.getKey(rec.certSerial)
 
         if rec.isSignedBroken():
             raise SignatureSystemFailedException(jwsString)
@@ -250,9 +266,7 @@ class ReceiptVerifier(ReceiptVerifierI):
         if not pubKey:
             raise NoPublicKeyException(jwsString)
 
-        validationSuccessful = algorithm.verify(jwsString, pubKey)
-
-        if not validationSuccessful:
+        if not algorithm.verify(jwsString, pubKey):
             raise InvalidSignatureException(jwsString)
 
         return rec, algorithm
