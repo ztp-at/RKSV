@@ -140,7 +140,7 @@ class Receipt:
                 jwsSegs[0]).encode("utf-8")).decode("utf-8")
             payload = base64.urlsafe_b64decode(utils.restoreb64padding(
                 jwsSegs[1]).encode("utf-8")).decode("utf-8")
-        except (TypeError, binascii.Error):
+        except (TypeError, binascii.Error, UnicodeDecodeError):
             raise MalformedReceiptException(jwsString)
 
         signature = jwsSegs[2]
