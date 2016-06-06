@@ -69,7 +69,7 @@ clean:
 	rm -f lang/rktool.pot
 	rm -f lang/*/LC_MESSAGES/rktool.mo
 	rm -f aesBase64*.txt
-	rm -f cert*.key cert*.crt cert*.pub
+	rm -f cert_*.key cert_*.crt cert_*.pub
 
 dist-clean: clean
 	rm -rf .builddata
