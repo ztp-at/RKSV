@@ -1,3 +1,4 @@
+if cert is available verify that receipts were signed while cert was valid
 try to always get the receipt ID in error messages if possible
 Investigate hang and crash bugs on screen lock, support landscape
 Actually check if a device even has a camera before displaying the button
