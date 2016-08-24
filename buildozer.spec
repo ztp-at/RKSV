@@ -36,7 +36,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
-requirements = future,pil,jnius,requests,configparser,pyasn1,cryptography,flask,pyjwt,six,kivy
+requirements = android,future,pil,pyjnius,requests,configparser,pyasn1,cryptography,flask,pyjwt,six,kivy
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -76,12 +76,15 @@ android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
 
 # (int) Android API to use
 #android.api = 19
+android.api = 19
 
 # (int) Minimum API required
 #android.minapi = 9
+android.minapi = 19
 
 # (int) Android SDK version to use
 #android.sdk = 20
+android.sdk = 24
 
 # (str) Android NDK version to use
 #android.ndk = 9c
@@ -104,13 +107,15 @@ android.p4a_dir = .builddata/p4a
 # (list) python-for-android whitelist
 android.p4a_whitelist = lib-dynload/future_builtins.so
 
+p4a.local_recipes =
+
 # (bool) If True, then skip trying to update the Android sdk
 # This can be useful to avoid excess Internet downloads or save time
 # when an update is due and you just want to test/build your package
 # android.skip_update = False
 
 # (str) Bootstrap to use for android builds (android_new only)
-android.bootstrap = pygame
+android.bootstrap = sdl2
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
@@ -161,7 +166,7 @@ android.add_libs_armeabi_v7a = .builddata/libs/armeabi-v7a/*.so
 #android.logcat_filters = *:S python:D
 
 # (bool) Copy library instead of making a libpymodules.so
-android.copy_libs = 0
+android.copy_libs = 1
 
 #
 # iOS specific

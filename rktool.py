@@ -41,7 +41,7 @@ if platform == 'android':
     ByteArrayOutputStream = autoclass('java.io.ByteArrayOutputStream')
     Intent = autoclass('android.content.Intent')
     MediaStore = autoclass('android.provider.MediaStore')
-    PythonActivity = autoclass('org.renpy.android.PythonActivity')
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
     Locale = autoclass('java.util.Locale')
 
     import os
