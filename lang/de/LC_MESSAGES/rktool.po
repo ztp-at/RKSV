@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-05-31 10:08+CEST\n"
+"POT-Creation-Date: 2016-08-24 22:32+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -202,7 +202,7 @@ msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Trainingsbeleg."
 msgid "Can't decrypt turnover counter, this is a reversal receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Stornobeleg."
 
-#: receipt.py:509 verify_receipt.py:326
+#: receipt.py:509 verify_receipt.py:340
 msgid "Input format must be one of %s."
 msgstr "Eingabeformat muss eines aus %s sein."
 
@@ -354,6 +354,6 @@ msgstr "Sicherheitseinrichtung ausgefallen."
 msgid "Invalid URL hash."
 msgstr "Ungültige URL Prüfsumme."
 
-#: verify_receipt.py:342
+#: verify_receipt.py:356
 msgid "All receipts verified successfully."
 msgstr "Alle Rechnungen wurden erfolgreich überprüft."
