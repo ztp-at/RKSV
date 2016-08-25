@@ -8,6 +8,7 @@ from builtins import int
 import base64
 
 import algorithms
+import key_store
 import receipt
 import utils
 import verify_receipt
