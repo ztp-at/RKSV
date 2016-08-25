@@ -537,7 +537,7 @@ class VerifyDEPWidget(BoxLayout):
                 pem = group['Signaturzertifikat']
                 if pem:
                     cert = utils.loadCert(utils.addPEMCertHeaders(pem))
-                    serial = "%x" % cert.serial
+                    serial = key_store.numSerialToKeyId(cert.serial)
                     tv.add_node(TreeViewKeyButton(
                         text=serial,
                         key_id=serial, key=cert,
@@ -545,7 +545,7 @@ class VerifyDEPWidget(BoxLayout):
 
                 for pem in group['Zertifizierungsstellen']:
                     cert = utils.loadCert(utils.addPEMCertHeaders(pem))
-                    serial = "%x" % cert.serial
+                    serial = key_store.numSerialToKeyId(cert.serial)
                     tv.add_node(TreeViewKeyButton(
                         text=serial,
                         key_id=serial, key=cert,

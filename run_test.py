@@ -63,7 +63,7 @@ if __name__ == "__main__":
                 keyStore.putPEMKey(serial, cert)
             else:
                 keyStore.putPEMCert(cert)
-                serial = "%x" % utils.loadCert(cert).serial
+                serial = key_store.numSerialToKeyId(utils.loadCert(cert).serial)
 
         sigB = sigsys.SignatureSystemBroken('AT0', serial)
         sigW = sigsys.SignatureSystemWorking('AT0', serial,

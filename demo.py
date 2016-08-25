@@ -42,7 +42,7 @@ if __name__ == "__main__":
         cert = sys.argv[2]
         serial = None
         with open(cert) as f:
-            serial = "%x" % utils.loadCert(f.read()).serial
+            serial = "%x" % abs(utils.loadCert(f.read()).serial)
 
         sigsystem = sigsys.SignatureSystemWorking("AT77", serial, priv)
         keyf = sys.argv[3]
