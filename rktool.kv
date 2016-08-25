@@ -1,4 +1,5 @@
 #:import str builtins.str
+#:import os os
 
 <TreeViewButton>:
 	halign: 'left'
@@ -27,6 +28,7 @@
 		orientation: "vertical"
 		FileChooserListView:
 			id: filechooser
+			path: os.getcwd()
 		BoxLayout:
 			size_hint_y: None
 			Button:
