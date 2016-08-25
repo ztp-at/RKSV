@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-08-24 22:32+CEST\n"
+"POT-Creation-Date: 2016-08-25 14:12+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: cashreg.py:93 main.py:335 receipt.py:59 rktool.py:335
+#: cashreg.py:93 main.py:337 receipt.py:59 rktool.py:337
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
 
@@ -92,81 +92,81 @@ msgstr "Verkettungswert"
 msgid "Signature"
 msgstr "Signatur"
 
-#: main.py:260 main.py:600 rktool.py:260 rktool.py:600
+#: main.py:260 main.py:604 rktool.py:260 rktool.py:604
 msgid "Verifying..."
 msgstr "Überprüfe..."
 
-#: main.py:273 main.py:582 main.py:616 rktool.kv:125 rktool.kv:228
-#: rktool.py:273 rktool.py:582 rktool.py:616
+#: main.py:273 main.py:586 main.py:620 rktool.kv:128 rktool.kv:231
+#: rktool.py:273 rktool.py:586 rktool.py:620
 msgid "Verify"
 msgstr "Überprüfen"
 
-#: main.py:299 main.py:668 rktool.kv:213 rktool.py:299 rktool.py:668
+#: main.py:299 main.py:674 rktool.kv:216 rktool.py:299 rktool.py:674
 msgid "Load AES Key"
 msgstr "AES Schlüssel laden"
 
-#: main.py:318 main.py:686 main.py:829 rktool.py:318 rktool.py:686
-#: rktool.py:829
+#: main.py:320 main.py:694 main.py:843 rktool.py:320 rktool.py:694
+#: rktool.py:843
 msgid "Malformed crypto container"
 msgstr "Ungültiges Schlüsselmaterial"
 
-#: main.py:376 rktool.py:376
+#: main.py:378 rktool.py:378
 msgid "No image taken."
 msgstr "Kein Bild aufgenommen."
 
-#: main.py:385 rktool.py:385
+#: main.py:387 rktool.py:387
 msgid "Failed to compress image."
 msgstr "Fehler beim Komprimieren des Bildes."
 
-#: main.py:404 main.py:425 rktool.py:404 rktool.py:425
+#: main.py:406 main.py:427 rktool.py:406 rktool.py:427
 msgid "No QR codes found."
 msgstr "Keine QR-Codes gefunden."
 
-#: main.py:412 rktool.py:412
+#: main.py:414 rktool.py:414
 msgid "Load Receipt"
 msgstr "Rechnung laden"
 
-#: main.py:523 rktool.py:523
+#: main.py:527 rktool.py:527
 msgid "Group %d"
 msgstr "Gruppe %d"
 
-#: main.py:566 rktool.py:566
+#: main.py:570 rktool.py:570
 msgid "Malformed DEP"
 msgstr "Ungültiges DEP"
 
-#: main.py:623 rktool.py:623
+#: main.py:627 rktool.py:627
 msgid "Valid DEP"
 msgstr "Gültiges DEP"
 
-#: main.py:643 rktool.kv:210 rktool.py:643
+#: main.py:647 rktool.kv:213 rktool.py:647
 msgid "Load DEP"
 msgstr "DEP laden"
 
-#: main.py:697 rktool.py:697
+#: main.py:705 rktool.py:705
 msgid "Public Keys"
 msgstr "Öffentliche Schlüssel"
 
-#: main.py:699 rktool.py:699
+#: main.py:707 rktool.py:707
 msgid "Certificates"
 msgstr "Zertifikate"
 
-#: main.py:747 rktool.py:747
+#: main.py:755 rktool.py:755
 msgid "Load PEM Public Key"
 msgstr "Öffentlichen Schlüssel (PEM) laden"
 
-#: main.py:752 rktool.py:752
+#: main.py:760 rktool.py:760
 msgid "Load PEM Certificate"
 msgstr "Zertifikat (PEM) laden "
 
-#: main.py:771 rktool.py:771
+#: main.py:781 rktool.py:781
 msgid "Enter Public Key ID"
 msgstr "ID des öffentlichen Schlüssels eingeben"
 
-#: main.py:799 rktool.py:799
+#: main.py:811 rktool.py:811
 msgid "Load Key Store"
 msgstr "Schlüsselspeicher laden"
 
-#: main.py:805 rktool.py:805
+#: main.py:817 rktool.py:817
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
 
@@ -210,75 +210,75 @@ msgstr "Eingabeformat muss eines aus %s sein."
 msgid "Output format must be one of %s."
 msgstr "Ausgabeformat muss eines aus %s sein."
 
-#: rktool.kv:33 rktool.kv:55 rktool.kv:73
+#: rktool.kv:35 rktool.kv:58 rktool.kv:76
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: rktool.kv:36
+#: rktool.kv:38
 msgid "Load"
 msgstr "Laden"
 
-#: rktool.kv:58
+#: rktool.kv:61
 msgid "Save"
 msgstr "Speichern"
 
-#: rktool.kv:76
+#: rktool.kv:79
 msgid "Ok"
 msgstr "Ok"
 
-#: rktool.kv:108
+#: rktool.kv:111
 msgid "Receipt"
 msgstr "Rechnung"
 
-#: rktool.kv:112 rktool.kv:262
+#: rktool.kv:115 rktool.kv:265
 msgid "Exit"
 msgstr "Beenden"
 
-#: rktool.kv:129
+#: rktool.kv:132
 msgid "Decrypt Turnover Counter"
 msgstr "Umsatzzähler entschlüsseln"
 
-#: rktool.kv:177
+#: rktool.kv:180
 msgid "JWS string"
 msgstr "JWS-Zeichenkette"
 
-#: rktool.kv:183
+#: rktool.kv:186
 msgid "QR code"
 msgstr "QR-Code"
 
-#: rktool.kv:188
+#: rktool.kv:191
 msgid "OCR code"
 msgstr "OCR-Code"
 
-#: rktool.kv:193
+#: rktool.kv:196
 msgid "URL"
 msgstr "URL"
 
-#: rktool.kv:197
+#: rktool.kv:200
 msgid "Read Receipt"
 msgstr "Rechnung lesen"
 
-#: rktool.kv:248
+#: rktool.kv:251
 msgid "Import"
 msgstr "Importieren"
 
-#: rktool.kv:251
+#: rktool.kv:254
 msgid "Export"
 msgstr "Exportieren"
 
-#: rktool.kv:259
+#: rktool.kv:262
 msgid "Registrierkassen Tool"
 msgstr "Registrierkassen Tool"
 
-#: rktool.kv:274
+#: rktool.kv:277
 msgid "Verify Receipt"
 msgstr "Rechnung überprüfen"
 
-#: rktool.kv:278
+#: rktool.kv:281
 msgid "Verify DEP"
 msgstr "DEP überprüfen"
 
-#: rktool.kv:282
+#: rktool.kv:285
 msgid "Key Store"
 msgstr "Schlüsselspeicher"
 
