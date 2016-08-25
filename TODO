@@ -1,3 +1,4 @@
+remember the last dir used when picking a file in UI and use it next time
 try to always get the receipt ID in error messages if possible
 Investigate hang and crash bugs on screen lock, support landscape
 Actually check if a device even has a camera before displaying the button
