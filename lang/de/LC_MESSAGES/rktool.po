@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-08-25 14:12+CEST\n"
+"POT-Creation-Date: 2016-08-25 19:49+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: cashreg.py:93 main.py:337 receipt.py:59 rktool.py:337
+#: cashreg.py:93 main.py:338 receipt.py:59 rktool.py:338
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
 
@@ -24,149 +24,149 @@ msgstr "Ungültiger Schlüssel."
 msgid "The number of receipts must be at least 1."
 msgstr "Die Anzahl der Rechnungen muss mindestens 1 sein."
 
-#: main.py:145 rktool.py:145
+#: main.py:146 rktool.py:146
 msgid "Error"
 msgstr "Fehler"
 
-#: main.py:212 main.py:279 rktool.py:212 rktool.py:279
+#: main.py:213 main.py:280 rktool.py:213 rktool.py:280
 msgid "Valid Signature"
 msgstr "Gültige Signatur"
 
-#: main.py:216 rktool.py:216
+#: main.py:217 rktool.py:217
 msgid "No Signature"
 msgstr "Keine Signatur"
 
-#: main.py:241 rktool.py:241
+#: main.py:242 rktool.py:242
 msgid "Signature system broken"
 msgstr "Sicherheitseinrichtung ausgefallen"
 
-#: main.py:243 rktool.py:243
+#: main.py:244 rktool.py:244
 msgid "ZDA ID"
 msgstr "ZDA ID"
 
-#: main.py:244 rktool.py:244
+#: main.py:245 rktool.py:245
 msgid "Cash Register ID"
 msgstr "Kassen-ID"
 
-#: main.py:245 rktool.py:245
+#: main.py:246 rktool.py:246
 msgid "Receipt ID"
 msgstr "Belegnummer"
 
-#: main.py:246 rktool.py:246
+#: main.py:247 rktool.py:247
 msgid "Timestamp"
 msgstr "Datum & Uhrzeit"
 
-#: main.py:247 rktool.py:247
+#: main.py:248 rktool.py:248
 msgid "Sum Tax Normal"
 msgstr "Betrag Satz Normal"
 
-#: main.py:248 rktool.py:248
+#: main.py:249 rktool.py:249
 msgid "Sum Tax Reduced 1"
 msgstr "Betrag Satz Ermäßigt 1"
 
-#: main.py:249 rktool.py:249
+#: main.py:250 rktool.py:250
 msgid "Sum Tax Reduced 2"
 msgstr "Betrag Satz Ermäßigt 2"
 
-#: main.py:250 rktool.py:250
+#: main.py:251 rktool.py:251
 msgid "Sum Tax Zero"
 msgstr "Betrag Satz Null"
 
-#: main.py:251 rktool.py:251
+#: main.py:252 rktool.py:252
 msgid "Sum Tax Special"
 msgstr "Betrag Satz Besonders"
 
-#: main.py:252 rktool.py:252
+#: main.py:253 rktool.py:253
 msgid "Turnover Counter"
 msgstr "Umsatzzähler"
 
-#: main.py:253 rktool.py:253
+#: main.py:254 rktool.py:254
 msgid "Certificate Serial/Key ID"
 msgstr "Zertifikat-Seriennummer/Schlüssel ID"
 
-#: main.py:254 rktool.py:254
+#: main.py:255 rktool.py:255
 msgid "Chaining Value"
 msgstr "Verkettungswert"
 
-#: main.py:255 rktool.py:255
+#: main.py:256 rktool.py:256
 msgid "Signature"
 msgstr "Signatur"
 
-#: main.py:260 main.py:604 rktool.py:260 rktool.py:604
+#: main.py:261 main.py:605 rktool.py:261 rktool.py:605
 msgid "Verifying..."
 msgstr "Überprüfe..."
 
-#: main.py:273 main.py:586 main.py:620 rktool.kv:128 rktool.kv:231
-#: rktool.py:273 rktool.py:586 rktool.py:620
+#: main.py:274 main.py:587 main.py:621 rktool.kv:128 rktool.kv:231
+#: rktool.py:274 rktool.py:587 rktool.py:621
 msgid "Verify"
 msgstr "Überprüfen"
 
-#: main.py:299 main.py:674 rktool.kv:216 rktool.py:299 rktool.py:674
+#: main.py:300 main.py:675 rktool.kv:216 rktool.py:300 rktool.py:675
 msgid "Load AES Key"
 msgstr "AES Schlüssel laden"
 
-#: main.py:320 main.py:694 main.py:843 rktool.py:320 rktool.py:694
-#: rktool.py:843
+#: main.py:321 main.py:695 main.py:844 rktool.py:321 rktool.py:695
+#: rktool.py:844
 msgid "Malformed crypto container"
 msgstr "Ungültiges Schlüsselmaterial"
 
-#: main.py:378 rktool.py:378
+#: main.py:379 rktool.py:379
 msgid "No image taken."
 msgstr "Kein Bild aufgenommen."
 
-#: main.py:387 rktool.py:387
+#: main.py:388 rktool.py:388
 msgid "Failed to compress image."
 msgstr "Fehler beim Komprimieren des Bildes."
 
-#: main.py:406 main.py:427 rktool.py:406 rktool.py:427
+#: main.py:407 main.py:428 rktool.py:407 rktool.py:428
 msgid "No QR codes found."
 msgstr "Keine QR-Codes gefunden."
 
-#: main.py:414 rktool.py:414
+#: main.py:415 rktool.py:415
 msgid "Load Receipt"
 msgstr "Rechnung laden"
 
-#: main.py:527 rktool.py:527
+#: main.py:528 rktool.py:528
 msgid "Group %d"
 msgstr "Gruppe %d"
 
-#: main.py:570 rktool.py:570
+#: main.py:571 rktool.py:571
 msgid "Malformed DEP"
 msgstr "Ungültiges DEP"
 
-#: main.py:627 rktool.py:627
+#: main.py:628 rktool.py:628
 msgid "Valid DEP"
 msgstr "Gültiges DEP"
 
-#: main.py:647 rktool.kv:213 rktool.py:647
+#: main.py:648 rktool.kv:213 rktool.py:648
 msgid "Load DEP"
 msgstr "DEP laden"
 
-#: main.py:705 rktool.py:705
+#: main.py:706 rktool.py:706
 msgid "Public Keys"
 msgstr "Öffentliche Schlüssel"
 
-#: main.py:707 rktool.py:707
+#: main.py:708 rktool.py:708
 msgid "Certificates"
 msgstr "Zertifikate"
 
-#: main.py:755 rktool.py:755
+#: main.py:756 rktool.py:756
 msgid "Load PEM Public Key"
 msgstr "Öffentlichen Schlüssel (PEM) laden"
 
-#: main.py:760 rktool.py:760
+#: main.py:761 rktool.py:761
 msgid "Load PEM Certificate"
 msgstr "Zertifikat (PEM) laden "
 
-#: main.py:781 rktool.py:781
+#: main.py:782 rktool.py:782
 msgid "Enter Public Key ID"
 msgstr "ID des öffentlichen Schlüssels eingeben"
 
-#: main.py:811 rktool.py:811
+#: main.py:812 rktool.py:812
 msgid "Load Key Store"
 msgstr "Schlüsselspeicher laden"
 
-#: main.py:817 rktool.py:817
+#: main.py:818 rktool.py:818
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
 
