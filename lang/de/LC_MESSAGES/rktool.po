@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-08-25 19:49+CEST\n"
+"POT-Creation-Date: 2016-08-25 23:19+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -290,11 +290,11 @@ msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen.
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
 
-#: verify.py:30
+#: verify.py:31
 msgid "At receipt \"{0}\": Previous receipt is not \"{1}\"."
 msgstr "Bei Rechnung \"{0}\": Vorherige Rechnung ist nicht \"{1}\"."
 
-#: verify.py:42
+#: verify.py:43
 msgid ""
 "At receipt \"%s\": Receipt after restored signature system must not have any "
 "turnover."
@@ -302,19 +302,19 @@ msgstr ""
 "Bei Rechnung \"%s\": Rechnung nach Wiederherstellung der "
 "Sicherheitseinrichtung darf keinen Umsatz haben."
 
-#: verify.py:51
+#: verify.py:52
 msgid "Turnover counter invalid."
 msgstr "Umsatzzähler ungültig."
 
-#: verify.py:60
+#: verify.py:61
 msgid "No certificate specified in DEP and multiple groups used."
 msgstr "Kein Zertifikat angegeben, aber DEP hat mehrere Gruppen."
 
-#: verify.py:71
+#: verify.py:72
 msgid "Certificate \"%s\" is not trusted."
 msgstr "Zertifikat \"%s\" wird nicht vertraut."
 
-#: verify.py:81
+#: verify.py:82
 msgid ""
 "Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and "
 "\"{2}\"). This may be an attempted attack."
@@ -322,11 +322,11 @@ msgstr ""
 "Zwei Zertifikate mit Seriennummer \"{0}\" gefunden (Fingerabdrücke \"{1}\" "
 "und \"{2}\"). Dies könnte ein versuchter Angriff sein."
 
-#: verify.py:89
+#: verify.py:90
 msgid "Initial receipt not signed."
 msgstr "Startbeleg nicht signiert."
 
-#: verify.py:309
+#: verify.py:310
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
