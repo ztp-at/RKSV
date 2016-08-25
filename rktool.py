@@ -43,6 +43,7 @@ if platform == 'android':
     MediaStore = autoclass('android.provider.MediaStore')
     PythonActivity = autoclass('org.kivy.android.PythonActivity')
     Locale = autoclass('java.util.Locale')
+    Env = autoclass('android.os.Environment')
 
     import os
     os.environ['LANG'] = Locale.getDefault().toString()
@@ -868,7 +869,7 @@ class MainWidget(BoxLayout):
 class RKToolApp(App):
     keyStore = key_store.KeyStore()
     ksWidget = None
-    curSearchPath = os.getcwd()
+    curSearchPath = Env.getExternalStorageDirectory().getAbsolutePath() if platform == 'android' else os.getcwd()
 
     def on_pause(self):
         return True
