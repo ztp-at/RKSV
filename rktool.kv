@@ -28,7 +28,7 @@
 		orientation: "vertical"
 		FileChooserListView:
 			id: filechooser
-			path: os.getcwd()
+			path: app.curSearchPath
 		BoxLayout:
 			size_hint_y: None
 			Button:
@@ -47,6 +47,7 @@
 		FileChooserListView:
 			id: filechooser
 			on_selection: text_input.text = self.selection and self.selection[0] or ''
+			path: app.curSearchPath
 		TextInput:
 			id: text_input
 			size_hint_y: None

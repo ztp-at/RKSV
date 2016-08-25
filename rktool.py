@@ -312,6 +312,8 @@ class ViewReceiptWidget(BoxLayout):
                     key = jsonAES["base64AESKey"]
                 else:
                     key = f.read()
+
+            App.get_running_app().curSearchPath = path
         except (IOError, ValueError) as e:
             displayError(e)
         except KeyError:
@@ -426,6 +428,8 @@ class VerifyReceiptWidget(BoxLayout):
                 else:
                     self.receiptInput.text = codes[0]
                     self.selectInputType('QR')
+
+            App.get_running_app().curSearchPath = path
         except IOError:
             try:
                 with open(full) as f:
@@ -650,6 +654,8 @@ class VerifyDEPWidget(BoxLayout):
         try:
             with open(os.path.join(path, filename[0])) as f:
                 self._jsonDEP = json.loads(f.read())
+
+            App.get_running_app().curSearchPath = path
         except (IOError, ValueError) as e:
             displayError(e)
             self.dismissPopup()
@@ -680,6 +686,8 @@ class VerifyDEPWidget(BoxLayout):
                     self.aesInput.text = jsonAES["base64AESKey"]
                 else:
                     self.aesInput.text = f.read()
+
+            App.get_running_app().curSearchPath = path
         except (IOError, ValueError) as e:
             displayError(e)
         except KeyError:
@@ -759,6 +767,8 @@ class KeyStoreWidget(BoxLayout):
         try:
             with open(os.path.join(path, filename[0])) as f:
                 self._tmpPubKey = f.read()
+
+            App.get_running_app().curSearchPath = path
         except IOError as e:
             displayError(e)
             self.dismissPopup()
@@ -787,6 +797,8 @@ class KeyStoreWidget(BoxLayout):
         try:
             with open(os.path.join(path, filename[0])) as f:
                 App.get_running_app().keyStore.putPEMCert(f.read())
+
+            App.get_running_app().curSearchPath = path
         except (IOError, ValueError) as e:
             displayError(e)
 
@@ -823,6 +835,8 @@ class KeyStoreWidget(BoxLayout):
                     config.readfp(f)
                 App.get_running_app().keyStore = \
                         key_store.KeyStore.readStore(config)
+
+            App.get_running_app().curSearchPath = path
         except (IOError, ValueError, configparser.Error) as e:
             displayError(e)
         except KeyError:
@@ -841,6 +855,8 @@ class KeyStoreWidget(BoxLayout):
         try:
             with open(os.path.join(path, filename), 'w') as f:
                 config.write(f)
+
+            App.get_running_app().curSearchPath = path
         except IOError as e:
             displayError(e)
 
@@ -852,6 +868,7 @@ class MainWidget(BoxLayout):
 class RKToolApp(App):
     keyStore = key_store.KeyStore()
     ksWidget = None
+    curSearchPath = os.getcwd()
 
     def on_pause(self):
         return True
