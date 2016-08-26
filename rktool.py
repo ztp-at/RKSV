@@ -546,7 +546,7 @@ class VerifyDEPWidget(BoxLayout):
                     cert = utils.loadCert(utils.addPEMCertHeaders(pem))
                     serial = key_store.numSerialToKeyId(cert.serial)
                     tv.add_node(TreeViewKeyButton(
-                        text=serial,
+                        text=_('Serial: ') + serial,
                         key_id=serial, key=cert,
                         on_press=self.addCert), certNode)
 
@@ -554,7 +554,7 @@ class VerifyDEPWidget(BoxLayout):
                     cert = utils.loadCert(utils.addPEMCertHeaders(pem))
                     serial = key_store.numSerialToKeyId(cert.serial)
                     tv.add_node(TreeViewKeyButton(
-                        text=serial,
+                        text=_('Serial: ') + serial,
                         key_id=serial, key=cert,
                         on_press=self.addCert), chainNode)
 
@@ -744,12 +744,12 @@ class KeyStoreWidget(BoxLayout):
             cert = ks.getCert(kid)
             if cert:
                 tv.add_node(TreeViewKeyButton(
-                    text=kid,
+                    text=_('Serial: ') + kid,
                     on_press=self.delKey,
                     key_id=kid), self.certGroup)
             else:
                 tv.add_node(TreeViewKeyButton(
-                    text=kid,
+                    text=_('Key ID: ') + kid,
                     on_press=self.delKey,
                     key_id=kid), self.pubKeyGroup)
 
