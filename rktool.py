@@ -213,6 +213,7 @@ class ViewReceiptWidget(BoxLayout):
         if isValid:
             self.verify_button.text = _('Valid Signature')
             self.verify_button.disabled = True
+            self.verify_button.background_color = (0, 1, 0, 1)
 
         if receipt.isSignedBroken():
             self.verify_button.text = _('No Signature')
@@ -280,6 +281,7 @@ class ViewReceiptWidget(BoxLayout):
         else:
             self.verify_button.text = _('Valid Signature')
             self.verify_button.disabled = True
+            self.verify_button.background_color = (0, 1, 0, 1)
 
     def verifyReceiptTask(self, rec, prefix, store):
         try:
@@ -590,6 +592,7 @@ class VerifyDEPWidget(BoxLayout):
         self._verified = False
         self.verify_button.disabled = False
         self.verify_button.text = _('Verify')
+        self.verify_button.background_color = (1, 1, 1, 1)
 
     def verify(self):
         if self._verifying:
@@ -631,6 +634,7 @@ class VerifyDEPWidget(BoxLayout):
             self._verified = True
             self.verify_button.disabled = True
             self.verify_button.text = _('Valid DEP')
+            self.verify_button.background_color = (0, 1, 0, 1)
 
     def verifyDEPTask(self, json, store, key):
         try:
