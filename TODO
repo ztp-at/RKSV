@@ -1,6 +1,5 @@
 try to always get the receipt ID in error messages if possible
 Investigate hang and crash bugs on screen lock, support landscape
-Actually check if a device even has a camera before displaying the button
 improve UI, make long text in text fields wrap, not scroll, add hint texts to tfs...
 Find a way around the rounding errors in the turnover counter
 Write a test suite for the verification functions, see if a-sit tests can help here

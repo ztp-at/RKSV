@@ -44,6 +44,7 @@ if platform == 'android':
     PythonActivity = autoclass('org.kivy.android.PythonActivity')
     Locale = autoclass('java.util.Locale')
     Env = autoclass('android.os.Environment')
+    PM = autoclass('android.content.pm.PackageManager')
 
     import os
     os.environ['LANG'] = Locale.getDefault().toString()
@@ -355,6 +356,10 @@ class VerifyReceiptWidget(BoxLayout):
     def __init__(self, **kwargs):
         super(VerifyReceiptWidget, self).__init__(**kwargs)
         if platform == 'android':
+            pm = PythonActivity.mActivity.getPackageManager()
+            if not pm.hasSystemFeature(PM.FEATURE_CAMERA):
+                return
+
             def addCamButton(instance):
                 self.loadLayout.add_widget(Button(size_hint=(None, 1),
                         text='C', on_press=self.takePicture))
