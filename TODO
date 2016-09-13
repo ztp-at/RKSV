@@ -1,6 +1,7 @@
+check out new 0.7.1: zero receipts need a valid sig now (why? what about training with all zero?), see if we need to tighten verification
+collect multiple errors? right now we fail on the first one
+allow creation of variable length turnover counter
 try to always get the receipt ID in error messages if possible
-Investigate hang and crash bugs on screen lock, support landscape
 improve UI, make long text in text fields wrap, not scroll, add hint texts to tfs...
-Find a way around the rounding errors in the turnover counter
 Write a test suite for the verification functions, see if a-sit tests can help here
 Support both counter update methods described in new doc
