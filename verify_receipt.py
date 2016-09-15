@@ -59,6 +59,15 @@ class InvalidURLHashException(receipt.ReceiptException):
     def __init__(self, rec):
         super(InvalidURLHashException, self).__init__(rec, _("Invalid URL hash."))
 
+class InvalidCertificateProviderException(receipt.ReceiptException):
+    """
+    Indicates that the given certificate provider (ZDA) is invalid.
+    This usually means that AT0 was used in an open system or not used
+    in a closed system.
+    """
+    def __init__(self, rec):
+        super(InvalidCertificateProviderException, self).__init__(rec, _("Invalid certificate provider."))
+
 class ReceiptVerifierI:
     """
     The base class for receipt verifiers. It contains functions that every
@@ -243,6 +252,9 @@ class ReceiptVerifier(ReceiptVerifierI):
 
         pubKey = None
         if certSerialType == CertSerialType.SERIAL:
+            if rec.zda == 'AT0':
+                raise InvalidCertificateProviderException(jwsString)
+
             serials = key_store.strSerialToKeyIds(rec.certSerial)
             if self.cert:
                 certSerial = key_store.numSerialToKeyId(self.cert.serial)
@@ -255,6 +267,9 @@ class ReceiptVerifier(ReceiptVerifierI):
                     if pubKey:
                         break
         else:
+            if rec.zda != 'AT0':
+                raise InvalidCertificateProviderException(jwsString)
+
             if self.cert:
                 pubKey = self.cert.public_key()
             else:
