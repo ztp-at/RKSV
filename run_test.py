@@ -52,6 +52,8 @@ if __name__ == "__main__":
 
     keyStore = key_store.KeyStore()
 
+    zda = 'AT0' if closed else 'AT77'
+
     sigsBroken = list()
     sigsWorking = list()
     for i in range(tcJson['numberOfSignatureDevices']):
@@ -65,8 +67,8 @@ if __name__ == "__main__":
                 keyStore.putPEMCert(cert)
                 serial = key_store.numSerialToKeyId(utils.loadCert(cert).serial)
 
-        sigB = sigsys.SignatureSystemBroken('AT0', serial)
-        sigW = sigsys.SignatureSystemWorking('AT0', serial,
+        sigB = sigsys.SignatureSystemBroken(zda, serial)
+        sigW = sigsys.SignatureSystemWorking(zda, serial,
                 sys.argv[i * 2 + 3])
 
         sigsBroken.append(sigB)

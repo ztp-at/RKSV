@@ -51,7 +51,7 @@ if __name__ == "__main__":
         priv = sys.argv[1]
         serial = sys.argv[3]
 
-        sigsystem = sigsys.SignatureSystemWorking("AT77", serial, priv)
+        sigsystem = sigsys.SignatureSystemWorking("AT0", serial, priv)
         keyf = sys.argv[4]
         num = int(sys.argv[5])
     else:
