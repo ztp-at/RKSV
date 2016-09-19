@@ -68,6 +68,14 @@ class InvalidCertificateProviderException(receipt.ReceiptException):
     def __init__(self, rec):
         super(InvalidCertificateProviderException, self).__init__(rec, _("Invalid certificate provider."))
 
+class UnsignedNullReceiptException(receipt.ReceiptException):
+    """
+    Indicates that a non-dummy and non-reversal null receipt has not been
+    signed.
+    """
+    def __init__(self, rec):
+        super(UnsignedNullReceiptException, self).__init__(rec, _("Null receipt not signed."))
+
 class ReceiptVerifierI:
     """
     The base class for receipt verifiers. It contains functions that every
@@ -87,6 +95,7 @@ class ReceiptVerifierI:
         :throws: InvalidSignatureException
         :throws: UnknownAlgorithmException
         :throws: SignatureSystemFailedException
+        :throws: UnsignedNullReceiptException
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -103,6 +112,7 @@ class ReceiptVerifierI:
         :throws: SignatureSystemFailedException
         :throws: MalformedReceiptException
         :throws: AlgorithmMismatchException
+        :throws: UnsignedNullReceiptException
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -118,6 +128,7 @@ class ReceiptVerifierI:
         :throws: UnknownAlgorithmException
         :throws: SignatureSystemFailedException
         :throws: MalformedReceiptException
+        :throws: UnsignedNullReceiptException
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -133,6 +144,7 @@ class ReceiptVerifierI:
         :throws: UnknownAlgorithmException
         :throws: SignatureSystemFailedException
         :throws: MalformedReceiptException
+        :throws: UnsignedNullReceiptException
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -148,6 +160,7 @@ class ReceiptVerifierI:
         :throws: UnknownAlgorithmException
         :throws: SignatureSystemFailedException
         :throws: MalformedReceiptException
+        :throws: UnsignedNullReceiptException
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -276,6 +289,8 @@ class ReceiptVerifier(ReceiptVerifierI):
                 pubKey = self.keyStore.getKey(rec.certSerial)
 
         if rec.isSignedBroken():
+            if not rec.isDummy() and not rec.isReversal() and rec.isNull():
+                raise UnsignedNullReceiptException(jwsString)
             raise SignatureSystemFailedException(jwsString)
 
         if not pubKey:

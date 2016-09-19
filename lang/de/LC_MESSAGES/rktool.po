@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-09-15 20:41+CEST\n"
+"POT-Creation-Date: 2016-09-19 20:29+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -203,19 +203,19 @@ msgstr "Unbekannte Rechnung."
 msgid "You need to sign the receipt first."
 msgstr "Die Rechnung muss zuerst signiert werden."
 
-#: receipt.py:471
+#: receipt.py:478
 msgid "Can't decrypt turnover counter, this is a dummy receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Trainingsbeleg."
 
-#: receipt.py:473
+#: receipt.py:480
 msgid "Can't decrypt turnover counter, this is a reversal receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Stornobeleg."
 
-#: receipt.py:509 verify_receipt.py:355
+#: receipt.py:516 verify_receipt.py:370
 msgid "Input format must be one of %s."
 msgstr "Eingabeformat muss eines aus %s sein."
 
-#: receipt.py:513
+#: receipt.py:520
 msgid "Output format must be one of %s."
 msgstr "Ausgabeformat muss eines aus %s sein."
 
@@ -335,7 +335,7 @@ msgstr ""
 msgid "Initial receipt not signed."
 msgstr "Startbeleg nicht signiert."
 
-#: verify.py:310
+#: verify.py:312
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
@@ -367,6 +367,10 @@ msgstr "Ungültige URL Prüfsumme."
 msgid "Invalid certificate provider."
 msgstr "Ungültiger Zertifizierungsdiensteanbieter."
 
-#: verify_receipt.py:371
+#: verify_receipt.py:77
+msgid "Null receipt not signed."
+msgstr "Nullbeleg nicht signiert."
+
+#: verify_receipt.py:386
 msgid "All receipts verified successfully."
 msgstr "Alle Rechnungen wurden erfolgreich überprüft."

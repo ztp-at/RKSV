@@ -458,6 +458,13 @@ class Receipt:
         decCtr = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return decCtr == b'STO'
 
+    def isNull(self):
+        """
+        Determines if this receipt has zero turnover.
+        :return: True if the receipt has zero turnover, False otherwise.
+        """
+        return self.sumA == 0.0 and self.sumB == 0.0 and self.sumC == 0.0 and self.sumD == 0.0 and self.sumE == 0.0
+
     def decryptTurnoverCounter(self, key, algorithm):
         """
         Decrypts the encrypted turnover counter using the given key and

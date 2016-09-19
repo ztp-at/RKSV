@@ -174,6 +174,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     :throws: UnknownAlgorithmException
     :throws: AlgorithmMismatchException
     :throws: SignatureSystemFailedOnInitialReceiptException
+    :throws: UnsignedNullReceiptException
     """
     prev = lastReceipt
     prevObj = None
@@ -185,7 +186,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
         try:
             ro, algorithm = rv.verifyJWS(r)
             if not prevObj or prevObj.isSignedBroken():
-                if ro.sumA != 0.0 or ro.sumB != 0.0 or ro.sumC != 0.0 or ro.sumD != 0.0 or ro.sumE != 0.0:
+                if not ro.isNull():
                     raise NoRestoreReceiptAfterSignatureSystemFailureException(r)
         except verify_receipt.SignatureSystemFailedException as e:
             if not prevObj:
@@ -234,6 +235,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: UntrustedCertificateException
     :throws: CertificateSerialCollisionException
     :throws: SignatureSystemFailedOnInitialReceiptException
+    :throws: UnsignedNullReceiptException
     """
     lastReceipt = None
     lastTurnoverCounter = 0
