@@ -1,4 +1,4 @@
-check out new 0.7.1: zero receipts need a valid sig now (why? what about training with all zero?), see if we need to tighten verification
+non-training and non-storno zero receipts need a valid sig, update verification
 collect multiple errors? right now we fail on the first one
 allow creation of variable length turnover counter
 try to always get the receipt ID in error messages if possible
