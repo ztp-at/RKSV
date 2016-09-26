@@ -85,8 +85,8 @@ Certificate and key files are expected to be in PEM format.
 
 run_test.py
 -----------
-	Usage: ./run_test.py open <JSON test case spec> <cert 1 priv> <cert 1> [<cert 2 priv> <cert 2>]...
-	       ./run_test.py closed <JSON test case spec> <key 1 priv> <pub key 1> [<key 2 priv> <pub key 2>]...
+	Usage: ./run_test.py open <JSON test case spec> <cert 1 priv> <cert 1> [<cert 2 priv> <cert 2>]... [<turnover counter size>]
+	       ./run_test.py closed <JSON test case spec> <key 1 priv> <pub key 1> [<key 2 priv> <pub key 2>]... [<turnover counter size>]
 
 This script takes the mode and a test run specification in JSON format as the
 first two parameters and private key files and public key/certificate files for
@@ -100,6 +100,8 @@ material (AES keys, certificates, public keys etc.) is stored in
 
 The `open` mode simulates an open system and uses certificates. The `closed`
 mode simulates a closed system and uses plain public keys.
+
+The optional last parameter indicates the size of the turnover counter in bytes.
 
 key_store.py
 ------------

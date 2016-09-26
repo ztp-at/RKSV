@@ -33,6 +33,12 @@ class CashRegisterI:
     :return: The turnover counter as int.
     """
 
+    turnoverCounterSize = None
+    """
+    The number of bytes used to represent the turnover counter.
+    :return: The size of the turnover counter as int.
+    """
+
     def receipt(self, prefix, receiptId, dateTime, sumA, sumB, sumC, sumD, sumE,
             sigSystem, dummy=False, reversal=False):
         """
@@ -58,7 +64,8 @@ class CashRegister(CashRegisterI):
     A concrete implementation of a simple cash register.
     """
 
-    def __init__(self, registerId, lastReceiptSig, turnoverCounter, key):
+    def __init__(self, registerId, lastReceiptSig, turnoverCounter, key,
+            turnoverCounterSize=8):
         """
         Creates a new cash register with the specified data.
         :param registerId: The ID of the register as a string.
@@ -66,10 +73,17 @@ class CashRegister(CashRegisterI):
         previous receipts exist.
         :param turnoverCounter: The initial value of the turnover counter.
         :param key: The AES key to encrypt the turnover counter as a byte list.
+        :param turnoverCounterSize: The number of bytes used to represent
+        the turnover counter as an int. Must be between 5 and 16
+        (inclusive).
         """
+        if turnoverCounterSize < 5 or turnoverCounterSize > 16:
+            raise Exception(_("Invalid turnover counter size."))
+
         self.registerId = registerId
         self.lastReceiptSig = lastReceiptSig
         self.turnoverCounter = int(turnoverCounter)
+        self.turnoverCounterSize = turnoverCounterSize
         self.key = key
 
     def receipt(self, prefix, receiptId, dateTime, sumA, sumB, sumC, sumD, sumE, sigSystem, dummy=False, reversal=False):
@@ -85,14 +99,18 @@ class CashRegister(CashRegisterI):
         if dummy:
             encTurnoverCounter = b'TRA'
         else:
+            # TODO: check if counter can still be represented with
+            # given size
             self.turnoverCounter += int(round((sumA + sumB + sumC + sumD + sumE) * 100))
+
             if reversal:
                 encTurnoverCounter = b'STO'
             else:
                 if not algorithm.verifyKey(self.key):
                     raise Exception(_("Invalid key."))
                 encTurnoverCounter = algorithm.encryptTurnoverCounter(rec,
-                        self.turnoverCounter, self.key)
+                        self.turnoverCounter, self.key,
+                        self.turnoverCounterSize)
         encTurnoverCounter = base64.b64encode(encTurnoverCounter)
         encTurnoverCounter = encTurnoverCounter.decode("utf-8")
         rec.encTurnoverCounter = encTurnoverCounter

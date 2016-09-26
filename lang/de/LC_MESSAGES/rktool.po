@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-09-19 20:29+CEST\n"
+"POT-Creation-Date: 2016-09-26 20:59+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -16,7 +16,11 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: cashreg.py:93 main.py:341 receipt.py:59 rktool.py:341
+#: cashreg.py:81
+msgid "Invalid turnover counter size."
+msgstr "Umsatzzähler-Länge ungültig."
+
+#: cashreg.py:110 main.py:341 receipt.py:59 rktool.py:341
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
 
@@ -291,9 +295,13 @@ msgstr "DEP überprüfen"
 msgid "Key Store"
 msgstr "Schlüsselspeicher"
 
-#: run_test.py:40
+#: run_test.py:42
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
+
+#: run_test.py:56
+msgid "Turnover counter size needs to be between 5 and 16."
+msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
 #: sigsys.py:138
 msgid "Selected algorithm not supported."

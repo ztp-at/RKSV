@@ -15,15 +15,15 @@ import sigsys
 import utils
 
 def usage():
-    print("Usage: ./run_test.py open <JSON test case spec> <cert 1 priv> <cert 1> [<cert 2 priv> <cert 2>]...")
-    print("       ./run_test.py closed <JSON test case spec> <key 1 priv> <pub key 1> [<key 2 priv> <pub key 2>]...")
+    print("Usage: ./run_test.py open <JSON test case spec> <cert 1 priv> <cert 1> [<cert 2 priv> <cert 2>]... [<turnover counter size>]")
+    print("       ./run_test.py closed <JSON test case spec> <key 1 priv> <pub key 1> [<key 2 priv> <pub key 2>]... [<turnover counter size>]")
     sys.exit(0)
 
 if __name__ == "__main__":
     import gettext
     gettext.install('rktool', './lang', True)
 
-    if len(sys.argv) < 4 or len(sys.argv) % 2 != 1:
+    if len(sys.argv) < 4:
         usage()
 
     closed = False
@@ -36,7 +36,9 @@ if __name__ == "__main__":
     with open(sys.argv[2]) as f:
         tcJson = json.loads(f.read())
 
-    if len(sys.argv) != (tcJson['numberOfSignatureDevices'] * 2 + 3):
+    if len(sys.argv) != (tcJson['numberOfSignatureDevices'] * 2 + 3
+            ) and len(sys.argv) != (tcJson['numberOfSignatureDevices']
+                    * 2 + 3 + 1):
         print(_("I need keys and certificates for %d signature devices.") %
                 tcJson['numberOfSignatureDevices'])
         sys.exit(0)
@@ -47,8 +49,15 @@ if __name__ == "__main__":
 
     key = base64.b64decode(tcJson['base64AesKey'])
 
+    turnoverCounterSize = tcJson.get('turnoverCounterSize', 8)
+    if len(sys.argv) % 2 != 1:
+        turnoverCounterSize = int(sys.argv[-1])
+    if turnoverCounterSize < 5 or turnoverCounterSize > 16:
+        print(_("Turnover counter size needs to be between 5 and 16."))
+        sys.exit(0)
+
     register = cashreg.CashRegister(tcJson['cashBoxId'], None,
-            int(0.0 * 100), key)
+            int(0.0 * 100), key, turnoverCounterSize)
 
     keyStore = key_store.KeyStore()
 

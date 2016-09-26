@@ -88,13 +88,15 @@ class AlgorithmI:
         """
         raise NotImplementedError("Please implement this yourself.")
 
-    def encryptTurnoverCounter(self, receipt, turnoverCounter, key):
+    def encryptTurnoverCounter(self, receipt, turnoverCounter, key, size):
         """
         Encrypts the given turnover counter for the given receipt with the key.
         :param receipt: The receipt object in which the encrypted turnover
         counter will be used.
         :param turnoverCounter: The turnover counter as an int.
         :param key: The key as a byte list.
+        :param size: The number of bytes used to represent the turnover
+        counter as an int. Must be between 5 and 16 (inclusive).
         :return: The encrypted turnover counter as a byte list.
         """
         raise NotImplementedError("Please implement this yourself.")
@@ -169,11 +171,11 @@ class R1(AlgorithmI):
             return False
         return True
 
-    def encryptTurnoverCounter(self, receipt, turnoverCounter, key):
+    def encryptTurnoverCounter(self, receipt, turnoverCounter, key, size):
         iv = utils.sha256(receipt.registerId.encode("utf-8")
                 + receipt.receiptId.encode("utf-8"))[0:16]
 
-        pt = turnoverCounter.to_bytes(8, byteorder='big', signed=True)
+        pt = turnoverCounter.to_bytes(size, byteorder='big', signed=True)
 
         return utils.aes256ctr(iv, key, pt)
 
