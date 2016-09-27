@@ -1,3 +1,4 @@
 collect multiple errors? right now we fail on the first one
 improve UI, make long text in text fields wrap, not scroll, add hint texts to tfs...
 Write a test suite for the verification functions, see if a-sit tests can help here
+make a tool to generate the checksum for the AES key
