@@ -19,5 +19,7 @@
       },
       "typeOfReceipt": "START_BELEG"
     }
-  ]
+  ],
+  "expectedException": "NonzeroTurnoverOnInitialReceiptException",
+  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-1"
 }
