@@ -253,26 +253,24 @@ class ReceiptVerifier(ReceiptVerifierI):
         return ReceiptVerifier(keyStore, None)
 
     def verify(self, rec, algorithmPrefix):
-        jwsString = rec.toJWSString(algorithmPrefix)
-
         if algorithmPrefix not in algorithms.ALGORITHMS:
-            raise receipt.UnknownAlgorithmException(jwsString)
+            raise receipt.UnknownAlgorithmException(rec.receiptId)
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
         certSerialType = CertSerialType.getCertSerialType(rec.certSerial)
         if certSerialType == CertSerialType.INVALID:
-            raise CertSerialInvalidException(jwsString)
+            raise CertSerialInvalidException(rec.receiptId)
 
         pubKey = None
         if certSerialType == CertSerialType.SERIAL:
             if rec.zda == 'AT0':
-                raise InvalidCertificateProviderException(jwsString)
+                raise InvalidCertificateProviderException(rec.receiptId)
 
             serials = key_store.strSerialToKeyIds(rec.certSerial)
             if self.cert:
                 certSerial = key_store.numSerialToKeyId(self.cert.serial)
                 if not certSerial in serials:
-                    raise CertSerialMismatchException(jwsString)
+                    raise CertSerialMismatchException(rec.receiptId)
                 pubKey = self.cert.public_key()
             else:
                 for serial in serials:
@@ -281,7 +279,7 @@ class ReceiptVerifier(ReceiptVerifierI):
                         break
         else:
             if rec.zda != 'AT0':
-                raise InvalidCertificateProviderException(jwsString)
+                raise InvalidCertificateProviderException(rec.receiptId)
 
             if self.cert:
                 pubKey = self.cert.public_key()
@@ -290,14 +288,15 @@ class ReceiptVerifier(ReceiptVerifierI):
 
         if rec.isSignedBroken():
             if not rec.isDummy() and not rec.isReversal() and rec.isNull():
-                raise UnsignedNullReceiptException(jwsString)
-            raise SignatureSystemFailedException(jwsString)
+                raise UnsignedNullReceiptException(rec.receiptId)
+            raise SignatureSystemFailedException(rec.receiptId)
 
         if not pubKey:
-            raise NoPublicKeyException(jwsString)
+            raise NoPublicKeyException(rec.receiptId)
 
+        jwsString = rec.toJWSString(algorithmPrefix)
         if not algorithm.verify(jwsString, pubKey):
-            raise InvalidSignatureException(jwsString)
+            raise InvalidSignatureException(rec.receiptId)
 
         return rec, algorithm
 
@@ -339,7 +338,7 @@ def verifyURLHash(rec, algorithm, urlHash):
         if urlHash:
             raise InvalidURLHashException(urlHash)
         else:
-            raise InvalidURLHashException(basicCode)
+            raise InvalidURLHashException(rec.receiptId)
 
 def getAndVerifyReceiptURL(rv, url):
     basicCode = utils.getBasicCodeFromURL(url)

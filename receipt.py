@@ -383,7 +383,7 @@ class Receipt:
         payload = self.toBasicCode(algorithmPrefix)
 
         if algorithmPrefix not in algorithms.ALGORITHMS:
-            raise UnknownAlgorithmException(self.toJWSString(algorithmPrefix))
+            raise UnknownAlgorithmException(self.receiptId)
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
         return base64.urlsafe_b64encode((algorithm.hash(payload)[0:8]
@@ -480,7 +480,7 @@ class Receipt:
             raise Exception(_("Can't decrypt turnover counter, this is a reversal receipt."))
 
         if not algorithm.verifyKey(key):
-            raise InvalidKeyException(self.toJWSString(algorithm.id()))
+            raise InvalidKeyException(self.receiptId)
 
         ct = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return algorithm.decryptTurnoverCounter(self, ct, key)

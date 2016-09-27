@@ -334,8 +334,7 @@ class ViewReceiptWidget(BoxLayout):
                 k = base64.b64decode(key.encode('utf-8'))
                 if self._algorithmPrefix not in algorithms.ALGORITHMS:
                     raise receipt.UnknownAlgorithmException(
-                            self._receipt.toJWSString(
-                                self._algorithmPrefix))
+                            self._receipt.receiptId)
                 algorithm = algorithms.ALGORITHMS[self._algorithmPrefix]
                 if not algorithm.verifyKey(k):
                     raise Exception(_("Invalid key."))
@@ -473,7 +472,7 @@ class VerifyReceiptWidget(BoxLayout):
                 rec, prefix = receipt.Receipt.fromBasicCode(basicCode)
 
                 if prefix not in algorithms.ALGORITHMS:
-                    raise receipt.UnknownAlgorithmException(basicCode)
+                    raise receipt.UnknownAlgorithmException(rec.receiptId)
                 algorithm = algorithms.ALGORITHMS[prefix]
 
                 verify_receipt.verifyURLHash(rec, algorithm, urlHash)

@@ -89,7 +89,7 @@ class SignatureSystemFailedOnInitialReceiptException(receipt.ReceiptException):
     def __init__(self, rec):
         super(SignatureSystemFailedOnInitialReceiptException, self).__init__(rec, _("Initial receipt not signed."))
 
-def verifyChain(rec, jwsString, prev, algorithm):
+def verifyChain(rec, prev, algorithm):
     """
     Verifies that a receipt is preceeded by another receipt in the receipt
     chain. It returns nothing on success and throws an exception otherwise.
@@ -101,7 +101,7 @@ def verifyChain(rec, jwsString, prev, algorithm):
     chainingValue = algorithm.chain(rec, prev)
     chainingValue = base64.b64encode(chainingValue)
     if chainingValue.decode("utf-8") != rec.previousChain:
-        raise ChainingException(jwsString, prev)
+        raise ChainingException(rec.receiptId, prev)
 
 def verifyCert(cert, chain, keyStore):
     """
@@ -187,11 +187,11 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
             ro, algorithm = rv.verifyJWS(r)
             if not prevObj or prevObj.isSignedBroken():
                 if not ro.isNull():
-                    raise NoRestoreReceiptAfterSignatureSystemFailureException(r)
+                    raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
         except verify_receipt.SignatureSystemFailedException as e:
-            if not prevObj:
-                raise SignatureSystemFailedOnInitialReceiptException(r)
             ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
+            if not prevObj:
+                raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
             algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
         if not ro.isDummy():
@@ -200,10 +200,10 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
                 if not ro.isReversal():
                     turnoverCounter = ro.decryptTurnoverCounter(key, algorithm)
                     if turnoverCounter != newC:
-                        raise InvalidTurnoverCounterException(r)
+                        raise InvalidTurnoverCounterException(ro.receiptId)
                 lastTurnoverCounter = newC
 
-        verifyChain(ro, r, prev, algorithm)
+        verifyChain(ro, prev, algorithm)
 
         prev = r
         prevObj = ro
