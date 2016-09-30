@@ -38,7 +38,9 @@ if __name__ == "__main__":
         keyf = sys.argv[1]
         num = int(sys.argv[2])
     elif len(sys.argv) == 5:
-        priv = sys.argv[1]
+        priv = None
+        with open(sys.argv[1]) as f:
+            priv = f.read()
         cert = sys.argv[2]
         serial = None
         with open(cert) as f:
@@ -48,7 +50,9 @@ if __name__ == "__main__":
         keyf = sys.argv[3]
         num = int(sys.argv[4])
     elif len(sys.argv) == 6:
-        priv = sys.argv[1]
+        priv = None
+        with open(sys.argv[1]) as f:
+            priv = f.read()
         serial = sys.argv[3]
 
         sigsystem = sigsys.SignatureSystemWorking("AT0", serial, priv)

@@ -71,18 +71,16 @@ class SignatureSystemWorking(SignatureSystemI):
     A working signature system. It will sign receipts.
     """
 
-    def __init__(self, zda, serial, privKeyFile):
+    def __init__(self, zda, serial, priv):
         """
         Creates a working signature system.
         :param zda: The ZDA ID as a string.
         :param serial: The serial of the certificate as a string.
-        :param privKeyFile: A file containing the private key in the PEM format.
+        :param priv: The private key in PEM format.
         """
         self.zda = zda
         self.serial = serial
-
-        with open(privKeyFile) as f:
-            self.secret = f.read()
+        self.secret = priv
 
     def sign(self, data, algorithm):
         head = algorithm.jwsHeader().encode("utf-8")
