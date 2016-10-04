@@ -23,6 +23,7 @@ class ReceiptException(Exception):
 
     def __init__(self, receipt, message):
         super(ReceiptException, self).__init__(_("At receipt \"{0}\": {1}").format(receipt, message))
+        self.receipt = receipt
 
 class MalformedReceiptException(ReceiptException):
     """

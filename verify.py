@@ -30,6 +30,7 @@ class ChainingException(DEPException):
         super(ChainingException, self).__init__(
                 _("At receipt \"{0}\": Previous receipt is not \"{1}\".").format(
                     rec, recPrev))
+        self.receipt = rec
 
 class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
     """
@@ -42,6 +43,7 @@ class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
         super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__(
                 _("At receipt \"%s\": Receipt after restored signature system must not have any turnover.") %
                 rec)
+        self.receipt = rec
 
 class InvalidTurnoverCounterException(receipt.ReceiptException):
     """
