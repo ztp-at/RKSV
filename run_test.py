@@ -17,7 +17,6 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         spec['numberOfSignatureDevices'], len(keymat)))
 
     key = base64.b64decode(spec['base64AesKey'])
-    pass
 
     turnoverCounterSize = spec.get('turnoverCounterSize', 8)
     if tcSize:
@@ -99,7 +98,7 @@ if __name__ == "__main__":
     import gettext
     gettext.install('rktool', './lang', True)
 
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 5:
         usage()
 
     closed = False
@@ -145,7 +144,7 @@ if __name__ == "__main__":
     os.chdir(baseDir)
 
     with open('dep-export.json', 'w') as f:
-        f.write(dep)
+        f.write(json.dumps(dep, sort_keys=False, indent=2))
 
     with open('cryptographicMaterialContainer.json', 'w') as f:
         f.write(json.dumps(ks, sort_keys=False, indent=2))

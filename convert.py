@@ -31,7 +31,7 @@ if __name__ == "__main__":
         next(sys.stdin)
         for row in sys.stdin:
             recs.append(receipt.Receipt.fromCSV(row.strip())[0])
-        exporter = depexport.DEPExporter('R1', None)
+        exporter = depexport.JSONExporter('R1', None)
     else:
         usage()
 

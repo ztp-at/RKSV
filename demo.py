@@ -70,7 +70,7 @@ if __name__ == "__main__":
         key = base64.b64decode(f.read().encode("utf-8"))
 
     register = cashreg.CashRegister("PIGGYBANK-007", None, int(0.0 * 100), key)
-    exporter = depexport.DEPExporter('R1', cert)
+    exporter = depexport.JSONExporter('R1', cert)
 
     receipts = [register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0, 0.0,
         0.0, 0.0, sigsystem)]

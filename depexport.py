@@ -42,7 +42,7 @@ class DEPExporter(DEPExporterI):
                 self.cert = ''.join(lines)
 
     def export(self, receipts):
-        data = { "Belege-Gruppe" :
+        return { "Belege-Gruppe" :
                 [
                     { "Signaturzertifikat" : self.cert,
                         "Zertifizierungsstellen" : [],
@@ -51,7 +51,15 @@ class DEPExporter(DEPExporterI):
                     }
                 ]
                }
-        return json.dumps(data, sort_keys=False, indent=2)
+
+class JSONExporter(DEPExporter):
+    """
+    Exports a DEP to JSON format. It has the same limitations as DEPExporter.
+    """
+
+    def export(self, receipts):
+        return json.dumps(super(JSONExporter, self).export(receipts),
+                sort_keys=False, indent=2)
 
 # Supports no certs and no groups
 class CSVExporter(DEPExporterI):
