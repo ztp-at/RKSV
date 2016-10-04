@@ -98,8 +98,11 @@ if __name__ == "__main__":
         priv = f.read()
 
     test_name = tcJson['simulationRunLabel']
+    open_str = 'closed' if closed else 'open'
+    tc_size = tcJson.get('turnoverCounterSize', 8)
 
-    print('{:.<30}'.format(test_name), end='')
+    print('{: <30}({: >6}, {: >2})...'.format(test_name, open_str,
+        tc_size), end='')
     result, msg = testVerify(tcJson, pub, priv, closed)
     print('{:.>5}'.format(result.name))
     if msg:
