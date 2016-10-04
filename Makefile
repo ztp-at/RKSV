@@ -1,16 +1,18 @@
-LANGS	= de
-TURNOVER_COUNTER_SIZES = 5 8 16
+LANGS			= de
+TURNOVER_COUNTER_SIZES	= 5 8 16
+TEST_FILES		= $(shell find tests/ -name '*.json' | sort)
 
 setup: aesBase64_1.txt cert_1.key cert_1.crt cert_1.pub
 
 test: cert_1.key cert_1.crt cert_1.pub
+	echo $(TEST_FILES)
 	for n in $(TURNOVER_COUNTER_SIZES) ; \
 	do \
-		for t in tests/*.json ; \
+		for t in $(TEST_FILES) ; \
 		do \
 			./test_verify.py open $$t cert_1.key cert_1.crt $$n ; \
 		done ; \
-		for t in tests/*.json ; \
+		for t in $(TEST_FILES) ; \
 		do \
 			./test_verify.py closed $$t cert_1.key cert_1.pub $$n ; \
 		done ; \
