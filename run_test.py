@@ -73,8 +73,10 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             if recI['typeOfReceipt'] == 'TRAINING_BELEG':
                 dummy = True
 
+        override = recI.get('override', dict())
+
         rec = register.receipt('R1', receiptId, dateTime, sumA, sumB,
-                sumC, sumD, sumE, sig, dummy, reversal)
+                sumC, sumD, sumE, sig, dummy, reversal, override)
         receipts.append(rec)
 
     exporter = depexport.DEPExporter('R1', None)

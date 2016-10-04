@@ -86,22 +86,30 @@ class CashRegister(CashRegisterI):
         self.turnoverCounterSize = turnoverCounterSize
         self.key = key
 
-    def receipt(self, prefix, receiptId, dateTime, sumA, sumB, sumC, sumD, sumE, sigSystem, dummy=False, reversal=False):
+    def receipt(self, prefix, receiptId, dateTime, sumA, sumB, sumC, sumD, sumE, sigSystem, dummy=False, reversal=False, override=dict()):
         algorithm = algorithms.ALGORITHMS[prefix]
 
-        certSerial = sigSystem.serial
-        zda = sigSystem.zda
+        certSerial = override.get('certSerial', sigSystem.serial)
+        zda = override.get('zda', sigSystem.zda)
 
         rec = receipt.Receipt(zda, self.registerId, receiptId, dateTime,
             sumA, sumB, sumC, sumD, sumE, '', certSerial, '')
 
+        if 'turnoverCounterSize' in override:
+            self.turnoverCounterSize = override['turnoverCounterSize']
+
         encTurnoverCounter = None
         if dummy:
             encTurnoverCounter = b'TRA'
+
+            if 'turnoverCounter' in override:
+                self.turnoverCounter = override['turnoverCounter']
         else:
             # TODO: check if counter can still be represented with
             # given size
             self.turnoverCounter += int(round((sumA + sumB + sumC + sumD + sumE) * 100))
+            if 'turnoverCounter' in override:
+                self.turnoverCounter = override['turnoverCounter']
 
             if reversal:
                 encTurnoverCounter = b'STO'
@@ -117,6 +125,8 @@ class CashRegister(CashRegisterI):
 
         previousChain = algorithm.chain(rec, self.lastReceiptSig)
         rec.previousChain = base64.b64encode(previousChain).decode("utf-8")
+        if 'previousChain' in override:
+            rec.previousChain = override['previousChain']
 
         jwsString = sigSystem.sign(rec.toPayloadString(prefix),
                 algorithm)
@@ -126,6 +136,11 @@ class CashRegister(CashRegisterI):
         header = base64.urlsafe_b64decode(
                 utils.restoreb64padding(header).encode('utf-8')
                 ).decode('utf-8')
+        if 'header' in override:
+            header = override['header']
+        if 'signature' in override:
+            signature = override['signature']
+
         rec.sign(header, signature)
 
         return rec
