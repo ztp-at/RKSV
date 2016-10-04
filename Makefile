@@ -3,28 +3,17 @@ TURNOVER_COUNTER_SIZES = 5 8 16
 
 setup: aesBase64_1.txt cert_1.key cert_1.crt cert_1.pub
 
-TEST_NOW = $(shell date +"%Y-%m-%dT%T")
-TEST_BASE= test_run
 test: cert_1.key cert_1.crt cert_1.pub
-	testdir=$(TEST_BASE).$(TEST_NOW) ; \
-	mkdir $$testdir ; \
-	cd $$testdir ; \
 	for n in $(TURNOVER_COUNTER_SIZES) ; \
 	do \
-		mkdir $${n}_open ; \
-		cd $${n}_open ; \
-		for t in ../../tests/*.json ; \
+		for t in tests/*.json ; \
 		do \
-			../../run_test.py open $$t ../../cert_1.key ../../cert_1.crt $$n ; \
+			./test_verify.py open $$t cert_1.key cert_1.crt $$n ; \
 		done ; \
-		cd .. ; \
-		mkdir $${n}_closed ; \
-		cd $${n}_closed ; \
-		for t in ../../tests/*.json ; \
+		for t in tests/*.json ; \
 		do \
-			../../run_test.py closed $$t ../../cert_1.key ../../cert_1.pub $$n ; \
+			./test_verify.py closed $$t cert_1.key cert_1.pub $$n ; \
 		done ; \
-		cd .. ; \
 	done
 
 aesBase64_%.txt:
@@ -95,7 +84,6 @@ clean:
 	rm -f lang/*/LC_MESSAGES/rktool.mo
 	rm -f aesBase64*.txt
 	rm -f cert_*.key cert_*.crt cert_*.pub
-	rm -rf $(TEST_BASE).*
 
 dist-clean: clean
 	rm -rf .builddata
