@@ -1,4 +1,4 @@
-check if cash register invariants change, registerId, turnover counter size etc.
+check if cash register invariants change, registerId, turnover counter size, system being open/closed etc.
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
 collect multiple errors? right now we fail on the first one
 improve UI, make long text in text fields wrap, not scroll, add hint texts to tfs...
