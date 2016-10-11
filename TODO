@@ -1,3 +1,4 @@
+document make test and test_verify.py
 allow for different algorithms in one DEP?
 check if cash register invariants change, registerId, turnover counter size, system being open/closed etc.
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
