@@ -2,16 +2,16 @@
   "cashBoxId": "CASHBOX-DEMO-1",
   "base64AesKey": "WQRtiiya3hYh/Uz44Bv3x8ETl1nrH6nCdErn69g5/lU=",
   "companyID": "U:ATU12345678",
-  "simulationRunLabel": "test_init_unsigned_nonzero",
+  "simulationRunLabel": "test_init_chain_broken",
   "numberOfSignatureDevices": 1,
   "cashBoxInstructionList": [
     {
-      "signatureDeviceDamaged": true,
+      "signatureDeviceDamaged": false,
       "receiptIdentifier": "CASHBOX-DEMO-1-Receipt-ID-1",
       "dateToUse": "2016-03-11T03:57:08",
       "usedSignatureDevice": 0,
       "simplifiedReceipt": {
-        "taxSetNormal": 7.0,
+        "taxSetNormal": 0.0,
         "taxSetErmaessigt1": 0.0,
         "taxSetErmaessigt2": 0.0,
         "taxSetNull": 0.0,
@@ -19,10 +19,10 @@
       },
       "typeOfReceipt": "START_BELEG",
       "override": {
-        "turnoverCounter": 0
+        "previousChain": "MTIzNDU2Nzg="
       }
     }
   ],
-  "expectedException": "SignatureSystemFailedOnInitialReceiptException",
+  "expectedException": "InvalidChainingOnInitialReceiptException",
   "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-1"
 }

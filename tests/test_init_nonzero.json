@@ -17,7 +17,10 @@
         "taxSetNull": 0.0,
         "taxSetBesonders": 0.0
       },
-      "typeOfReceipt": "START_BELEG"
+      "typeOfReceipt": "START_BELEG",
+      "override": {
+        "turnoverCounter": 0
+      }
     }
   ],
   "expectedException": "NonzeroTurnoverOnInitialReceiptException",
