@@ -83,6 +83,11 @@ def printTestVerifyResult(label, groupLabel, closed, tcSize, result, msg):
     if msg:
         print(msg)
 
+def printTestVerifySummary(results):
+    nFails = sum(r[4] == TestVerifyResult.FAIL for r in results)
+    nErrors = sum(r[4] == TestVerifyResult.ERROR for r in results)
+    print('{} tests run, {} failed, {} errors'.format(len(results), nFails, nErrors))
+
 import json
 import sys
 
@@ -90,7 +95,7 @@ def usage():
     print("Usage: ./test_verify.py open <JSON test case spec> <cert priv> <cert> [<turnover counter size>]")
     print("       ./test_verify.py closed <JSON test case spec> <key priv> <pub key> [<turnover counter size>]")
     print("       ./test_verify.py multi <key priv> <cert> <pub key> <turnover counter size 1>,... <group label> <JSON test case spec 1>...")
-    sys.exit(0)
+    sys.exit(3)
 
 if __name__ == "__main__":
     def closed_or_usage(arg):
@@ -104,7 +109,7 @@ if __name__ == "__main__":
         turnoverCounterSize = int(arg)
         if turnoverCounterSize < 5 or turnoverCounterSize > 16:
             print(_("Turnover counter size needs to be between 5 and 16."))
-            sys.exit(0)
+            sys.exit(3)
         return turnoverCounterSize
 
     def arg_read_file(arg):
@@ -145,9 +150,15 @@ if __name__ == "__main__":
                 specs.append(spec)
 
         results = testVerifyMulti(specs, groupLabel, cert, pub, priv, 8)
+
         for r in results:
             printTestVerifyResult(*r)
+        printTestVerifySummary(results)
 
+        if any(r[4] == TestVerifyResult.ERROR for r in results):
+            sys.exit(2)
+        if any(r[4] == TestVerifyResult.FAIL for r in results):
+            sys.exit(1)
         sys.exit(0)
 
     if len(sys.argv) > 6:
@@ -169,3 +180,9 @@ if __name__ == "__main__":
 
     result, msg = testVerify(tcJson, pub, priv, closed)
     printTestVerifyResult(test_name, 'no Group', closed, tc_size, result, msg)
+
+    if result == TestVerifyResult.ERROR:
+        sys.exit(2)
+    if result == TestVerifyResult.FAIL:
+        sys.exit(1)
+    sys.exit(0)
