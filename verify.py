@@ -102,6 +102,16 @@ class NonzeroTurnoverOnInitialReceiptException(DEPException):
                 _("Initial receipt has nonzero turnover."))
         self.receipt = rec
 
+class InvalidChainingOnInitialReceiptException(DEPException):
+    """
+    Indicates that the initial receipt has not been chained to the cash
+    register ID.
+    """
+    def __init__(self, rec):
+        super(InvalidChainingOnInitialReceiptException, self).__init__(
+                _("Initial receipt has not been chained to the cash register ID."))
+        self.receipt = rec
+
 def verifyChain(rec, prev, algorithm):
     """
     Verifies that a receipt is preceeded by another receipt in the receipt
@@ -110,11 +120,15 @@ def verifyChain(rec, prev, algorithm):
     :param prev: The previous receipt as a JWS string.
     :param algorithm: The algorithm class to use.
     :throws: ChainingException
+    :throws: InvalidChainingOnInitialReceiptException
     """
     chainingValue = algorithm.chain(rec, prev)
     chainingValue = base64.b64encode(chainingValue)
     if chainingValue.decode("utf-8") != rec.previousChain:
-        raise ChainingException(rec.receiptId, prev)
+        if prev:
+            raise ChainingException(rec.receiptId, prev)
+        else:
+            raise InvalidChainingOnInitialReceiptException(rec.receiptId)
 
 def verifyCert(cert, chain, keyStore):
     """
@@ -189,6 +203,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     :throws: SignatureSystemFailedOnInitialReceiptException
     :throws: UnsignedNullReceiptException
     :throws: NonzeroTurnoverOnInitialReceiptException
+    :throws: InvalidChainingOnInitialReceiptException
     """
     prev = lastReceipt
     prevObj = None
@@ -259,6 +274,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: UnsignedNullReceiptException
     :throws: NonzeroTurnoverOnInitialReceiptException
     :throws: NoCertificateGivenException
+    :throws: InvalidChainingOnInitialReceiptException
     """
     lastReceipt = None
     lastTurnoverCounter = 0

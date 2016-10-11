@@ -55,7 +55,8 @@ class AlgorithmI:
         to the algorithm class specification.
         :param receipt: The current receipt object into which the chaining value
         has to be incorporated.
-        :param previousJwsString: The previous receipt as JWS string.
+        :param previousJwsString: The previous receipt as JWS string or None if
+        this is the initial receipt.
         :return: The chaining value to incorporate into the receipt as byte
         list.
         """
