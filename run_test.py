@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+"""
+This module provides a function to generate a DEP and crypto container
+according to a JSON test specification.
+"""
 
 from builtins import int
 
@@ -12,6 +16,26 @@ import sigsys
 import utils
 
 def runTest(spec, keymat, closed=False, tcSize=None):
+    """
+    Creates a DEP and a crypto container structure according to the given
+    test specification. In addition to the specification elements that the
+    reference implementation uses, this function also understands the
+    "turnoverCounterSize" element in the root dictionary and the "override"
+    element in the dictionaries in the "cashBoxInstructionList" element.
+    :param spec: The test specification as a dict structure.
+    :param keymat: The key material as a list of tuples with the public key/
+    certificate in the first element and the private key in the second
+    element. The length of the list must be equal to the number of signature
+    devices in the test specification. For a closed system public keys must
+    be used, for an open system certificates must be used.
+    :param closed: Indicates whether the system is a closed system (True) or
+    an open system (False).
+    :param tcSize: The size of the turnover counter in bytes. If this is
+    omitted, the size is read from the specification. If the size is not
+    set in the specification, 8 bytes are used.
+    :return: A dict structure of the DEP and a dict structure of the crypto
+    container.
+    """
     if len(keymat) != spec['numberOfSignatureDevices']:
         raise Exception(_('Need key material for {} signature devices, got {} key pairs.').format(
         spec['numberOfSignatureDevices'], len(keymat)))
