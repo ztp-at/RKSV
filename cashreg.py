@@ -103,13 +103,13 @@ class CashRegister(CashRegisterI):
             encTurnoverCounter = b'TRA'
 
             if 'turnoverCounter' in override:
-                self.turnoverCounter = override['turnoverCounter']
+                self.turnoverCounter = int(override['turnoverCounter'])
         else:
             # TODO: check if counter can still be represented with
             # given size
             self.turnoverCounter += int(round((sumA + sumB + sumC + sumD + sumE) * 100))
             if 'turnoverCounter' in override:
-                self.turnoverCounter = override['turnoverCounter']
+                self.turnoverCounter = int(override['turnoverCounter'])
 
             if reversal:
                 encTurnoverCounter = b'STO'

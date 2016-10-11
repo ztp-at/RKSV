@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from __future__ import print_function
 from builtins import int
 
 import base64
@@ -58,7 +59,7 @@ def testVerify(spec, pub, priv, closed):
 
     return TestVerifyResult.OK, None
 
-def testVerifyMulti(specs, pub, priv, closed, tcDefaultSize):
+def testVerifyMulti(specs, groupLabel, pub, priv, closed, tcDefaultSize):
     results = list()
     for s in specs:
         label = s.get('simulationRunLabel', 'Unknown')
@@ -68,14 +69,14 @@ def testVerifyMulti(specs, pub, priv, closed, tcDefaultSize):
             msg = 'No run label'
         else:
             result, msg = testVerify(s, pub, priv, closed)
-        results.append((label, closed, tc_size, result, msg))
+        results.append((label, groupLabel, closed, tc_size, result, msg))
 
     return results
 
-def printTestVerifyResult(label, closed, tc_size, result, msg):
+def printTestVerifyResult(label, groupLabel, closed, tcSize, result, msg):
     open_str = 'closed' if closed else 'open'
-    print('{: <30}({: >6}, {: >2})...'.format(label, open_str,
-        tc_size), end='')
+    print('{: <30}({: >6}, {: >2}, {: >8})...'.format(label, open_str,
+        tcSize, groupLabel), end='')
     print('{:.>5}'.format(result.name))
     if msg:
         print(msg)
@@ -86,7 +87,7 @@ import sys
 def usage():
     print("Usage: ./test_verify.py open <JSON test case spec> <cert priv> <cert> [<turnover counter size>]")
     print("       ./test_verify.py closed <JSON test case spec> <key priv> <pub key> [<turnover counter size>]")
-    print("       ./test_verify.py multi <open|closed> <key priv> <pub key> <turnover counter size> <JSON test case spec 1>...")
+    print("       ./test_verify.py multi <open|closed> <key priv> <pub key> <turnover counter size> <group label> <JSON test case spec 1>...")
     sys.exit(0)
 
 if __name__ == "__main__":
@@ -115,7 +116,7 @@ if __name__ == "__main__":
         usage()
 
     if sys.argv[1] == 'multi':
-        if len(sys.argv) < 7:
+        if len(sys.argv) < 8:
             usage()
 
         closed = closed_or_usage(sys.argv[2])
@@ -124,13 +125,15 @@ if __name__ == "__main__":
         pub = arg_read_file(sys.argv[4])
         priv = arg_read_file(sys.argv[3])
 
+        groupLabel = sys.argv[6]
+
         specs = list()
-        for tc in sys.argv[6:]:
+        for tc in sys.argv[7:]:
             tcJson = json.loads(arg_read_file(tc))
             tcJson['turnoverCounterSize'] = turnoverCounterSize
             specs.append(tcJson)
 
-        results = testVerifyMulti(specs, pub, priv, closed, 8)
+        results = testVerifyMulti(specs, groupLabel, pub, priv, closed, 8)
         for r in results:
             printTestVerifyResult(*r)
 
@@ -154,4 +157,4 @@ if __name__ == "__main__":
     tc_size = tcJson.get('turnoverCounterSize', 8)
 
     result, msg = testVerify(tcJson, pub, priv, closed)
-    printTestVerifyResult(test_name, closed, tc_size, result, msg)
+    printTestVerifyResult(test_name, 'no Group', closed, tc_size, result, msg)
