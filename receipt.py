@@ -25,7 +25,16 @@ class ReceiptException(Exception):
         super(ReceiptException, self).__init__(_("At receipt \"{0}\": {1}").format(receipt, message))
         self.receipt = receipt
 
-class MalformedReceiptException(ReceiptException):
+class ReceiptParseException(ReceiptException):
+    """
+    Indicates that a receipt in some format could not be parsed into a
+    receipt object.
+    """
+
+    def __init__(self, receipt, message):
+        super(ReceiptParseException, self).__init__(receipt, message)
+
+class MalformedReceiptException(ReceiptParseException):
     """
     Indicates that an attempt to parse a receipt from a string for failed
     because the string did not contain a valid receipt.
@@ -34,7 +43,7 @@ class MalformedReceiptException(ReceiptException):
     def __init__(self, receipt):
         super(MalformedReceiptException, self).__init__(receipt, _("Malformed receipt."))
 
-class UnknownAlgorithmException(ReceiptException):
+class UnknownAlgorithmException(ReceiptParseException):
     """
     Is thrown when a required algorithm is not available in
     algorithms.ALGORITHMS.
@@ -43,7 +52,7 @@ class UnknownAlgorithmException(ReceiptException):
     def __init__(self, receipt):
         super(UnknownAlgorithmException, self).__init__(receipt, _("Unknown algorithm."))
 
-class AlgorithmMismatchException(ReceiptException):
+class AlgorithmMismatchException(ReceiptParseException):
     """
     Indicates that an algorithm is not compatible with a receipt.
     """
@@ -474,6 +483,7 @@ class Receipt:
         :param key: The key to decrypt the counter as a byte list.
         :param algorithm: The algorithm to use as an algorithm object.
         :return: The decrypted turnover counter as int.
+        :throws: InvalidKeyException
         """
         if self.isDummy():
             raise Exception(_("Can't decrypt turnover counter, this is a dummy receipt."))
