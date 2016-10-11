@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-10-11 18:04+CEST\n"
+"POT-Creation-Date: 2016-10-12 00:51+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -353,7 +353,11 @@ msgstr "Startbeleg nicht signiert."
 msgid "Initial receipt has nonzero turnover."
 msgstr "Startbeleg hat Umsatz ungleich Null."
 
-#: verify.py:335
+#: verify.py:112
+msgid "Initial receipt has not been chained to the cash register ID."
+msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
+
+#: verify.py:351
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
