@@ -84,12 +84,23 @@ class CertificateSerialCollisionException(DEPException):
                 _("Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and \"{2}\"). This may be an attempted attack.").format(
                     serial, cert1FP, cert2FP))
 
-class SignatureSystemFailedOnInitialReceiptException(receipt.ReceiptException):
+class SignatureSystemFailedOnInitialReceiptException(DEPException):
     """
     Indicates that the initial receipt was not signed.
     """
     def __init__(self, rec):
-        super(SignatureSystemFailedOnInitialReceiptException, self).__init__(rec, _("Initial receipt not signed."))
+        super(SignatureSystemFailedOnInitialReceiptException, self).__init__(
+                _("Initial receipt not signed."))
+        self.receipt = rec
+
+class NonzeroTurnoverOnInitialReceiptException(DEPException):
+    """
+    Indicates that the initial receipt has a nonzero turnover.
+    """
+    def __init__(self, rec):
+        super(NonzeroTurnoverOnInitialReceiptException, self).__init__(
+                _("Initial receipt has nonzero turnover."))
+        self.receipt = rec
 
 def verifyChain(rec, prev, algorithm):
     """
@@ -177,6 +188,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     :throws: AlgorithmMismatchException
     :throws: SignatureSystemFailedOnInitialReceiptException
     :throws: UnsignedNullReceiptException
+    :throws: NonzeroTurnoverOnInitialReceiptException
     """
     prev = lastReceipt
     prevObj = None
@@ -187,14 +199,21 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
         algorithm = None
         try:
             ro, algorithm = rv.verifyJWS(r)
-            if not prevObj or prevObj.isSignedBroken():
-                if not ro.isNull():
+            if not ro.isNull():
+                if not prevObj:
+                    raise NonzeroTurnoverOnInitialReceiptException(ro.receiptId)
+                elif prevObj.isSignedBroken():
                     raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
         except verify_receipt.SignatureSystemFailedException as e:
             ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
             if not prevObj:
                 raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
             algorithm = algorithms.ALGORITHMS[algorithmPrefix]
+        except verify_receipt.UnsignedNullReceiptException as e:
+            ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
+            if not prevObj:
+                raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
+            raise e
 
         if not ro.isDummy():
             if key:
@@ -238,6 +257,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: CertificateSerialCollisionException
     :throws: SignatureSystemFailedOnInitialReceiptException
     :throws: UnsignedNullReceiptException
+    :throws: NonzeroTurnoverOnInitialReceiptException
     """
     lastReceipt = None
     lastTurnoverCounter = 0
