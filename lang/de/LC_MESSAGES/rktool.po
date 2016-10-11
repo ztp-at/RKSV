@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-10-11 17:01+CEST\n"
+"POT-Creation-Date: 2016-10-11 18:04+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -297,7 +297,9 @@ msgstr "Schlüsselspeicher"
 
 #: run_test.py:40
 msgid "Need key material for {} signature devices, got {} key pairs."
-msgstr "Brauche Schlüsselmaterial für {} Sicherheitseinrichtungen, habe {} Schlüsselpaare bekommen."
+msgstr ""
+"Brauche Schlüsselmaterial für {} Sicherheitseinrichtungen, habe {} "
+"Schlüsselpaare bekommen."
 
 #: run_test.py:145
 msgid "I need keys and certificates for %d signature devices."
