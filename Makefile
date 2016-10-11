@@ -8,14 +8,8 @@ test: cert_1.key cert_1.crt cert_1.pub
 	echo $(TEST_FILES)
 	for n in $(TURNOVER_COUNTER_SIZES) ; \
 	do \
-		for t in $(TEST_FILES) ; \
-		do \
-			./test_verify.py open $$t cert_1.key cert_1.crt $$n ; \
-		done ; \
-		for t in $(TEST_FILES) ; \
-		do \
-			./test_verify.py closed $$t cert_1.key cert_1.pub $$n ; \
-		done ; \
+		./test_verify.py multi open cert_1.key cert_1.crt $$n $(TEST_FILES) ; \
+		./test_verify.py multi closed cert_1.key cert_1.pub $$n $(TEST_FILES) ; \
 	done
 
 aesBase64_%.txt:
