@@ -258,6 +258,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: SignatureSystemFailedOnInitialReceiptException
     :throws: UnsignedNullReceiptException
     :throws: NonzeroTurnoverOnInitialReceiptException
+    :throws: NoCertificateGivenException
     """
     lastReceipt = None
     lastTurnoverCounter = 0
