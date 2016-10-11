@@ -28,6 +28,12 @@ a public key (`cert_1.pub`) and a certificate signed with the private key
 (`cert_1.crt`). The keys and certificates are stored in PEM format while the
 AES key is stored as base64 encoded text.
 
+make test
+---------
+Runs `test_verify.py` for all test cases in `tests` for open and closed systems
+with turnover counters of 5, 8 and 6 bytes with both Python 2 and 3. If no
+certificate has been gernerated yet, it will create one first.
+
 make update-trans
 -----------------
 
@@ -158,6 +164,35 @@ counter in each receipt.
 
 When the script is called with the `json` command it will instead read the
 certificates and the AES key from a cryptographic material container JSON file.
+
+test_verify.py
+--------------
+	Usage: ./test_verify.py open <JSON test case spec> <cert priv> <cert> [<turnover counter size>]
+	       ./test_verify.py closed <JSON test case spec> <key priv> <pub key> [<turnover counter size>]
+	       ./test_verify.py multi <key priv> <cert> <pub key> <turnover counter size 1>,... <group label> <JSON test case spec 1>...
+
+This script works similarly to `run_test.py`. However, instead of generating the
+DEP and crypto container specified in the JSON specification file as files, it
+only generates them in memory and immediately calls the verification functions.
+
+In addition to the standard elements the reference implementation uses in their
+JSON test specification, this tool also understands the `expectedException` and
+the `exceptionReceipt` elements which allow to specify an exception that the
+verification functions must raise when verifying the generated DEP and on which
+receipt this exception must occur. Furthermore, each receipt in the
+`cashBoxInstructionList` may be extended with an `override` element, which
+allows to change certain values of the receipt during the generation. For
+details, see the `CashRegister.receipt()` function in `cashreg.py` or the test
+cases in `tests`.
+
+As opposed to `run_test.py`, `test_verify.py` only takes one key pair and reuses
+it for all signature devices a test requires.
+
+The `multi` mode allows the user to specify multiple komma-separated turnover
+counter sizes and multiple JSON test specification files as the last parameters.
+It will run each specified test as both open and closed system for each of the
+given turnover counter sizes. This mode requires both a certificate and a public
+key file.
 
 verify_receipt.py
 -----------------
