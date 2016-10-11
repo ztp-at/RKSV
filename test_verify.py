@@ -49,12 +49,12 @@ def testVerify(spec, pub, priv, closed):
                     expected_exception_type, actual_exception_type,
                     actual_exception))
 
-    if actual_exception:
+    if actual_exception and expected_exception_receipt:
         if actual_exception.receipt != expected_exception_receipt:
             return TestVerifyResult.FAIL, Exception(
                     'Expected "{}" at receipt "{}" but it occured at "{}" instead'.format(
                         expected_exception_type, expected_exception_receipt,
-                        actual_exception_receipt))
+                        actual_exception.receipt))
 
     return TestVerifyResult.OK, None
 
