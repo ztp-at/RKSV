@@ -128,6 +128,7 @@ class CashRegister(CashRegisterI):
         if 'previousChain' in override:
             rec.previousChain = override['previousChain']
 
+        prefix = override.get('algorithmPrefix', prefix)
         jwsString = sigSystem.sign(rec.toPayloadString(prefix),
                 algorithm)
         self.lastReceiptSig = jwsString

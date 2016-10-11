@@ -47,6 +47,7 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         sigsBroken.append(sigB)
         sigsWorking.append(sigW)
 
+    override = dict()
     receipts = list()
     for recI in spec['cashBoxInstructionList']:
         receiptId = recI['receiptIdentifier']
@@ -79,7 +80,8 @@ def runTest(spec, keymat, closed=False, tcSize=None):
                 sumC, sumD, sumE, sig, dummy, reversal, override)
         receipts.append(rec)
 
-    exporter = depexport.DEPExporter('R1', None)
+    algorithmPrefix = override.get('algorithmPrefix', 'R1')
+    exporter = depexport.DEPExporter(algorithmPrefix, None)
     dep = exporter.export(receipts)
 
     ksJson = keyStore.writeStoreToJson()
