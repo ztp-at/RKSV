@@ -60,7 +60,6 @@ def testVerify(spec, pub, priv, closed):
     return TestVerifyResult.OK, None
 
 def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize):
-    results = list()
     for s in specs:
         label = s.get('simulationRunLabel', 'Unknown')
         tc_size = s.get('turnoverCounterSize', tcDefaultSize)
@@ -71,9 +70,7 @@ def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize):
         else:
             pc = pub if closed else crt
             result, msg = testVerify(s, pc, priv, closed)
-        results.append((label, groupLabel, closed, tc_size, result, msg))
-
-    return results
+        yield (label, groupLabel, closed, tc_size, result, msg)
 
 def printTestVerifyResult(label, groupLabel, closed, tcSize, result, msg):
     open_str = 'closed' if closed else 'open'
@@ -116,6 +113,19 @@ if __name__ == "__main__":
         with open(arg) as f:
             return f.read()
 
+    def generate_specs(tcSizes, testCases):
+        for s in tcSizes:
+            for tc in testCases:
+                tc['turnoverCounterSize'] = s
+
+                spec = dict(tc)
+                spec['closedSystem'] = False
+                yield spec
+
+                spec = dict(tc)
+                spec['closedSystem'] = True
+                yield spec
+
     import gettext
     gettext.install('rktool', './lang', True)
 
@@ -134,30 +144,21 @@ if __name__ == "__main__":
 
         groupLabel = sys.argv[6]
 
-        tcs = [ json.loads(arg_read_file(tc)) for tc in sys.argv[7:] ]
+        testCases = [ json.loads(arg_read_file(tc)) for tc in sys.argv[7:] ]
 
-        specs = list()
-        for s in tcSizes:
-            for tc in tcs:
-                tc['turnoverCounterSize'] = s
-
-                spec = dict(tc)
-                spec['closedSystem'] = False
-                specs.append(spec)
-
-                spec = dict(tc)
-                spec['closedSystem'] = True
-                specs.append(spec)
+        specs = generate_specs(tcSizes, testCases)
 
         results = testVerifyMulti(specs, groupLabel, cert, pub, priv, 8)
 
+        resultList = list()
         for r in results:
             printTestVerifyResult(*r)
-        printTestVerifySummary(results)
+            resultList.append(r)
+        printTestVerifySummary(resultList)
 
-        if any(r[4] == TestVerifyResult.ERROR for r in results):
+        if any(r[4] == TestVerifyResult.ERROR for r in resultList):
             sys.exit(2)
-        if any(r[4] == TestVerifyResult.FAIL for r in results):
+        if any(r[4] == TestVerifyResult.FAIL for r in resultList):
             sys.exit(1)
         sys.exit(0)
 
