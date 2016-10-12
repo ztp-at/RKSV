@@ -170,6 +170,11 @@ if __name__ == "__main__":
             for tc in testCases:
                 tc['turnoverCounterSize'] = s
 
+                if 'closedSystem' in tc:
+                    spec = dict(tc)
+                    yield spec
+                    continue
+
                 spec = dict(tc)
                 spec['closedSystem'] = False
                 yield spec

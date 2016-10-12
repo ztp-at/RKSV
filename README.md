@@ -192,7 +192,10 @@ The `multi` mode allows the user to specify multiple komma-separated turnover
 counter sizes and multiple JSON test specification files as the last parameters.
 It will run each specified test as both open and closed system for each of the
 given turnover counter sizes. This mode requires both a certificate and a public
-key file.
+key file. It will also recognise the `closedSystem` element in the test
+specification. If it is present, the script will only execute the test as a
+closed system (if it is `True`) or an open system (if it is `False`). This
+allows for tests that are specific to open/closed systems.
 
 verify_receipt.py
 -----------------
