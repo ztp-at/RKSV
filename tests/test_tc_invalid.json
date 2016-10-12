@@ -2,7 +2,7 @@
   "cashBoxId": "CASHBOX-DEMO-1",
   "base64AesKey": "WQRtiiya3hYh/Uz44Bv3x8ETl1nrH6nCdErn69g5/lU=",
   "companyID": "U:ATU12345678",
-  "simulationRunLabel": "test_invalid_tc",
+  "simulationRunLabel": "test_tc_invalid",
   "numberOfSignatureDevices": 1,
   "cashBoxInstructionList": [
     {
