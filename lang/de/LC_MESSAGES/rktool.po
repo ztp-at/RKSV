@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-10-12 00:51+CEST\n"
+"POT-Creation-Date: 2016-10-12 18:03+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -295,17 +295,17 @@ msgstr "DEP überprüfen"
 msgid "Key Store"
 msgstr "Schlüsselspeicher"
 
-#: run_test.py:40
+#: run_test.py:41
 msgid "Need key material for {} signature devices, got {} key pairs."
 msgstr ""
 "Brauche Schlüsselmaterial für {} Sicherheitseinrichtungen, habe {} "
 "Schlüsselpaare bekommen."
 
-#: run_test.py:145
+#: run_test.py:149
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:157 test_verify.py:160
+#: run_test.py:161 test_verify.py:160
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
