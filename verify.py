@@ -239,6 +239,8 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     :throws: NonzeroTurnoverOnInitialReceiptException
     :throws: InvalidChainingOnInitialReceiptException
     :throws: NonstandardTypeOnInitialReceiptException
+    :throws: ChangingRegisterIdException
+    :throws: DecreasingDateException
     """
     prev = lastReceipt
     prevObj = None
@@ -320,6 +322,8 @@ def verifyDEP(dep, keyStore, key):
     :throws: NoCertificateGivenException
     :throws: InvalidChainingOnInitialReceiptException
     :throws: NonstandardTypeOnInitialReceiptException
+    :throws: ChangingRegisterIdException
+    :throws: DecreasingDateException
     """
     lastReceipt = None
     lastTurnoverCounter = 0
