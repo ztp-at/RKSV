@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-10-12 18:03+CEST\n"
+"POT-Creation-Date: 2016-10-14 23:59+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "Invalid turnover counter size."
 msgstr "Umsatzzähler-Länge ungültig."
 
-#: cashreg.py:118 main.py:340 receipt.py:69 rktool.py:340
+#: cashreg.py:120 main.py:340 receipt.py:69 rktool.py:340
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
 
@@ -183,7 +183,7 @@ msgstr "Schlüsselspeicher laden"
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
 
-#: receipt.py:25
+#: receipt.py:25 verify.py:31
 msgid "At receipt \"{0}\": {1}"
 msgstr "Bei Rechnung \"{0}\": {1}"
 
@@ -301,11 +301,11 @@ msgstr ""
 "Brauche Schlüsselmaterial für {} Sicherheitseinrichtungen, habe {} "
 "Schlüsselpaare bekommen."
 
-#: run_test.py:149
+#: run_test.py:154
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:161 test_verify.py:160
+#: run_test.py:166 test_verify.py:160
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
@@ -313,31 +313,45 @@ msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
 
-#: verify.py:31
-msgid "At receipt \"{0}\": Previous receipt is not \"{1}\"."
-msgstr "Bei Rechnung \"{0}\": Vorherige Rechnung ist nicht \"{1}\"."
+#: verify.py:42
+msgid "Previous receipt is not \"{0}\"."
+msgstr "Vorherige Rechnung ist nicht \"{0}\"."
 
-#: verify.py:44
-msgid ""
-"At receipt \"%s\": Receipt after restored signature system must not have any "
-"turnover."
+#: verify.py:53
+msgid "Receipt after restored signature system must not have any turnover."
 msgstr ""
-"Bei Rechnung \"%s\": Rechnung nach Wiederherstellung der "
-"Sicherheitseinrichtung darf keinen Umsatz haben."
+"Rechnung nach Wiederherstellung der Sicherheitseinrichtung darf keinen "
+"Umsatz haben."
 
-#: verify.py:54
+#: verify.py:62
 msgid "Turnover counter invalid."
 msgstr "Umsatzzähler ungültig."
 
-#: verify.py:63
+#: verify.py:71
+msgid "Register ID changed."
+msgstr "Kassen-ID geändert."
+
+#: verify.py:81
+msgid "Receipt was created before previous receipt."
+msgstr "Rechnung wurde vor vorhergehender Rechnung erstellt."
+
+#: verify.py:91
+msgid "The system type changed."
+msgstr "Typ des Systems wurde geändert."
+
+#: verify.py:101
+msgid "The size of the turnover counter changed."
+msgstr "Die Länge des Umsatzzählers wurde geändert."
+
+#: verify.py:110
 msgid "No certificate specified in DEP and multiple groups used."
 msgstr "Kein Zertifikat angegeben, aber DEP hat mehrere Gruppen."
 
-#: verify.py:74
+#: verify.py:121
 msgid "Certificate \"%s\" is not trusted."
 msgstr "Zertifikat \"%s\" wird nicht vertraut."
 
-#: verify.py:84
+#: verify.py:131
 msgid ""
 "Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and "
 "\"{2}\"). This may be an attempted attack."
@@ -345,19 +359,23 @@ msgstr ""
 "Zwei Zertifikate mit Seriennummer \"{0}\" gefunden (Fingerabdrücke \"{1}\" "
 "und \"{2}\"). Dies könnte ein versuchter Angriff sein."
 
-#: verify.py:93
+#: verify.py:140
 msgid "Initial receipt not signed."
 msgstr "Startbeleg nicht signiert."
 
-#: verify.py:102
+#: verify.py:148
 msgid "Initial receipt has nonzero turnover."
 msgstr "Startbeleg hat Umsatz ungleich Null."
 
-#: verify.py:112
+#: verify.py:158
 msgid "Initial receipt has not been chained to the cash register ID."
 msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
 
-#: verify.py:351
+#: verify.py:167
+msgid "Initial receipt is a dummy or reversal receipt."
+msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
+
+#: verify.py:440
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
