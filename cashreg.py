@@ -92,7 +92,9 @@ class CashRegister(CashRegisterI):
         certSerial = override.get('certSerial', sigSystem.serial)
         zda = override.get('zda', sigSystem.zda)
 
-        rec = receipt.Receipt(zda, self.registerId, receiptId, dateTime,
+        registerId = override.get('registerId', self.registerId)
+
+        rec = receipt.Receipt(zda, registerId, receiptId, dateTime,
             sumA, sumB, sumC, sumD, sumE, '', certSerial, '')
 
         if 'turnoverCounterSize' in override:
