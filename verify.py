@@ -20,19 +20,28 @@ class DEPException(Exception):
 
     pass
 
-class ChainingException(DEPException):
+class DEPReceiptException(DEPException):
+    """
+    This exception indicates that an error was found in a DEP at a
+    specific receipt.
+    """
+
+    def __init__(self, receipt, message):
+        super(DEPReceiptException, self).__init__(
+                _("At receipt \"{0}\": {1}").format(receipt, message))
+        self.receipt = receipt
+
+class ChainingException(DEPReceiptException):
     """
     This exception indicates that the chaining value in a receipt is invalid and
     that the chain of receipts can not be verified.
     """
 
     def __init__(self, rec, recPrev):
-        super(ChainingException, self).__init__(
-                _("At receipt \"{0}\": Previous receipt is not \"{1}\".").format(
-                    rec, recPrev))
-        self.receipt = rec
+        super(ChainingException, self).__init__(rec,
+                _("Previous receipt is not \"{0}\".").format(recPrev))
 
-class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
+class NoRestoreReceiptAfterSignatureSystemFailureException(DEPReceiptException):
     """
     This exception indicates that, after a signature system is first used or
     after it has been repaired, no receipt with zero turnover was created as
@@ -40,18 +49,17 @@ class NoRestoreReceiptAfterSignatureSystemFailureException(DEPException):
     """
 
     def __init__(self, rec):
-        super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__(
-                _("At receipt \"%s\": Receipt after restored signature system must not have any turnover.") %
-                rec)
-        self.receipt = rec
+        super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__(rec,
+                _("Receipt after restored signature system must not have any turnover."))
 
-class InvalidTurnoverCounterException(receipt.ReceiptException):
+class InvalidTurnoverCounterException(DEPReceiptException):
     """
     This exception indicates that the turnover counter is invalid.
     """
 
     def __init__(self, rec):
-        super(InvalidTurnoverCounterException, self).__init__(rec, _("Turnover counter invalid."))
+        super(InvalidTurnoverCounterException, self).__init__(rec,
+                _("Turnover counter invalid."))
 
 class NoCertificateGivenException(DEPException):
     """
@@ -84,42 +92,40 @@ class CertificateSerialCollisionException(DEPException):
                 _("Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and \"{2}\"). This may be an attempted attack.").format(
                     serial, cert1FP, cert2FP))
 
-class SignatureSystemFailedOnInitialReceiptException(DEPException):
+class SignatureSystemFailedOnInitialReceiptException(DEPReceiptException):
     """
     Indicates that the initial receipt was not signed.
     """
     def __init__(self, rec):
-        super(SignatureSystemFailedOnInitialReceiptException, self).__init__(
+        super(SignatureSystemFailedOnInitialReceiptException, self).__init__(rec,
                 _("Initial receipt not signed."))
-        self.receipt = rec
 
-class NonzeroTurnoverOnInitialReceiptException(DEPException):
+class NonzeroTurnoverOnInitialReceiptException(DEPReceiptException):
     """
     Indicates that the initial receipt has a nonzero turnover.
     """
     def __init__(self, rec):
         super(NonzeroTurnoverOnInitialReceiptException, self).__init__(
-                _("Initial receipt has nonzero turnover."))
-        self.receipt = rec
+                rec, _("Initial receipt has nonzero turnover."))
 
-class InvalidChainingOnInitialReceiptException(DEPException):
+class InvalidChainingOnInitialReceiptException(DEPReceiptException):
     """
     Indicates that the initial receipt has not been chained to the cash
     register ID.
     """
     def __init__(self, rec):
         super(InvalidChainingOnInitialReceiptException, self).__init__(
+                rec,
                 _("Initial receipt has not been chained to the cash register ID."))
-        self.receipt = rec
 
-class NonstandardTypeOnInitialReceiptException(DEPException):
+class NonstandardTypeOnInitialReceiptException(DEPReceiptException):
     """
     Indicates that the initial receipt is a dummy or reversal receipt.
     """
     def __init__(self, rec):
         super(NonstandardTypeOnInitialReceiptException, self).__init__(
+                rec,
                 _("Initial receipt is a dummy or reversal receipt."))
-        self.receipt = rec
 
 def verifyChain(rec, prev, algorithm):
     """
