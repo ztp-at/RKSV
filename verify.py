@@ -61,6 +61,25 @@ class InvalidTurnoverCounterException(DEPReceiptException):
         super(InvalidTurnoverCounterException, self).__init__(rec,
                 _("Turnover counter invalid."))
 
+class ChangingRegisterIdException(DEPReceiptException):
+    """
+    This exception indicates that the register ID changed.
+    """
+
+    def __init__(self, rec):
+        super(ChangingRegisterIdException, self).__init__(rec,
+                _("Register ID changed."))
+
+class DecreasingDateException(DEPReceiptException):
+    """
+    This exception indicates that the date on the receipt is lower than
+    the date on the previous receipt.
+    """
+
+    def __init__(self, rec):
+        super(DecreasingDateException, self).__init__(rec,
+                _("Receipt was created before previous receipt."))
+
 class NoCertificateGivenException(DEPException):
     """
     This exception indicates that a DEP using multiple receipt groups did not
@@ -249,6 +268,11 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
         if not prevObj:
             if ro.isDummy() or ro.isReversal():
                 raise NonstandardTypeOnInitialReceiptException(ro.receiptId)
+        else:
+            if prevObj.registerId != ro.registerId:
+                raise ChangingRegisterIdException(ro.receiptId)
+            if prevObj.dateTime > ro.dateTime:
+                raise DecreasingDateException(ro.receiptId)
 
         if not ro.isDummy():
             if key:
