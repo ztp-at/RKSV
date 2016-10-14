@@ -20,9 +20,9 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     Creates a DEP and a crypto container structure according to the given
     test specification. In addition to the specification elements that the
     reference implementation uses, this function also understands the
-    "decimalSerial" and "turnoverCounterSize" elements in the root
-    dictionary and the "override" element in the dictionaries in the
-    "cashBoxInstructionList" element.
+    "decimalSerial", "turnoverCounterSize" and "includePublicKey" elements
+    in the root dictionary and the "override" element in the dictionaries
+    in the "cashBoxInstructionList" element.
     :param spec: The test specification as a dict structure.
     :param keymat: The key material as a list of tuples with the public key/
     certificate in the first element and the private key in the second
@@ -63,11 +63,16 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             keyStore.putPEMKey(serial, keymat[i][0])
         else:
             keyStore.putPEMCert(keymat[i][0])
-            numSerial = utils.loadCert(keymat[i][0]).serial
+            certObj = utils.loadCert(keymat[i][0])
+            numSerial = certObj.serial
             if spec.get('decimalSerial', False):
                 serial = ('%d' % abs(numSerial))
             else:
                 serial = key_store.numSerialToKeyId(numSerial)
+            # Add raw public key too so that we can switch system type
+            if spec.get('includePublicKey', False):
+                kid = "%s-K%d" % (spec['companyID'], i)
+                keyStore.putKey(kid, certObj.public_key(), None)
 
         sigB = sigsys.SignatureSystemBroken(zda, serial)
         sigW = sigsys.SignatureSystemWorking(zda, serial, keymat[i][1])
