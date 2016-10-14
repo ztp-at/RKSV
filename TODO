@@ -1,4 +1,5 @@
 allow for different algorithms in one DEP?
+check if initial receipt is dummy or reversal
 check if cash register invariants change, registerId, turnover counter size, system being open/closed, increasing dates etc.
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
 collect multiple errors? right now we fail on the first one
