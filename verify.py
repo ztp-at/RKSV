@@ -112,6 +112,15 @@ class InvalidChainingOnInitialReceiptException(DEPException):
                 _("Initial receipt has not been chained to the cash register ID."))
         self.receipt = rec
 
+class NonstandardTypeOnInitialReceiptException(DEPException):
+    """
+    Indicates that the initial receipt is a dummy or reversal receipt.
+    """
+    def __init__(self, rec):
+        super(NonstandardTypeOnInitialReceiptException, self).__init__(
+                _("Initial receipt is a dummy or reversal receipt."))
+        self.receipt = rec
+
 def verifyChain(rec, prev, algorithm):
     """
     Verifies that a receipt is preceeded by another receipt in the receipt
@@ -204,6 +213,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     :throws: UnsignedNullReceiptException
     :throws: NonzeroTurnoverOnInitialReceiptException
     :throws: InvalidChainingOnInitialReceiptException
+    :throws: NonstandardTypeOnInitialReceiptException
     """
     prev = lastReceipt
     prevObj = None
@@ -229,6 +239,10 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
             if not prevObj:
                 raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
             raise e
+
+        if not prevObj:
+            if ro.isDummy() or ro.isReversal():
+                raise NonstandardTypeOnInitialReceiptException(ro.receiptId)
 
         if not ro.isDummy():
             if key:
@@ -275,6 +289,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: NonzeroTurnoverOnInitialReceiptException
     :throws: NoCertificateGivenException
     :throws: InvalidChainingOnInitialReceiptException
+    :throws: NonstandardTypeOnInitialReceiptException
     """
     lastReceipt = None
     lastTurnoverCounter = 0
