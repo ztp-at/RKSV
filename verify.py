@@ -80,6 +80,16 @@ class DecreasingDateException(DEPReceiptException):
         super(DecreasingDateException, self).__init__(rec,
                 _("Receipt was created before previous receipt."))
 
+class ChangingSystemTypeException(DEPReceiptException):
+    """
+    This exception indicates that the type of the system (open/closed)
+    changed.
+    """
+
+    def __init__(self, rec):
+        super(ChangingSystemTypeException, self).__init__(rec,
+                _("The system type changed."))
+
 class NoCertificateGivenException(DEPException):
     """
     This exception indicates that a DEP using multiple receipt groups did not
@@ -241,6 +251,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
     :throws: NonstandardTypeOnInitialReceiptException
     :throws: ChangingRegisterIdException
     :throws: DecreasingDateException
+    :throws: ChangingSystemTypeException
     """
     prev = lastReceipt
     prevObj = None
@@ -275,6 +286,10 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, key):
                 raise ChangingRegisterIdException(ro.receiptId)
             if prevObj.dateTime > ro.dateTime:
                 raise DecreasingDateException(ro.receiptId)
+            # TODO: check if this is necessary
+            if (prevObj.zda == 'AT0' and ro.zda != 'AT0') or (
+                    prevObj.zda != 'AT0' and ro.zda == 'AT0'):
+                raise ChangingSystemTypeException(ro.receiptId)
 
         if not ro.isDummy():
             if key:
@@ -324,6 +339,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: NonstandardTypeOnInitialReceiptException
     :throws: ChangingRegisterIdException
     :throws: DecreasingDateException
+    :throws: ChangingSystemTypeException
     """
     lastReceipt = None
     lastTurnoverCounter = 0
