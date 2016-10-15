@@ -111,11 +111,12 @@ def runTest(spec, keymat, closed=False, tcSize=None):
 
         rec = register.receipt('R1', receiptId, dateTime, sumA, sumB,
                 sumC, sumD, sumE, sig, dummy, reversal, override)
-        receipts.append(rec)
+        algorithmPrefix = override.get('algorithmPrefix', 'R1')
+        receipts.append((rec, algorithmPrefix))
 
-    algorithmPrefix = override.get('algorithmPrefix', 'R1')
-    exporter = depexport.DEPExporter(algorithmPrefix, None)
-    dep = exporter.export(receipts)
+    exporter = depexport.DEPExporter()
+    exporter.addGroup(receipts)
+    dep = exporter.export()
 
     ksJson = keyStore.writeStoreToJson()
     ksJson['base64AESKey'] = spec['base64AesKey']

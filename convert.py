@@ -23,16 +23,18 @@ if __name__ == "__main__":
     recs = list()
     if sys.argv[1] == 'json2csv':
         dep = json.loads(sys.stdin.read())
+        exporter = depexport.CSVExporter()
         for g in dep['Belege-Gruppe']:
-            recs = recs + [ receipt.Receipt.fromJWSString(r)[0] for r
-                    in g['Belege-kompakt'] ]
-        exporter = depexport.CSVExporter('R1')
+            exporter.addGroup([ receipt.Receipt.fromJWSString(r) for r
+                    in g['Belege-kompakt'] ], g['Signaturzertifikat'],
+                    g['Zertifizierungsstellen'])
     elif sys.argv[1] == 'csv2json':
         next(sys.stdin)
         for row in sys.stdin:
-            recs.append(receipt.Receipt.fromCSV(row.strip())[0])
-        exporter = depexport.JSONExporter('R1', None)
+            recs.append(receipt.Receipt.fromCSV(row.strip()))
+        exporter = depexport.JSONExporter()
+        exporter.addGroup(recs)
     else:
         usage()
 
-    print(exporter.export(recs))
+    print(exporter.export())

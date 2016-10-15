@@ -41,10 +41,10 @@ if __name__ == "__main__":
         priv = None
         with open(sys.argv[1]) as f:
             priv = f.read()
-        cert = sys.argv[2]
         serial = None
-        with open(cert) as f:
-            serial = "%x" % abs(utils.loadCert(f.read()).serial)
+        with open(sys.argv[2]) as f:
+            cert = utils.loadCert(f.read())
+            serial = "%x" % abs(cert.serial)
 
         sigsystem = sigsys.SignatureSystemWorking("AT77", serial, priv)
         keyf = sys.argv[3]
@@ -70,10 +70,9 @@ if __name__ == "__main__":
         key = base64.b64decode(f.read().encode("utf-8"))
 
     register = cashreg.CashRegister("PIGGYBANK-007", None, int(0.0 * 100), key)
-    exporter = depexport.JSONExporter('R1', cert)
 
-    receipts = [register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0, 0.0,
-        0.0, 0.0, sigsystem)]
+    receipts = [(register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0, 0.0,
+        0.0, 0.0, sigsystem), 'R1')]
     for i in range(1, num):
         receiptId = "%05d" % i
         sumA = round(random.uniform(-1000, 1000), 2)
@@ -85,6 +84,9 @@ if __name__ == "__main__":
         reversal = random.uniform(0, 1) > 0.5
         receipt = register.receipt('R1', receiptId, datetime.datetime.now(), sumA, sumB,
                 sumC, sumD, sumE, sigsystem, dummy, reversal)
-        receipts.append(receipt)
+        receipts.append((receipt, 'R1'))
 
-    print(exporter.export(receipts))
+    exporter = depexport.JSONExporter()
+    exporter.addGroup(receipts, cert)
+
+    print(exporter.export())
