@@ -122,7 +122,7 @@ class SignatureSystemATrustMobile(SignatureSystemI):
         r = requests.get(self.ATrustURL + CertInfoEndpoint, verify=certFile)
         r.raise_for_status()
         self.serial = r.json()['ZertifikatsseriennummerHex']
-        self.algo = r.json()['algo']
+        self.algo = r.json()['alg']
 
         ZDAInfoEndpoint = '/%s/ZDA' % self.username
         r = requests.get(self.ATrustURL + ZDAInfoEndpoint, verify=certFile)
