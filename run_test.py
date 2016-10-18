@@ -54,13 +54,21 @@ def runTest(spec, keymat, closed=False, tcSize=None):
 
     zda = 'AT0' if closed else 'AT77'
 
+    doGroups = spec.get('multipleGroups', False)
+
     sigsBroken = list()
     sigsWorking = list()
+    groupCerts = list()
     for i in range(spec['numberOfSignatureDevices']):
         serial = None
+        certObj = None
         if closed:
             serial = "%s-K%d" % (spec['companyID'], i)
-            keyStore.putPEMKey(serial, keymat[i][0])
+            pubObj = utils.loadPubKey(keymat[i][0])
+            privObj = utils.loadPrivKey(keymat[i][1])
+            cserial = utils.makeCertSerial()
+            certObj = utils.makeSignedCert(pubObj, serial, 365, cserial,
+                    privObj)
         else:
             keyStore.putPEMCert(keymat[i][0])
             certObj = utils.loadCert(keymat[i][0])
@@ -69,19 +77,28 @@ def runTest(spec, keymat, closed=False, tcSize=None):
                 serial = ('%d' % abs(numSerial))
             else:
                 serial = key_store.numSerialToKeyId(numSerial)
-            # Add raw public key too so that we can switch system type
-            if spec.get('includePublicKey', False):
-                kid = "%s-K%d" % (spec['companyID'], i)
-                keyStore.putKey(kid, certObj.public_key(), None)
+
+        if not closed or doGroups:
+            certPEM = utils.addPEMCertHeaders(
+                    utils.exportCertToPEM(certObj))
+            keyStore.putPEMCert(certPEM)
+
+        if closed or spec.get('includePublicKey', False):
+            kid = "%s-K%d" % (spec['companyID'], i)
+            keyStore.putKey(kid, certObj.public_key(), None)
 
         sigB = sigsys.SignatureSystemBroken(zda, serial)
         sigW = sigsys.SignatureSystemWorking(zda, serial, keymat[i][1])
 
         sigsBroken.append(sigB)
         sigsWorking.append(sigW)
+        groupCerts.append(certObj)
+
+    exporter = depexport.DEPExporter()
 
     override = dict()
     receipts = list()
+    prevSigId = None
     for recI in spec['cashBoxInstructionList']:
         receiptId = recI['receiptIdentifier']
         dateTime = datetime.datetime.strptime(recI['dateToUse'],
@@ -93,11 +110,17 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         sumD = recI['simplifiedReceipt']['taxSetNull']
         sumE = recI['simplifiedReceipt']['taxSetBesonders']
 
+        sigId = recI['usedSignatureDevice']
+
         sig = None
         if recI['signatureDeviceDamaged']:
-            sig = sigsBroken[recI['usedSignatureDevice']]
+            sig = sigsBroken[sigId]
         else:
-            sig = sigsWorking[recI['usedSignatureDevice']]
+            sig = sigsWorking[sigId]
+
+        if doGroups and prevSigId and prevSigId != sigId:
+            exporter.addGroup(receipts, groupCerts[prevSigId])
+            receipts = list()
 
         dummy = False
         reversal = False
@@ -114,8 +137,13 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         algorithmPrefix = override.get('algorithmPrefix', 'R1')
         receipts.append((rec, algorithmPrefix))
 
-    exporter = depexport.DEPExporter()
-    exporter.addGroup(receipts)
+        prevSigId = sigId
+
+    if doGroups:
+        exporter.addGroup(receipts, groupCerts[prevSigId])
+    else:
+        exporter.addGroup(receipts)
+
     dep = exporter.export()
 
     ksJson = keyStore.writeStoreToJson()

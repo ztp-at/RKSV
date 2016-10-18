@@ -5,16 +5,19 @@ key handling, as well has hashing, encoding and downloading receipts.
 from builtins import int
 
 import base64
+import datetime
 import requests
 import re
+import uuid
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.serialization import load_pem_public_key, Encoding, PublicFormat
+from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key, Encoding, PublicFormat
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
+from cryptography.x509.oid import NameOID
 
 from six import string_types
 
@@ -64,6 +67,14 @@ def loadPubKey(pem):
     :return: A cryptography public key object.
     """
     return load_pem_public_key(pem.encode("utf-8"), default_backend())
+
+def loadPrivKey(pem):
+    """
+    Creates a cryptography private key object from the given PEM private key.
+    :param pem: A private key as a PEM string.
+    :return: A cryptography private key object.
+    """
+    return load_pem_private_key(pem.encode("utf-8"), None, default_backend())
 
 def exportCertToPEM(cert):
     """
@@ -195,3 +206,60 @@ def getURLHashFromURL(url):
         return None
 
     return matches[-1]
+
+def makeES256Keypair():
+    """
+    Generates a new EC key pair usable for JWS ES256.
+    :return: The private and public key as objects.
+    """
+    priv = ec.generate_private_key(ec.SECP256R1(), default_backend())
+    pub = priv.public_key()
+    return priv, pub
+
+def makeCertSerial():
+    """
+    Generates a random serial number that can be used for a certificate.
+    :return: The serial as an int.
+    """
+    return int(uuid.uuid4())
+
+def makeSignedCert(cpub, ccn, cvdays, cserial, spriv, scert=None):
+    """
+    Creates a certificate for a given public key and signs it with a given
+    certificate and private key. It will reuse the subject of the signing
+    certificate as the subject of the new certificate, only replacing the
+    common name with the one given as parameter, if a signing certificate is
+    specified, otherwise it will just use the given common name as subject
+    and issuer.
+    :param cpub: Public key for which to create a certificate.
+    :param ccn: Common name for the new certificate.
+    :param cvdays: Number of days the new certificate is valid.
+    :param cserial: The serial number for the new certificate as an int.
+    :param spriv: Private key for the signing certificate.
+    :param scert: Certificate used to sign the new certificate, or None if
+    no certificate is used.
+    :return: The new certificate as an object.
+    """
+    if scert:
+        sname = x509.Name(
+            [ p for p in scert.subject if p.oid != NameOID.COMMON_NAME ]
+            + [ x509.NameAttribute(NameOID.COMMON_NAME, ccn) ])
+        iname = scert.subject
+    else:
+        sname = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, ccn)])
+        iname = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, ccn)])
+
+    builder = x509.CertificateBuilder()
+    builder = builder.subject_name(sname)
+    builder = builder.issuer_name(iname)
+    builder = builder.not_valid_before(datetime.datetime.today())
+    builder = builder.not_valid_after(datetime.datetime.today() +
+            datetime.timedelta(cvdays, 0, 0))
+    builder = builder.serial_number(cserial)
+    builder = builder.public_key(cpub)
+    builder = builder.add_extension(
+            x509.BasicConstraints(ca=True, path_length=None),
+            critical=True
+    )
+    return builder.sign(private_key=spriv, algorithm=hashes.SHA256(),
+            backend=default_backend())
