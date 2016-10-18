@@ -1,3 +1,4 @@
+split exception for cert chain sig verification failure and unstrusted root cert
 allow for different algorithms in one DEP?
 verify the need for testing for a changing turnover counter size or a changing system type
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
