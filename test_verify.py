@@ -126,7 +126,7 @@ def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize):
 
 def printTestVerifyResult(label, groupLabel, closed, tcSize, result, msg):
     open_str = 'closed' if closed else 'open'
-    print('{: <30}({: >6}, {: >2}, {: >8})...'.format(label, open_str,
+    print('{: <40}({: >6}, {: >2}, {: >8})...'.format(label, open_str,
         tcSize, groupLabel), end='')
     print('{:.>5}'.format(result.name))
     if msg:
