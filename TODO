@@ -1,3 +1,4 @@
+write script to extract certs from DEP
 localize test_verify.py
 allow restore receipt also after the first regular receipt as required by new doc
 allow for different algorithms in one DEP?
