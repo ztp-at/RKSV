@@ -120,6 +120,18 @@ class UntrustedCertificateException(DEPException):
         super(UntrustedCertificateException, self).__init__(
                 _("Certificate \"%s\" is not trusted.") % cert)
 
+class CertificateChainBrokenException(DEPException):
+    """
+    This exception indicates that a given certificate chain is broken at
+    the given certificate (i.e. the certificate was not properly signed
+    by the next in the chain).
+    """
+
+    def __init__(self, cert, sign):
+        super(CertificateChainBrokenException, self).__init__(
+                _("Certificate \"{}\" was not signed by \"{}\".").format(
+                    cert, sign))
+
 class CertificateSerialCollisionException(DEPException):
     """
     This exception indicates that two certificates with matching serials but
@@ -211,7 +223,9 @@ def verifyCert(cert, chain, keyStore):
         cur = utils.loadCert(utils.addPEMCertHeaders(c))
 
         if not utils.verifyCert(prev, cur):
-            raise UntrustedCertificateException(cert)
+            raise CertificateChainBrokenException(
+                    utils.exportCertToPEM(prev),
+                    utils.exportCertToPEM(cur))
 
         prev = cur
 
