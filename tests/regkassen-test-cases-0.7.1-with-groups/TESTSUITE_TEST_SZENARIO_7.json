@@ -1070,5 +1070,6 @@
       "typeOfReceipt": "NULL_BELEG"
     }
   ],
-  "multipleGroups": true
+  "multipleGroups": true,
+  "certChainLength": [0, 1, 2]
 }

@@ -4,6 +4,7 @@ This module provides a function to generate a DEP and crypto container
 according to a JSON test specification.
 """
 
+from __future__ import unicode_literals
 from builtins import int
 
 import base64
@@ -55,24 +56,34 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     zda = 'AT0' if closed else 'AT77'
 
     doGroups = spec.get('multipleGroups', False)
+    chainLength = spec.get('certChainLength',
+            [0] * spec['numberOfSignatureDevices'])
 
     sigsBroken = list()
     sigsWorking = list()
     groupCerts = list()
     for i in range(spec['numberOfSignatureDevices']):
         serial = None
-        certObj = None
+        certList = list()
+        privObj = utils.loadPrivKey(keymat[i][1])
         if closed:
             serial = "%s-K%d" % (spec['companyID'], i)
             pubObj = utils.loadPubKey(keymat[i][0])
-            privObj = utils.loadPrivKey(keymat[i][1])
             cserial = utils.makeCertSerial()
-            certObj = utils.makeSignedCert(pubObj, serial, 365, cserial,
-                    privObj)
+            certList.append(utils.makeSignedCert(pubObj, serial, 365,
+                cserial, privObj))
         else:
             keyStore.putPEMCert(keymat[i][0])
-            certObj = utils.loadCert(keymat[i][0])
-            numSerial = certObj.serial
+            certList.append(utils.loadCert(keymat[i][0]))
+            numSerial = certList[-1].serial
+            for j in range(chainLength[i], 0, -1):
+                s, p = utils.makeES256Keypair()
+                numSerial = utils.makeCertSerial()
+                c = utils.makeSignedCert(p, 'intermediate {}'.format(j),
+                        365, numSerial, privObj, certList[0])
+                privObj = s
+                certList.insert(0, c)
+
             if spec.get('decimalSerial', False):
                 serial = ('%d' % abs(numSerial))
             else:
@@ -80,19 +91,19 @@ def runTest(spec, keymat, closed=False, tcSize=None):
 
         if not closed or doGroups:
             certPEM = utils.addPEMCertHeaders(
-                    utils.exportCertToPEM(certObj))
+                    utils.exportCertToPEM(certList[-1]))
             keyStore.putPEMCert(certPEM)
 
         if closed or spec.get('includePublicKey', False):
             kid = "%s-K%d" % (spec['companyID'], i)
-            keyStore.putKey(kid, certObj.public_key(), None)
+            keyStore.putKey(kid, certList[0].public_key(), None)
 
         sigB = sigsys.SignatureSystemBroken(zda, serial)
-        sigW = sigsys.SignatureSystemWorking(zda, serial, keymat[i][1])
+        sigW = sigsys.SignatureSystemWorking(zda, serial, privObj)
 
         sigsBroken.append(sigB)
         sigsWorking.append(sigW)
-        groupCerts.append(certObj)
+        groupCerts.append(certList)
 
     exporter = depexport.DEPExporter()
 
@@ -118,8 +129,9 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         else:
             sig = sigsWorking[sigId]
 
-        if doGroups and prevSigId and prevSigId != sigId:
-            exporter.addGroup(receipts, groupCerts[prevSigId])
+        if doGroups and prevSigId is not None and prevSigId != sigId:
+            exporter.addGroup(receipts, groupCerts[prevSigId][0],
+                    groupCerts[prevSigId][1:])
             receipts = list()
 
         dummy = False
@@ -140,7 +152,8 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         prevSigId = sigId
 
     if doGroups:
-        exporter.addGroup(receipts, groupCerts[prevSigId])
+        exporter.addGroup(receipts, groupCerts[prevSigId][0],
+                groupCerts[prevSigId][1:])
     else:
         exporter.addGroup(receipts)
 
