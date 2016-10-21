@@ -21,9 +21,10 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     Creates a DEP and a crypto container structure according to the given
     test specification. In addition to the specification elements that the
     reference implementation uses, this function also understands the
-    "decimalSerial", "turnoverCounterSize", "includePublicKey" and
-    "multipleGroups" elements in the root dictionary and the "override"
-    element in the dictionaries in the "cashBoxInstructionList" element.
+    "decimalSerial", "turnoverCounterSize", "includePublicKey",
+    "multipleGroups" and "certChainLength" elements in the root dictionary
+    and the "override" element in the dictionaries in the
+    "cashBoxInstructionList" element.
     :param spec: The test specification as a dict structure.
     :param keymat: The key material as a list of tuples with the public key/
     certificate in the first element and the private key in the second
