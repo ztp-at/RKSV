@@ -207,8 +207,10 @@ def verifyCert(cert, chain, keyStore):
     :param keyStore: The key store.
     :throws: UntrustedCertificateException
     :throws: CertificateSerialCollisionException
+    :throws: CertificateChainBrokenException
     """
     prev = utils.loadCert(utils.addPEMCertHeaders(cert))
+    first = prev
 
     for c in chain:
         ksCert = keyStore.getCert(key_store.numSerialToKeyId(prev.serial))
@@ -224,8 +226,8 @@ def verifyCert(cert, chain, keyStore):
 
         if not utils.verifyCert(prev, cur):
             raise CertificateChainBrokenException(
-                    utils.exportCertToPEM(prev),
-                    utils.exportCertToPEM(cur))
+                    key_store.numSerialToKeyId(prev.serial),
+                    key_store.numSerialToKeyId(cur.serial))
 
         prev = cur
 
@@ -238,7 +240,8 @@ def verifyCert(cert, chain, keyStore):
                     utils.certFingerprint(ksCert))
         return
 
-    raise UntrustedCertificateException(cert)
+    raise UntrustedCertificateException(key_store.numSerialToKeyId(
+        first.serial))
 
 def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, tcSize, key):
     """
@@ -377,6 +380,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: DecreasingDateException
     :throws: ChangingSystemTypeException
     :throws: ChangingTurnoverCounterSizeException
+    :throws: CertificateChainBrokenException
     """
     lastReceipt = None
     lastTurnoverCounter = 0
