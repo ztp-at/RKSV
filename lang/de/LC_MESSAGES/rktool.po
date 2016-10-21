@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-10-18 13:25+CEST\n"
+"POT-Creation-Date: 2016-10-21 22:44+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -295,23 +295,45 @@ msgstr "DEP überprüfen"
 msgid "Key Store"
 msgstr "Schlüsselspeicher"
 
-#: run_test.py:41
+#: run_test.py:44
 msgid "Need key material for {} signature devices, got {} key pairs."
 msgstr ""
 "Brauche Schlüsselmaterial für {} Sicherheitseinrichtungen, habe {} "
 "Schlüsselpaare bekommen."
 
-#: run_test.py:183
+#: run_test.py:216
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:195 test_verify.py:160
+#: run_test.py:228 test_verify.py:160
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
 #: sigsys.py:136
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
+
+#: test_verify.py:48 test_verify.py:51 test_verify.py:56
+msgid "no Exception"
+msgstr "kein Fehler"
+
+#: test_verify.py:76
+msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
+msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
+
+#: test_verify.py:83
+msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
+msgstr ""
+"Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
+"bekommen"
+
+#: test_verify.py:121
+msgid "No run label"
+msgstr "Kein Simulationsname"
+
+#: test_verify.py:138
+msgid "{} tests run, {} failed, {} errors"
+msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
 #: verify.py:42
 msgid "Previous receipt is not \"{0}\"."
@@ -351,7 +373,11 @@ msgstr "Kein Zertifikat angegeben, aber DEP hat mehrere Gruppen."
 msgid "Certificate \"%s\" is not trusted."
 msgstr "Zertifikat \"%s\" wird nicht vertraut."
 
-#: verify.py:131
+#: verify.py:132
+msgid "Certificate \"{}\" was not signed by \"{}\"."
+msgstr "Zertifikat \"{}\" wurde nicht von \"{}\" signiert."
+
+#: verify.py:143
 msgid ""
 "Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and "
 "\"{2}\"). This may be an attempted attack."
@@ -359,23 +385,23 @@ msgstr ""
 "Zwei Zertifikate mit Seriennummer \"{0}\" gefunden (Fingerabdrücke \"{1}\" "
 "und \"{2}\"). Dies könnte ein versuchter Angriff sein."
 
-#: verify.py:140
+#: verify.py:152
 msgid "Initial receipt not signed."
 msgstr "Startbeleg nicht signiert."
 
-#: verify.py:148
+#: verify.py:160
 msgid "Initial receipt has nonzero turnover."
 msgstr "Startbeleg hat Umsatz ungleich Null."
 
-#: verify.py:158
+#: verify.py:170
 msgid "Initial receipt has not been chained to the cash register ID."
 msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
 
-#: verify.py:167
+#: verify.py:179
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: verify.py:440
+#: verify.py:454
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
