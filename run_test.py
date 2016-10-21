@@ -22,8 +22,9 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     test specification. In addition to the specification elements that the
     reference implementation uses, this function also understands the
     "decimalSerial", "turnoverCounterSize", "includePublicKey",
-    "multipleGroups" and "certChainLength" elements in the root dictionary
-    and the "override" element in the dictionaries in the
+    "multipleGroups", "certChainLength", "omitSignCert", "omitRootCert",
+    "certChainFailure" and "certChainSerialCollision" elements in the root
+    dictionary and the "override" element in the dictionaries in the
     "cashBoxInstructionList" element.
     :param spec: The test specification as a dict structure.
     :param keymat: The key material as a list of tuples with the public key/
@@ -65,6 +66,8 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             [False] * spec['numberOfSignatureDevices'])
     certChainFailure = spec.get('certChainFailure',
             [0] * spec['numberOfSignatureDevices'])
+    certChainSerialCollision = spec.get('certChainSerialCollision',
+            [False] * spec['numberOfSignatureDevices'])
 
     sigsBroken = list()
     sigsWorking = list()
@@ -87,8 +90,8 @@ def runTest(spec, keymat, closed=False, tcSize=None):
                 numSerial = utils.makeCertSerial()
                 if j == certChainFailure[i]:
                     privObj = s
-                c = utils.makeSignedCert(p, 'intermediate {}'.format(j),
-                        365, numSerial, privObj, certList[0])
+                c = utils.makeSignedCert(p, 'intermediate {} in {}'.format(
+                    j, i), 365, numSerial, privObj, certList[0])
                 privObj = s
                 certList.insert(0, c)
 
@@ -98,8 +101,14 @@ def runTest(spec, keymat, closed=False, tcSize=None):
                 serial = key_store.numSerialToKeyId(numSerial)
 
         if (not closed or doGroups) and not omitRootCert[i]:
+            if certChainSerialCollision[i]:
+                s, p = utils.makeES256Keypair()
+                tlCert = utils.makeSignedCert(p, 'fake root {}'.format(i),
+                        365, certList[0].serial, s)
+            else:
+                tlCert = certList[-1]
             certPEM = utils.addPEMCertHeaders(
-                    utils.exportCertToPEM(certList[-1]))
+                    utils.exportCertToPEM(tlCert))
             keyStore.putPEMCert(certPEM)
 
         if closed or spec.get('includePublicKey', False):
