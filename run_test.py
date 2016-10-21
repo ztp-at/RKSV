@@ -59,6 +59,12 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     doGroups = spec.get('multipleGroups', False)
     chainLength = spec.get('certChainLength',
             [0] * spec['numberOfSignatureDevices'])
+    omitSignCert = spec.get('omitSignCert',
+            [False] * spec['numberOfSignatureDevices'])
+    omitRootCert = spec.get('omitRootCert',
+            [False] * spec['numberOfSignatureDevices'])
+    certChainFailure = spec.get('certChainFailure',
+            [0] * spec['numberOfSignatureDevices'])
 
     sigsBroken = list()
     sigsWorking = list()
@@ -74,12 +80,13 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             certList.append(utils.makeSignedCert(pubObj, serial, 365,
                 cserial, privObj))
         else:
-            keyStore.putPEMCert(keymat[i][0])
             certList.append(utils.loadCert(keymat[i][0]))
             numSerial = certList[-1].serial
             for j in range(chainLength[i], 0, -1):
                 s, p = utils.makeES256Keypair()
                 numSerial = utils.makeCertSerial()
+                if j == certChainFailure[i]:
+                    privObj = s
                 c = utils.makeSignedCert(p, 'intermediate {}'.format(j),
                         365, numSerial, privObj, certList[0])
                 privObj = s
@@ -90,7 +97,7 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             else:
                 serial = key_store.numSerialToKeyId(numSerial)
 
-        if not closed or doGroups:
+        if (not closed or doGroups) and not omitRootCert[i]:
             certPEM = utils.addPEMCertHeaders(
                     utils.exportCertToPEM(certList[-1]))
             keyStore.putPEMCert(certPEM)
@@ -101,6 +108,9 @@ def runTest(spec, keymat, closed=False, tcSize=None):
 
         sigB = sigsys.SignatureSystemBroken(zda, serial)
         sigW = sigsys.SignatureSystemWorking(zda, serial, privObj)
+
+        if omitSignCert[i]:
+            certList = [None]
 
         sigsBroken.append(sigB)
         sigsWorking.append(sigW)
