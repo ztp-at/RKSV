@@ -45,15 +45,15 @@ def testVerify(spec, pub, priv, closed):
     :return: A TestVerifyResult indicating the result of the test and an
     error message. If the result is OK, the message is None.
     """
-    expected_exception_type = 'no Exception'
+    expected_exception_type = _('no Exception')
     expected_exception_receipt = None
 
-    actual_exception_type = 'no Exception'
+    actual_exception_type = _('no Exception')
     actual_exception = None
 
     try:
         expected_exception_type = spec.get('expectedException',
-                'no Exception')
+                _('no Exception'))
         expected_exception_receipt = spec.get('exceptionReceipt')
 
         keymat = [(pub, priv)] * spec['numberOfSignatureDevices']
@@ -73,14 +73,14 @@ def testVerify(spec, pub, priv, closed):
 
     if actual_exception_type != expected_exception_type:
         return TestVerifyResult.FAIL, Exception(
-                'Expected "{}" but got "{}", message: "{}"'.format(
+                _('Expected "{}" but got "{}", message: "{}"').format(
                     expected_exception_type, actual_exception_type,
                     actual_exception))
 
     if actual_exception and expected_exception_receipt:
         if actual_exception.receipt != expected_exception_receipt:
             return TestVerifyResult.FAIL, Exception(
-                    'Expected "{}" at receipt "{}" but it occured at "{}" instead'.format(
+                    _('Expected "{}" at receipt "{}" but it occured at "{}" instead').format(
                         expected_exception_type, expected_exception_receipt,
                         actual_exception.receipt))
 
@@ -118,7 +118,7 @@ def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize):
         closed = s.get('closedSystem', False)
         if label == 'Unknown':
             result = TestVerifyResult.ERROR
-            msg = 'No run label'
+            msg = _('No run label')
         else:
             pc = pub if closed else crt
             result, msg = testVerify(s, pc, priv, closed)
@@ -135,7 +135,7 @@ def printTestVerifyResult(label, groupLabel, closed, tcSize, result, msg):
 def printTestVerifySummary(results):
     nFails = sum(r[4] == TestVerifyResult.FAIL for r in results)
     nErrors = sum(r[4] == TestVerifyResult.ERROR for r in results)
-    print('{} tests run, {} failed, {} errors'.format(len(results), nFails, nErrors))
+    print(_('{} tests run, {} failed, {} errors').format(len(results), nFails, nErrors))
 
 import json
 import sys
