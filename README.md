@@ -244,6 +244,15 @@ img_decode.py
 This script reads all image files given on the command line and extracts all QR
 codes contained.
 
+cert_extract.py
+---------------
+	Usage: ./cert_extract.py <output dir>
+
+This script reads a JSON DEP from stdin, extracts all certificates from the
+`Signaturzertifikat` and `Zertifizierungsstellen` elements and saves them in the
+specified output directory. The output files are in PEM format and the file
+names are of the form `<hex certificate serial>.crt`.
+
 rktool.py
 ---------
 This script provides a GUI to access some of the functionality provided by the

@@ -1,4 +1,3 @@
-write script to extract certs from DEP
 allow restore receipt also after the first regular receipt as required by new doc
 allow for different algorithms in one DEP?
 verify the need for testing for a changing turnover counter size or a changing system type
