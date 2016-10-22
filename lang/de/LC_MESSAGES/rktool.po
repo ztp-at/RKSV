@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-10-21 22:57+CEST\n"
+"POT-Creation-Date: 2016-10-22 22:06+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -23,6 +23,18 @@ msgstr "Umsatzzähler-Länge ungültig."
 #: cashreg.py:120 main.py:340 receipt.py:69 rktool.py:340
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
+
+#: cert_extract.py:34 cert_extract.py:41 cert_extract.py:52
+msgid "WARNING: {}"
+msgstr "WARNUNG: {}"
+
+#: cert_extract.py:35 cert_extract.py:42
+msgid "\"{}\" missing from group element."
+msgstr "\"{}\" fehlt in Beleg-Gruppe."
+
+#: cert_extract.py:53
+msgid "Cannot load certificate: {}"
+msgstr "Kann Zertifikat nicht laden: {}"
 
 #: demo.py:65
 msgid "The number of receipts must be at least 1."
