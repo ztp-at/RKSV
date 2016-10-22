@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/bin/env python2.7
 
 """
 This module provides an abstraction for a receipt and several basic conversion

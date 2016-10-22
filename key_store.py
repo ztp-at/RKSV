@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/bin/env python2.7
 
 """
 This module contains classes for a key store where certificates or public keys

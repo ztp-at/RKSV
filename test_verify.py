@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/bin/env python2.7
 """
 This module provides functions to read tests cases from a specification
 and test the verification functions against them.

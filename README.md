@@ -1,24 +1,31 @@
 Dependencies
 ------------
->=python-3.4
->=python-2.7
->=Kivy-1.9
->=dev-python/appdirs-1.4.0
->=dev-python/colorama-0.33
->=dev-python/configparser-3.3.0.2
->=dev-python/cryptography-1.2
->=dev-python/enum34-1.0.4
->=dev-python/flask-0.10.1-r1
->=dev-python/future-0.15.2
->=dev-python/pillow-3.1.1
->=dev-python/pyjwt-1.3
->=dev-python/requests-2.8.1
->=dev-python/six-1.10.0
->=dev-python/sh-1.11
->=dev-python/virtualenv-13.1.2
->=gnu-make-4.1-r1
->=zbar-0.10-r5 + python bindings
-pygettext.py in PATH
+To use on Linux:
+* >=python-2.7.10
+* ==Kivy-1.9.0
+* >=dev-python/configparser-3.3.0.2
+* >=dev-python/cryptography-1.2
+* ==dev-python/cython-0.21.2
+* >=dev-python/enum34-1.0.4
+* >=dev-python/flask-0.10.1-r1
+* >=dev-python/future-0.15.2
+* >=dev-python/pillow-3.1.1
+* >=dev-python/pygame-1.9.2
+* >=dev-python/pyjwt-1.3
+* >=dev-python/requests-2.8.1
+* >=dev-python/six-1.10.0
+* >=gnu-make-4.1-r1
+* >=zbar-0.10-r5 + python bindings
+* >=openssl-1.0.2j
+
+Additionally needed to compile the translations:
+* pygettext.py in PATH
+
+Additionally needed to build the APK:
+* >=dev-python/appdirs-1.4.0
+* >=dev-python/colorama-0.33
+* >=dev-python/sh-1.11
+* >=dev-python/virtualenv-13.1.2
 
 make setup
 ----------

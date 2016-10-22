@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/bin/env python2.7
 
 """
 This module provides functions to verify a DEP.

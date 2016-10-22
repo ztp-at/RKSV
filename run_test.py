@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/bin/env python2.7
 """
 This module provides a function to generate a DEP and crypto container
 according to a JSON test specification.

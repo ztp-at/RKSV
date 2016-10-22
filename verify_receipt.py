@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/bin/env python2.7
 
 """
 This module contains classes to verify receipts.

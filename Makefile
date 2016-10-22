@@ -5,8 +5,9 @@ TEST_FILES		= $(shell find tests/ -name '*.json' | sort)
 setup: aesBase64_1.txt cert_1.key cert_1.crt cert_1.pub
 
 test: cert_1.key cert_1.crt cert_1.pub
-	python3 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 3' $(TEST_FILES) && \
-	python2 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 2' $(TEST_FILES)
+	python2.7 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 2' $(TEST_FILES)
+	command -v python3 >/dev/null 2>&1 && \
+		python3 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 3' $(TEST_FILES)
 
 aesBase64_%.txt:
 	dd if=/dev/urandom bs=1 count=32 | base64 > $@
