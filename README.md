@@ -23,6 +23,7 @@ To use on Linux:
 
 Additionally needed to compile the translations:
 * pygettext.py in PATH
+* >=gnu-gettext-0.19.7
 
 Additionally needed to build the APK:
 * >=dev-python/appdirs-1.4.0
@@ -98,9 +99,9 @@ public key file should contain the public key to the given private key.
 
 The third invocation generates a DEP file but uses the Registrierkasse Mobile
 service from A-Trust to create the signatures. It uses the default test login
-(`u123456789`:`123456789`) and the SSL certificates in `A-Trust-Stamm.pem`. The
-certificate used to sign the receipts is located in `regk-mobile-test.crt` or
-can be downloaded from the A-Trust service.
+(`u123456789`:`123456789`) and the SSL certificates in `misc/A-Trust-Stamm.pem`.
+The certificate used to sign the receipts is located in
+`misc/regk-mobile-test.crt` or can be downloaded from the A-Trust service.
 
 The AES key file should contain the key used to encrypt the turnover
 counter in each receipt as base64 encoded text.

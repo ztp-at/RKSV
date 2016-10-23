@@ -1,7 +1,6 @@
 *.swp
 *.swo
 *.pyc
-aesBase64.txt
 *.key
 *.crt
 *.pub
@@ -15,3 +14,4 @@ bin/
 .builddata
 .buildozer
 .pyenv
+buildozer.spec

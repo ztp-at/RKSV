@@ -53,29 +53,33 @@ ifneq (,$(findstring n,$(MAKEFLAGS)))
 DISABLE_VENV=: DISABLE_VENV
 endif
 
-.pyenv: requirements_run.txt
+.pyenv: misc/requirements_run.txt misc/pygettext.py
 	$(DISABLE_VENV) ; \
 	virtualenv -p python2.7 .pyenv && \
 	.pyenv/bin/pip install --upgrade pip && \
 	.pyenv/bin/pip install cython==0.21.2 && \
-	.pyenv/bin/pip install -r requirements_run.txt
+	.pyenv/bin/pip install -r misc/requirements_run.txt
+	cp misc/pygettext.py .pyenv/bin
 
-apk: .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python compile-trans
+apk: buildozer.spec .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python compile-trans
 	$(DISABLE_VENV) ; \
 	export PYTHONPATH="$(CURDIR)/.builddata/pyvirt/lib/python2.7/site-packages:$${PYTHONPATH}" && \
 	export PATH=".builddata/bin:$${PATH}" && \
 	LD_PRELOAD=/lib/libutil.so.1 .builddata/pyvirt/bin/buildozer -v android_new debug
+
+buildozer.spec: misc/buildozer.spec
+	cp misc/buildozer.spec buildozer.spec
 
 .builddata/bin/python:
 	mkdir -p .builddata/bin
 	$(DISABLE_VENV) ; \
 	ln -s `which python2.7` .builddata/bin/python
 
-.builddata/p4a: patches/python-for-android-fix.patch
+.builddata/p4a: misc/python-for-android-fix.patch
 	mkdir -p .builddata
 	rm -rf .builddata/p4a
 	git clone https://github.com/kivy/python-for-android.git .builddata/p4a
-	cd .builddata/p4a && patch -p1 < ../../patches/python-for-android-fix.patch
+	cd .builddata/p4a && patch -p1 < ../../misc/python-for-android-fix.patch
 
 .builddata/libs: .builddata/zbar-android.zip
 	rm -rf .builddata/libs
@@ -88,12 +92,12 @@ apk: .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python comp
 	mkdir -p .builddata
 	wget https://sourceforge.net/projects/zbar/files/AndroidSDK/ZBarAndroidSDK-0.2.zip/download -O .builddata/zbar-android.zip
 
-.builddata/pyvirt: requirements_build.txt
+.builddata/pyvirt: misc/requirements_build.txt
 	mkdir -p .builddata
 	rm -rf .builddata/pyvirt
 	$(DISABLE_VENV) ; \
 	virtualenv -p python2.7 .builddata/pyvirt && \
-	.builddata/pyvirt/bin/pip install -r requirements_build.txt && \
+	.builddata/pyvirt/bin/pip install -r misc/requirements_build.txt && \
 	.builddata/pyvirt/bin/pip install https://github.com/kivy/buildozer/archive/master.zip
 
 clean:
@@ -103,6 +107,7 @@ clean:
 	rm -f lang/*/LC_MESSAGES/rktool.mo
 	rm -f aesBase64*.txt
 	rm -f cert_*.key cert_*.crt cert_*.pub
+	rm -f buildozer.spec
 
 dist-clean: clean
 	rm -rf .builddata

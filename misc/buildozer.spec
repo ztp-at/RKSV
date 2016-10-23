@@ -13,7 +13,7 @@ package.domain = at.ztp
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,crt,pem,mo
+source.include_exts = py,png,jpg,kv,atlas,mo
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -22,7 +22,7 @@ source.include_exts = py,png,jpg,kv,atlas,crt,pem,mo
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = bin, builds, patches, .builddata
+source.exclude_dirs = bin, builds, misc, .builddata
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg

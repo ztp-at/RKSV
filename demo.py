@@ -34,7 +34,7 @@ if __name__ == "__main__":
     num = 0
     if len(sys.argv) == 3:
         sigsystem = sigsys.SignatureSystemATrustMobile("u123456789",
-                "123456789", "A-Trust-Stamm.pem")
+                "123456789", "misc/A-Trust-Stamm.pem")
         keyf = sys.argv[1]
         num = int(sys.argv[2])
     elif len(sys.argv) == 5:
