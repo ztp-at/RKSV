@@ -60,6 +60,7 @@ endif
 	.pyenv/bin/pip install cython==0.21.2 && \
 	.pyenv/bin/pip install -r misc/requirements_run.txt
 	cp misc/pygettext.py .pyenv/bin
+	chmod +x .pyenv/bin/pygettext.py
 
 apk: buildozer.spec .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python compile-trans
 	$(DISABLE_VENV) ; \
