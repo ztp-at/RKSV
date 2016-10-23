@@ -1,3 +1,4 @@
+prevent identical receipt IDs in DEP
 deal with unsigned null receipts in GUI
 allow restore receipt also after the first regular receipt as required by new doc
 allow for different algorithms in one DEP?
