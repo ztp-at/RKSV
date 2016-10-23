@@ -1,5 +1,8 @@
 Dependencies
 ------------
+To run `make env`:
+* >=dev-python/virtualenv-13.1.2
+
 To use on Linux:
 * >=python-2.7.10
 * ==Kivy-1.9.0
@@ -24,8 +27,8 @@ Additionally needed to compile the translations:
 Additionally needed to build the APK:
 * >=dev-python/appdirs-1.4.0
 * >=dev-python/colorama-0.33
+* >=dev-python/jinja-2.8
 * >=dev-python/sh-1.11
-* >=dev-python/virtualenv-13.1.2
 
 make env
 --------
