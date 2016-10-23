@@ -1,12 +1,16 @@
 Dependencies
 ------------
 To run `make env`:
-* >=dev-python/virtualenv-13.1.2
-* >=gnu-make-4.1-r1
-* >=openssl-1.0.2j
+* >=gnu-make-3.81
+* >=libgl1-mesa-10.1.3 + development headers
+* >=mesa-common-10.1.3 + development headers
+* >=openssl-1.0.1f + development headers
+* >=python-2.7.6
+* >=libpython-2.7.6 + development headers
+* >=python-virtualenv-1.11.4
+* >=zbar-0.10 + development headers
 
 To use on Linux:
-* >=python-2.7.10
 * ==Kivy-1.9.0
 * >=dev-python/configparser-3.3.0.2
 * >=dev-python/cryptography-1.2
@@ -19,7 +23,7 @@ To use on Linux:
 * >=dev-python/pyjwt-1.3
 * >=dev-python/requests-2.8.1
 * >=dev-python/six-1.10.0
-* >=zbar-0.10-r5 + python bindings
+* zbar Python bindings
 
 Additionally needed to compile the translations:
 * pygettext.py in PATH
