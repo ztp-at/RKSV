@@ -53,12 +53,12 @@ ifneq (,$(findstring n,$(MAKEFLAGS)))
 DISABLE_VENV=: DISABLE_VENV
 endif
 
-.pyenv: requirements_runtime.txt
+.pyenv: requirements_run.txt
 	$(DISABLE_VENV) ; \
 	virtualenv -p python2.7 .pyenv && \
 	.pyenv/bin/pip install --upgrade pip && \
 	.pyenv/bin/pip install cython==0.21.2 && \
-	.pyenv/bin/pip install -r requirements_runtime.txt
+	.pyenv/bin/pip install -r requirements_run.txt
 
 apk: .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python compile-trans
 	$(DISABLE_VENV) ; \
@@ -88,12 +88,12 @@ apk: .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python comp
 	mkdir -p .builddata
 	wget https://sourceforge.net/projects/zbar/files/AndroidSDK/ZBarAndroidSDK-0.2.zip/download -O .builddata/zbar-android.zip
 
-.builddata/pyvirt: requirements_buildtime.txt
+.builddata/pyvirt: requirements_build.txt
 	mkdir -p .builddata
 	rm -rf .builddata/pyvirt
 	$(DISABLE_VENV) ; \
 	virtualenv -p python2.7 .builddata/pyvirt && \
-	.builddata/pyvirt/bin/pip install -r requirements_buildtime.txt && \
+	.builddata/pyvirt/bin/pip install -r requirements_build.txt && \
 	.builddata/pyvirt/bin/pip install https://github.com/kivy/buildozer/archive/master.zip
 
 clean:
