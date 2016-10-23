@@ -9,7 +9,7 @@ import algorithms
 import receipt
 import utils
 
-class CashRegisterI:
+class CashRegisterI(object):
     """
     The base class for cash registers. It contains functions that every cash
     register must implement. Do not use this directly.

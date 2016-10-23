@@ -68,7 +68,7 @@ class InvalidKeyException(ReceiptException):
     def __init__(self, receipt):
         super(InvalidKeyException, self).__init__(receipt, _("Invalid key."))
 
-class Receipt:
+class Receipt(object):
     """
     The basic receipt class. Contains methods to convert a receipt to and from
     various string formats.

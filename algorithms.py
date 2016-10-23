@@ -13,7 +13,7 @@ from six import binary_type
 
 import utils
 
-class AlgorithmI:
+class AlgorithmI(object):
     """
     The base class for algorithms. It contains functions every algorithm must
     implement. Do not use this directly.

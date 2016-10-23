@@ -76,7 +76,7 @@ class UnsignedNullReceiptException(receipt.ReceiptException):
     def __init__(self, rec):
         super(UnsignedNullReceiptException, self).__init__(rec, _("Null receipt not signed."))
 
-class ReceiptVerifierI:
+class ReceiptVerifierI(object):
     """
     The base class for receipt verifiers. It contains functions that every
     receipt verifier must implement. Do not use this directly.

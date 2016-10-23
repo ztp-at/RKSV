@@ -12,7 +12,7 @@ import numbers
 
 import utils
 
-class KeyStoreI:
+class KeyStoreI(object):
     """
     The base class for a key store. It contains functions every key store must
     implement. Do not use this directly.
@@ -112,7 +112,7 @@ def strSerialToKeyIds(serial):
 
     return validKeyIds
 
-class KeyTuple:
+class KeyTuple(object):
     """
     The data structure used internally by KeyStore. For internal use only.
     """

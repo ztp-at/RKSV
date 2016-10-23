@@ -6,7 +6,7 @@ from builtins import int
 import base64
 import requests
 
-class SignatureSystemI:
+class SignatureSystemI(object):
     """
     The base class for signature systems. It contains functions that every
     signature system must implement. Do not use this directly.

@@ -7,7 +7,7 @@ import json
 
 import utils
 
-class DEPExporterI:
+class DEPExporterI(object):
     """
     The base class for DEP exporters. It contains functions every exporter
     must implement. Do not use this directly.
