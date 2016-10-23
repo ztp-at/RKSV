@@ -2,6 +2,8 @@ Dependencies
 ------------
 To run `make env`:
 * >=dev-python/virtualenv-13.1.2
+* >=gnu-make-4.1-r1
+* >=openssl-1.0.2j
 
 To use on Linux:
 * >=python-2.7.10
@@ -17,9 +19,7 @@ To use on Linux:
 * >=dev-python/pyjwt-1.3
 * >=dev-python/requests-2.8.1
 * >=dev-python/six-1.10.0
-* >=gnu-make-4.1-r1
 * >=zbar-0.10-r5 + python bindings
-* >=openssl-1.0.2j
 
 Additionally needed to compile the translations:
 * pygettext.py in PATH
