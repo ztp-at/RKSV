@@ -1,4 +1,4 @@
-see why kivy screws up the GUI on some versions
+see why kivy screws up the GUI on some versions: it has something to do with size_hint_y in the main widget
 deal with unsigned null receipts in GUI
 allow restore receipt also after the first regular receipt as required by new doc
 allow for different algorithms in one DEP?
