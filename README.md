@@ -27,6 +27,13 @@ Additionally needed to build the APK:
 * >=dev-python/sh-1.11
 * >=dev-python/virtualenv-13.1.2
 
+make env
+--------
+
+Creates a Python virtual environment with everything needed to run the scripts
+on a Linux system. The environment can be activated by running `source
+.pyenv/bin/activate`.
+
 make setup
 ----------
 
@@ -37,6 +44,7 @@ AES key is stored as base64 encoded text.
 
 make test
 ---------
+
 Runs `test_verify.py` for all test cases in `tests` for open and closed systems
 with turnover counters of 5, 8 and 6 bytes with both Python 2 and 3. If no
 certificate has been gernerated yet, it will create one first.
