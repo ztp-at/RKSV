@@ -1,0 +1,5 @@
+appdirs==1.4.0
+colorama==0.3.7
+Jinja2==2.8
+sh==1.11
+six==1.10.0
