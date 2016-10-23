@@ -2,7 +2,7 @@ prevent identical receipt IDs in DEP
 deal with unsigned null receipts in GUI
 allow restore receipt also after the first regular receipt as required by new doc
 allow for different algorithms in one DEP?
-verify the need for testing for a changing turnover counter size or a changing system type
+verify the need for testing for a changing turnover counter size
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
 collect multiple errors? right now we fail on the first one
 improve UI, make long text in text fields wrap, not scroll, add hint texts to tfs...
