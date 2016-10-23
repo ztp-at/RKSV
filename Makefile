@@ -41,6 +41,7 @@ lang/rktool.pot:
 	pygettext.py -o lang/rktool.pot *.py *.kv
 
 env: .pyenv
+	echo "Virtualenv ready. Run \"source .pyenv/bin/activate\" to enable it."
 
 NO_VENV_PATH=$(shell echo $${PATH} | sed -e 's;$(CURDIR)/.pyenv/bin:;;')
 DISABLE_VENV=unset pydoc; \
@@ -57,8 +58,7 @@ endif
 	virtualenv -p python2.7 .pyenv && \
 	.pyenv/bin/pip install --upgrade pip && \
 	.pyenv/bin/pip install cython==0.21.2 && \
-	.pyenv/bin/pip install -r requirements_runtime.txt && \
-	echo "Virtualenv ready. Run \"source .pyenv/bin/activate\" to enable it."
+	.pyenv/bin/pip install -r requirements_runtime.txt
 
 apk: .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python compile-trans
 	$(DISABLE_VENV) ; \
