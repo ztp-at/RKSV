@@ -14,3 +14,4 @@ aesBase64.txt
 bin/
 .builddata
 .buildozer
+.pyenv

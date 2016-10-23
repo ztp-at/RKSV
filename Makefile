@@ -40,12 +40,36 @@ lang/rktool.pot:
 	mkdir -p lang
 	pygettext.py -o lang/rktool.pot *.py *.kv
 
-apk: .builddata/pyvirt/bin/buildozer .builddata/libs .builddata/p4a .builddata/bin/python compile-trans
-	PATH=".builddata/bin:${PATH}" LD_PRELOAD=/lib/libutil.so.1 .builddata/pyvirt/bin/buildozer -v android_new debug
+env: .pyenv
+
+NO_VENV_PATH=$(shell echo $${PATH} | sed -e 's;$(CURDIR)/.pyenv/bin:;;')
+DISABLE_VENV=unset pydoc; \
+    export PATH=$(NO_VENV_PATH); \
+    unset PYTHONHOME; \
+    unset VIRTUAL_ENV
+
+ifneq (,$(findstring n,$(MAKEFLAGS)))
+DISABLE_VENV=: DISABLE_VENV
+endif
+
+.pyenv: requirements_runtime.txt
+	$(DISABLE_VENV) ; \
+	virtualenv -p python2.7 .pyenv && \
+	.pyenv/bin/pip install --upgrade pip && \
+	.pyenv/bin/pip install cython==0.21.2 && \
+	.pyenv/bin/pip install -r requirements_runtime.txt && \
+	echo "Virtualenv ready. Run \"source .pyenv/bin/activate\" to enable it."
+
+apk: .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python compile-trans
+	$(DISABLE_VENV) ; \
+	export PYTHONPATH="$(CURDIR)/.builddata/pyvirt/lib/python2.7/site-packages:$${PYTHONPATH}" && \
+	export PATH=".builddata/bin:$${PATH}" && \
+	sh -c 'LD_PRELOAD=/lib/libutil.so.1 .builddata/pyvirt/bin/buildozer -v android_new debug'
 
 .builddata/bin/python:
 	mkdir -p .builddata/bin
-	ln -s `which python2` .builddata/bin/python
+	$(DISABLE_VENV) ; \
+	ln -s `which python2.7` .builddata/bin/python
 
 .builddata/p4a: patches/python-for-android-fix.patch
 	mkdir -p .builddata
@@ -64,10 +88,12 @@ apk: .builddata/pyvirt/bin/buildozer .builddata/libs .builddata/p4a .builddata/b
 	mkdir -p .builddata
 	wget https://sourceforge.net/projects/zbar/files/AndroidSDK/ZBarAndroidSDK-0.2.zip/download -O .builddata/zbar-android.zip
 
-.builddata/pyvirt/bin/buildozer:
+.builddata/pyvirt: requirements_buildtime.txt
 	mkdir -p .builddata
 	rm -rf .builddata/pyvirt
-	virtualenv -p python2 .builddata/pyvirt
+	$(DISABLE_VENV) ; \
+	virtualenv -p python2.7 .builddata/pyvirt && \
+	.builddata/pyvirt/bin/pip install -r requirements_buildtime.txt && \
 	.builddata/pyvirt/bin/pip install https://github.com/kivy/buildozer/archive/master.zip
 
 clean:
@@ -81,5 +107,6 @@ clean:
 dist-clean: clean
 	rm -rf .builddata
 	rm -rf .buildozer
+	rm -rf .pyenv
 
-.PHONY: clean dist-clean setup update-trans compile-trans apk
+.PHONY: clean dist-clean setup update-trans compile-trans apk env
