@@ -64,7 +64,7 @@ apk: .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python comp
 	$(DISABLE_VENV) ; \
 	export PYTHONPATH="$(CURDIR)/.builddata/pyvirt/lib/python2.7/site-packages:$${PYTHONPATH}" && \
 	export PATH=".builddata/bin:$${PATH}" && \
-	sh -c 'LD_PRELOAD=/lib/libutil.so.1 .builddata/pyvirt/bin/buildozer -v android_new debug'
+	LD_PRELOAD=/lib/libutil.so.1 .builddata/pyvirt/bin/buildozer -v android_new debug
 
 .builddata/bin/python:
 	mkdir -p .builddata/bin
