@@ -81,7 +81,9 @@ setup`.
 make dist-clean
 ---------------
 
-Like `make clean` but also removes all intermediate files created by `make apk`.
+Like `make clean` but also removes all intermediate files created by `make apk`
+and `make env`. Make sure to leave the Python virtual environment created by
+`make env` by calling `deactivate` before doing a `make dist-clean`.
 
 demo.py
 -------
