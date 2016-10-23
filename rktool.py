@@ -872,7 +872,10 @@ class KeyStoreWidget(BoxLayout):
         self.dismissPopup()
 
 class MainWidget(BoxLayout):
-    pass
+    def __init__(self, **kwargs):
+        super(MainWidget, self).__init__(**kwargs)
+        if platform == 'android':
+            self.size_hint_y = None
 
 class RKToolApp(App):
     keyStore = key_store.KeyStore()

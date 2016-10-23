@@ -2,7 +2,7 @@ cffi==1.8.3
 click==6.6
 configparser==3.5.0
 cryptography==1.5.2
-Cython==0.21.2
+Cython==0.24.1
 enum34==1.1.6
 Flask==0.11.1
 future==0.15.2
@@ -10,7 +10,7 @@ idna==2.1
 ipaddress==1.0.17
 itsdangerous==0.24
 Jinja2==2.8
-Kivy==1.9.0
+Kivy==1.9.1
 Kivy-Garden==0.1.1
 MarkupSafe==0.23
 Pillow==3.4.2

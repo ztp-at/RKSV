@@ -57,7 +57,7 @@ endif
 	$(DISABLE_VENV) ; \
 	virtualenv -p python2.7 .pyenv && \
 	.pyenv/bin/pip install --upgrade pip && \
-	.pyenv/bin/pip install cython==0.21.2 && \
+	.pyenv/bin/pip install cython==0.24.1 && \
 	.pyenv/bin/pip install -r misc/requirements_run.txt
 	cp misc/pygettext.py .pyenv/bin
 	chmod +x .pyenv/bin/pygettext.py
