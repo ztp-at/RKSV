@@ -1,5 +1,4 @@
 make env should also get the pygettext.py file
-see if we can add make targets for run- and buildtime python and just use virtualenvs
 deal with unsigned null receipts in GUI
 allow restore receipt also after the first regular receipt as required by new doc
 allow for different algorithms in one DEP?
