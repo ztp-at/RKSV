@@ -9,6 +9,7 @@ To run `make env`:
 * >=libpython-2.7.6 + development headers
 * >=python-virtualenv-1.11.4
 * >=zbar-0.10 + development headers
+* a working compiler toolchain
 
 To use on Linux:
 * ==Kivy-1.9.0
