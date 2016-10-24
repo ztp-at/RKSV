@@ -218,6 +218,13 @@ class ViewReceiptWidget(BoxLayout):
         if receipt.isSignedBroken():
             self.verify_button.text = _('No Signature')
             self.verify_button.disabled = True
+
+            if not receipt.isDummy() and not receipt.isReversal() and receipt.isNull():
+                def showReceiptError(instance):
+                    displayError(
+                            verify_receipt.UnsignedNullReceiptException(
+                                receipt.receiptId))
+                Clock.schedule_once(showReceiptError, 0)
         
         self.updateView()
 
