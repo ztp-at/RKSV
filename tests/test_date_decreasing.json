@@ -48,6 +48,8 @@
       "typeOfReceipt": "STANDARD_BELEG"
     }
   ],
-  "expectedException": "DecreasingDateException",
-  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-3"
+  "unused": {
+    "expectedException": "DecreasingDateException",
+    "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-3"
+  }
 }

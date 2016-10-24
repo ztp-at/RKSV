@@ -343,15 +343,16 @@ def verifyGroup(group, rv, key, state=None):
                 raise DuplicateReceiptIdException(ro.receiptId)
             if prevObj.registerId != ro.registerId:
                 raise ChangingRegisterIdException(ro.receiptId)
-            if prevObj.dateTime > ro.dateTime:
-                raise DecreasingDateException(ro.receiptId)
             if (prevObj.zda == 'AT0' and ro.zda != 'AT0') or (
                     prevObj.zda != 'AT0' and ro.zda == 'AT0'):
                 raise ChangingSystemTypeException(ro.receiptId)
-            # TODO: check if this is necessary
-            if not ro.isDummy() and not ro.isReversal() and len(
-                    ro.encTurnoverCounter) != state.turnoverCounterSize:
-                raise ChangingTurnoverCounterSizeException(ro.receiptId)
+            # These checks are not necessary according to:
+            # https://github.com/a-sit-plus/at-registrierkassen-mustercode/issues/144#issuecomment-255786335
+            #if prevObj.dateTime > ro.dateTime:
+            #    raise DecreasingDateException(ro.receiptId)
+            #if not ro.isDummy() and not ro.isReversal() and len(
+            #        ro.encTurnoverCounter) != state.turnoverCounterSize:
+            #    raise ChangingTurnoverCounterSizeException(ro.receiptId)
 
         state.usedReceiptIds.add(ro.receiptId)
 

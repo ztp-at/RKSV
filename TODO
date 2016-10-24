@@ -1,5 +1,4 @@
 allow for different algorithms in one DEP?
-verify the need for testing for a changing turnover counter size
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
 collect multiple errors? right now we fail on the first one
 improve UI, make long text in text fields wrap, not scroll, add hint texts to tfs...

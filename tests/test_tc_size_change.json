@@ -54,6 +54,8 @@
       }
     }
   ],
-  "expectedException": "ChangingTurnoverCounterSizeException",
-  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-3"
+  "unused": {
+    "expectedException": "ChangingTurnoverCounterSizeException",
+    "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-3"
+  }
 }
