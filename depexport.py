@@ -13,7 +13,7 @@ class DEPExporterI(object):
     must implement. Do not use this directly.
     """
 
-    def addGroup(self, receipt_tuples, cert=None, cert_chain=None):
+    def addGroup(self, receipt_tuples, cert=None, cert_chain=[]):
         """
         Adds a new group to the DEP exporter.
         :param receipt_tuples: A list of tuples containing the algorithm ID
