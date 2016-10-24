@@ -52,6 +52,16 @@ class NoRestoreReceiptAfterSignatureSystemFailureException(DEPReceiptException):
         super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__(rec,
                 _("Receipt after restored signature system must not have any turnover."))
 
+class DuplicateReceiptIdException(DEPReceiptException):
+    """
+    This exception indicates that the ID of a receipt is already in use in
+    a previous receipt.
+    """
+
+    def __init__(self, rec):
+        super(DuplicateReceiptIdException, self).__init__(rec,
+                _("Receipt ID already in use."))
+
 class InvalidTurnoverCounterException(DEPReceiptException):
     """
     This exception indicates that the turnover counter is invalid.
@@ -248,6 +258,7 @@ class VerifyGroupState(object):
         self.lastReceiptJWS = None
         self.lastTurnoverCounter = 0
         self.turnoverCounterSize = None
+        self.usedReceiptIds = set()
 
 def verifyGroup(group, rv, key, state=None):
     """
@@ -286,6 +297,7 @@ def verifyGroup(group, rv, key, state=None):
     :throws: DecreasingDateException
     :throws: ChangingSystemTypeException
     :throws: ChangingTurnoverCounterSizeException
+    :throws: DuplicateReceiptIdException
     """
     if not state:
         state = VerifyGroupState()
@@ -302,7 +314,7 @@ def verifyGroup(group, rv, key, state=None):
             if not ro.isNull():
                 if not prevObj:
                     raise NonzeroTurnoverOnInitialReceiptException(ro.receiptId)
-                elif prevObj.isSignedBroken():
+                if prevObj.isSignedBroken():
                     raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
         except verify_receipt.SignatureSystemFailedException as e:
             ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
@@ -314,6 +326,10 @@ def verifyGroup(group, rv, key, state=None):
             if not prevObj:
                 raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
             raise e
+
+        if ro.receiptId in state.usedReceiptIds:
+            raise DuplicateReceiptIdException(ro.receiptId)
+        state.usedReceiptIds.add(ro.receiptId)
 
         if not prevObj:
             if ro.isDummy() or ro.isReversal():
@@ -386,6 +402,7 @@ def verifyDEP(dep, keyStore, key):
     :throws: ChangingSystemTypeException
     :throws: ChangingTurnoverCounterSizeException
     :throws: CertificateChainBrokenException
+    :throws: DuplicateReceiptIdException
     """
     if len(dep['Belege-Gruppe']) == 1 and not dep['Belege-Gruppe'][0]['Signaturzertifikat']:
         rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
