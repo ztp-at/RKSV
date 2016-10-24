@@ -259,6 +259,7 @@ class VerifyGroupState(object):
         self.lastTurnoverCounter = 0
         self.turnoverCounterSize = None
         self.usedReceiptIds = set()
+        self.needRestoreReceipt = False
 
 def verifyGroup(group, rv, key, state=None):
     """
@@ -311,15 +312,19 @@ def verifyGroup(group, rv, key, state=None):
         algorithm = None
         try:
             ro, algorithm = rv.verifyJWS(r)
-            if not ro.isNull():
-                if not prevObj:
-                    raise NonzeroTurnoverOnInitialReceiptException(ro.receiptId)
-                if prevObj.isSignedBroken():
+            if prevObj and (not ro.isNull() or ro.isDummy() or ro.isReversal()):
+                if state.needRestoreReceipt:
                     raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
+                if prevObj.isSignedBroken():
+                    state.needRestoreReceipt = True
+            else:
+                state.needRestoreReceipt = False
         except verify_receipt.SignatureSystemFailedException as e:
             ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
             if not prevObj:
                 raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
+            if state.needRestoreReceipt:
+                raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
             algorithm = algorithms.ALGORITHMS[algorithmPrefix]
         except verify_receipt.UnsignedNullReceiptException as e:
             ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
@@ -327,15 +332,15 @@ def verifyGroup(group, rv, key, state=None):
                 raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
             raise e
 
-        if ro.receiptId in state.usedReceiptIds:
-            raise DuplicateReceiptIdException(ro.receiptId)
-        state.usedReceiptIds.add(ro.receiptId)
-
         if not prevObj:
+            if not ro.isNull():
+                raise NonzeroTurnoverOnInitialReceiptException(ro.receiptId)
             if ro.isDummy() or ro.isReversal():
                 raise NonstandardTypeOnInitialReceiptException(ro.receiptId)
             state.turnoverCounterSize = len(ro.encTurnoverCounter)
         else:
+            if ro.receiptId in state.usedReceiptIds:
+                raise DuplicateReceiptIdException(ro.receiptId)
             if prevObj.registerId != ro.registerId:
                 raise ChangingRegisterIdException(ro.receiptId)
             if prevObj.dateTime > ro.dateTime:
@@ -347,6 +352,8 @@ def verifyGroup(group, rv, key, state=None):
             if not ro.isDummy() and not ro.isReversal() and len(
                     ro.encTurnoverCounter) != state.turnoverCounterSize:
                 raise ChangingTurnoverCounterSizeException(ro.receiptId)
+
+        state.usedReceiptIds.add(ro.receiptId)
 
         if not ro.isDummy():
             if key:
