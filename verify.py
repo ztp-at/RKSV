@@ -340,7 +340,6 @@ def verifyGroup(group, rv, key, state=None):
                 raise ChangingRegisterIdException(ro.receiptId)
             if prevObj.dateTime > ro.dateTime:
                 raise DecreasingDateException(ro.receiptId)
-            # TODO: check if this is necessary
             if (prevObj.zda == 'AT0' and ro.zda != 'AT0') or (
                     prevObj.zda != 'AT0' and ro.zda == 'AT0'):
                 raise ChangingSystemTypeException(ro.receiptId)
