@@ -243,7 +243,13 @@ def verifyCert(cert, chain, keyStore):
     raise UntrustedCertificateException(key_store.numSerialToKeyId(
         first.serial))
 
-def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, tcSize, key):
+class VerifyGroupState(object):
+    def __init__(self):
+        self.lastReceiptJWS = None
+        self.lastTurnoverCounter = 0
+        self.turnoverCounterSize = None
+
+def verifyGroup(group, rv, key, state=None):
     """
     Verifies a group of receipts from a DEP. It checks if the signature of each
     receipt is valid, if the receipts are properly chained and if receipts with
@@ -252,21 +258,15 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, tcSize, key):
     last known value of the turnover counter on success and throws an exception
     otherwise.
     :param group: The receipt group as a json object.
-    :param lastReceipt: The last receipt from the previous group (if any) as JWS
-    string.
     :param rv: The receipt verifier object used to verify single receipts.
-    :param lastTurnoverCounter: The last known value of the turnover counter as
-    int.
-    :param tcSize: The size of the encrypted base64 encoded turnover counter. If
-    the initial receipt is in this group, the value is ignored, otherwise all
-    non-dummy and non-reversal receipts must have the same turnover counter
-    length. Note that the base64 encoded value is longer than the actual
-    turnover counter. Since we only check if the size changes this is ok.
     :param key: The key used to decrypt the turnover counter as a byte list or
     None.
-    :return: The last receipt in the group as JWS string, the last known value
-    of the turnover counter as int and the size of the encrypted base64 encoded
-    turnover counter as int.
+    :param state: The state returned by a previous call to verifyGroup(), or
+    None if this is the first group.
+    :return: A state object containing the last receipt in the group as JWS
+    string, the last known value of the turnover counter as int and the size of
+    the encrypted base64 encoded turnover counter as int. This object should be
+    passed to the next call to verifyGroup().
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
     :throws: CertSerialInvalidException
@@ -287,7 +287,10 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, tcSize, key):
     :throws: ChangingSystemTypeException
     :throws: ChangingTurnoverCounterSizeException
     """
-    prev = lastReceipt
+    if not state:
+        state = VerifyGroupState()
+
+    prev = state.lastReceiptJWS
     prevObj = None
     if prev:
         prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
@@ -315,7 +318,7 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, tcSize, key):
         if not prevObj:
             if ro.isDummy() or ro.isReversal():
                 raise NonstandardTypeOnInitialReceiptException(ro.receiptId)
-            tcSize = len(ro.encTurnoverCounter)
+            state.turnoverCounterSize = len(ro.encTurnoverCounter)
         else:
             if prevObj.registerId != ro.registerId:
                 raise ChangingRegisterIdException(ro.receiptId)
@@ -327,24 +330,26 @@ def verifyGroup(group, lastReceipt, rv, lastTurnoverCounter, tcSize, key):
                 raise ChangingSystemTypeException(ro.receiptId)
             # TODO: check if this is necessary
             if not ro.isDummy() and not ro.isReversal() and len(
-                    ro.encTurnoverCounter) != tcSize:
+                    ro.encTurnoverCounter) != state.turnoverCounterSize:
                 raise ChangingTurnoverCounterSizeException(ro.receiptId)
 
         if not ro.isDummy():
             if key:
-                newC = lastTurnoverCounter + int(round((ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
+                newC = state.lastTurnoverCounter + int(round(
+                    (ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
                 if not ro.isReversal():
                     turnoverCounter = ro.decryptTurnoverCounter(key, algorithm)
                     if turnoverCounter != newC:
                         raise InvalidTurnoverCounterException(ro.receiptId)
-                lastTurnoverCounter = newC
+                state.lastTurnoverCounter = newC
 
         verifyChain(ro, prev, algorithm)
 
         prev = r
         prevObj = ro
 
-    return prev, lastTurnoverCounter, tcSize
+    state.lastReceiptJWS = prev
+    return state
 
 def verifyDEP(dep, keyStore, key):
     """
@@ -382,17 +387,12 @@ def verifyDEP(dep, keyStore, key):
     :throws: ChangingTurnoverCounterSizeException
     :throws: CertificateChainBrokenException
     """
-    lastReceipt = None
-    lastTurnoverCounter = 0
-    tcSize = None
-
     if len(dep['Belege-Gruppe']) == 1 and not dep['Belege-Gruppe'][0]['Signaturzertifikat']:
         rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
-        lastReceipt, lastTurnoverCounter, tcSize = verifyGroup(
-                dep['Belege-Gruppe'][0], lastReceipt,
-                rv, lastTurnoverCounter, tcSize, key)
+        verifyGroup(dep['Belege-Gruppe'][0], rv, key)
         return
 
+    state = VerifyGroupState()
     for group in dep['Belege-Gruppe']:
         cert = group['Signaturzertifikat']
         if not cert:
@@ -402,8 +402,7 @@ def verifyDEP(dep, keyStore, key):
         verifyCert(cert, chain, keyStore)
         rv = verify_receipt.ReceiptVerifier.fromDEPCert(cert)
     
-        lastReceipt, lastTurnoverCounter, tcSize = verifyGroup(group,
-                lastReceipt, rv, lastTurnoverCounter, tcSize, key)
+        state = verifyGroup(group, rv, key, state)
 
 def usage():
     print("Usage: ./verify.py keyStore <key store> <dep export file> [<base64 AES key file>]")
