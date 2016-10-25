@@ -6,8 +6,9 @@ setup: aesBase64_1.txt cert_1.key cert_1.crt cert_1.pub
 
 test: cert_1.key cert_1.crt cert_1.pub
 	python2.7 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 2' $(TEST_FILES)
-	command -v python3 >/dev/null 2>&1 && \
-		python3 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 3' $(TEST_FILES)
+	if command -v python3 >/dev/null 2>&1 && [ -z "$${VIRTUAL_ENV}" ] ; then \
+		python3 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 3' $(TEST_FILES) ; \
+	fi
 
 aesBase64_%.txt:
 	dd if=/dev/urandom bs=1 count=32 | base64 > $@
