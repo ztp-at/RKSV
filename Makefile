@@ -63,7 +63,7 @@ endif
 	cp misc/pygettext.py .pyenv/bin
 	chmod +x .pyenv/bin/pygettext.py
 
-apk: buildozer.spec .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python compile-trans
+apk: buildozer.spec .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python .builddata/bin/cython compile-trans
 	$(DISABLE_VENV) ; \
 	export PYTHONPATH="$(CURDIR)/.builddata/pyvirt/lib/python2.7/site-packages:$${PYTHONPATH}" && \
 	export PATH=".builddata/bin:$${PATH}" && \
@@ -76,6 +76,11 @@ buildozer.spec: misc/buildozer.spec
 	mkdir -p .builddata/bin
 	$(DISABLE_VENV) ; \
 	ln -s `which python2.7` .builddata/bin/python
+
+.builddata/bin/cython: .builddata/pyvirt/bin/cython
+	mkdir -p .builddata/bin
+	$(DISABLE_VENV) ; \
+	ln -s ../pyvirt/bin/cython .builddata/bin/cython
 
 .builddata/p4a: misc/python-for-android-fix.patch
 	mkdir -p .builddata
@@ -94,7 +99,7 @@ buildozer.spec: misc/buildozer.spec
 	mkdir -p .builddata
 	wget https://sourceforge.net/projects/zbar/files/AndroidSDK/ZBarAndroidSDK-0.2.zip/download -O .builddata/zbar-android.zip
 
-.builddata/pyvirt: misc/requirements_build.txt
+.builddata/pyvirt .builddata/pyvirt/bin/cython: misc/requirements_build.txt
 	mkdir -p .builddata
 	rm -rf .builddata/pyvirt
 	$(DISABLE_VENV) ; \
