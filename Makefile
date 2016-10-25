@@ -67,7 +67,7 @@ apk: buildozer.spec .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/
 	$(DISABLE_VENV) ; \
 	export PYTHONPATH="$(CURDIR)/.builddata/pyvirt/lib/python2.7/site-packages:$${PYTHONPATH}" && \
 	export PATH=".builddata/bin:$${PATH}" && \
-	LD_PRELOAD=/lib/libutil.so.1 .builddata/pyvirt/bin/buildozer -v android_new debug
+	.builddata/pyvirt/bin/buildozer -v android_new debug
 
 buildozer.spec: misc/buildozer.spec
 	cp misc/buildozer.spec buildozer.spec
