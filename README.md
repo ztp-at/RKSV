@@ -1,13 +1,14 @@
 Dependencies
 ------------
 To run `make env`:
-* >=gnu-make-3.81
-* >=libgl1-mesa-10.1.3 + development headers
-* >=mesa-common-10.1.3 + development headers
-* >=openssl-1.0.1f + development headers
-* >=python-2.7.6
-* >=libpython-2.7.6 + development headers
-* >=python-virtualenv-1.11.4
+* >=gnu-make-4.1
+* >=libffi-3.2.1 + development headers
+* >=libgl1-mesa-11.2.0 + development headers
+* >=mesa-common-11.2.0 + development headers
+* >=openssl-1.0.2g + development headers
+* >=python-2.7.10
+* >=libpython-2.7.10 + development headers
+* >=python-virtualenv-13.1.2
 * >=zbar-0.10 + development headers
 * a working compiler toolchain
 
@@ -28,23 +29,29 @@ To use on Linux:
 
 Additionally needed to compile the translations:
 * pygettext.py in PATH
-* >=gnu-gettext-0.18.3.1
+* >=gnu-gettext-0.19.7
 
 Additionally needed to build the APK:
+* >=autoconf-2.69
 * >=dev-python/appdirs-1.4.0
 * >=dev-python/colorama-0.33
 * >=dev-python/jinja-2.8
 * >=dev-python/sh-1.11
-* >=git-1.9.1
+* >=git-2.7.3
+* >=libncurses5:i386-6.0 (for x86_64 systems)
+* >=libstdc++6:i386-5.4.0 (for x86_64 systems)
 * >=openjdk-8
 * >=unzip-6.0
-* >=wget-1.15
+* >=wget-1.17.1
+* >=zlib1g:i386-1.2.8 (for x86_64 systems)
 
 On Ubuntu 16.04 you can install all requirements to create the Python virtual
 enviroment to run all scripts with `apt-get install python-virtualenv
 mesa-common-dev libgl1-mesa-dev libssl-dev libpython2.7-dev libzbar-dev
-build-essential gettext`. The requirements needed to build the APK can be
-installed with `apt-get install default-jdk git unzip wget`.
+build-essential gettext libffi-dev`. The requirements needed to build the APK
+can be installed with `dpkg --add-architecture i386 && apt-get update &&
+apt-get install default-jdk git unzip wget libncurses5:i386 libstdc++6:i386
+zlib1g:i386 autoconf`.
 
 make env
 --------
