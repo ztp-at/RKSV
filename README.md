@@ -12,10 +12,10 @@ To run `make env`:
 * a working compiler toolchain
 
 To use on Linux:
-* ==Kivy-1.9.0
+* >=Kivy-1.9.1
 * >=dev-python/configparser-3.3.0.2
 * >=dev-python/cryptography-1.2
-* ==dev-python/cython-0.21.2
+* >=dev-python/cython-0.24.1
 * >=dev-python/enum34-1.0.4
 * >=dev-python/flask-0.10.1-r1
 * >=dev-python/future-0.15.2
@@ -28,20 +28,32 @@ To use on Linux:
 
 Additionally needed to compile the translations:
 * pygettext.py in PATH
-* >=gnu-gettext-0.19.7
+* >=gnu-gettext-0.18.3.1
 
 Additionally needed to build the APK:
 * >=dev-python/appdirs-1.4.0
 * >=dev-python/colorama-0.33
 * >=dev-python/jinja-2.8
 * >=dev-python/sh-1.11
+* >=git-1.9.1
+* >=openjdk-7
+* >=unzip-6.0
+* >=wget-1.15
+
+On Ubuntu 14.04 you can install all requirements to create the Python virtual
+enviroment to run all scripts with `apt-get install python-virtualenv
+mesa-common-dev libgl1-mesa-dev libssl-dev libpython2.7-dev libzbar-dev
+build-essential gettext`. The requirements needed to build the APK can be
+installed with `apt-get install default-jdk git unzip wget`.
 
 make env
 --------
 
 Creates a Python virtual environment with everything needed to run the scripts
 on a Linux system. The environment can be activated by running `source
-.pyenv/bin/activate`.
+.pyenv/bin/activate`. If you did not install all the dependencies listed above
+but only those required to run `make env`, you will need to use the environment
+created by `make env` to execute any of the commands below.
 
 make setup
 ----------
