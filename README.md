@@ -36,11 +36,11 @@ Additionally needed to build the APK:
 * >=dev-python/jinja-2.8
 * >=dev-python/sh-1.11
 * >=git-1.9.1
-* >=openjdk-7
+* >=openjdk-8
 * >=unzip-6.0
 * >=wget-1.15
 
-On Ubuntu 14.04 you can install all requirements to create the Python virtual
+On Ubuntu 16.04 you can install all requirements to create the Python virtual
 enviroment to run all scripts with `apt-get install python-virtualenv
 mesa-common-dev libgl1-mesa-dev libssl-dev libpython2.7-dev libzbar-dev
 build-essential gettext`. The requirements needed to build the APK can be
