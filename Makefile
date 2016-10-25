@@ -66,7 +66,7 @@ endif
 apk: buildozer.spec .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python .builddata/bin/cython compile-trans
 	$(DISABLE_VENV) ; \
 	export PYTHONPATH="$(CURDIR)/.builddata/pyvirt/lib/python2.7/site-packages:$${PYTHONPATH}" && \
-	export PATH=".builddata/bin:$${PATH}" && \
+	export PATH="$(CURDIR)/.builddata/bin:$${PATH}" && \
 	.builddata/pyvirt/bin/buildozer -v android_new debug
 
 buildozer.spec: misc/buildozer.spec
