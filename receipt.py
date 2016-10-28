@@ -140,6 +140,9 @@ class Receipt(object):
         :throws: UnknownAlgorithmException
         :throws: AlgorithmMismatchException
         """
+        if not isinstance(jwsString, string_types):
+            raise MalformedReceiptException(jwsString)
+
         jwsSegs = jwsString.split('.')
         if len(jwsSegs) != 3:
             raise MalformedReceiptException(jwsString)
@@ -248,6 +251,9 @@ class Receipt(object):
         :throws: MalformedReceiptException
         :throws: UnknownAlgorithmException
         """
+        if not isinstance(basicCode, string_types):
+            raise MalformedReceiptException(basicCode)
+
         segments = basicCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:
             raise MalformedReceiptException(basicCode)
@@ -321,6 +327,9 @@ class Receipt(object):
         :throws: MalformedReceiptException
         :throws: UnknownAlgorithmException
         """
+        if not isinstance(ocrCode, string_types):
+            raise MalformedReceiptException(ocrCode)
+
         segments = ocrCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:
             raise MalformedReceiptException(ocrCode)
@@ -408,6 +417,9 @@ class Receipt(object):
         :throws: MalformedReceiptException
         :throws: UnknownAlgorithmException
         """
+        if not isinstance(csv, string_types):
+            raise MalformedReceiptException(csv)
+
         segs = [ s.strip() for s in csv.split(';') ]
         return Receipt.fromBasicCode('_' + ('_'.join(segs)))
 
