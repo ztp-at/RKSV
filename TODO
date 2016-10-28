@@ -1,3 +1,5 @@
+reuse parse DEP functions in other tools
+replace json.loads with json.load where applicable?
 allow for different algorithms in one DEP?
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
 collect multiple errors? right now we fail on the first one
