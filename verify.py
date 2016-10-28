@@ -269,7 +269,7 @@ def verifyGroup(group, rv, key, state=None):
     verifies the turnover counter. Returns the last receipt in the group and the
     last known value of the turnover counter on success and throws an exception
     otherwise.
-    :param group: The receipt group as a json object.
+    :param group: The receipts in the group as a list of JWS strings.
     :param rv: The receipt verifier object used to verify single receipts.
     :param key: The key used to decrypt the turnover counter as a byte list or
     None.
@@ -307,7 +307,7 @@ def verifyGroup(group, rv, key, state=None):
     prevObj = None
     if prev:
         prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
-    for r in group['Belege-kompakt']:
+    for r in group:
         ro = None
         algorithm = None
         try:
@@ -413,7 +413,7 @@ def verifyDEP(dep, keyStore, key):
     """
     if len(dep['Belege-Gruppe']) == 1 and not dep['Belege-Gruppe'][0]['Signaturzertifikat']:
         rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
-        verifyGroup(dep['Belege-Gruppe'][0], rv, key)
+        verifyGroup(dep['Belege-Gruppe'][0]['Belege-kompakt'], rv, key)
         return
 
     state = VerifyGroupState()
@@ -426,7 +426,7 @@ def verifyDEP(dep, keyStore, key):
         verifyCert(cert, chain, keyStore)
         rv = verify_receipt.ReceiptVerifier.fromDEPCert(cert)
     
-        state = verifyGroup(group, rv, key, state)
+        state = verifyGroup(group['Belege-kompakt'], rv, key, state)
 
 def usage():
     print("Usage: ./verify.py keyStore <key store> <dep export file> [<base64 AES key file>]")
