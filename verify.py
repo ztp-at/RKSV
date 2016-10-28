@@ -7,6 +7,8 @@ from builtins import int
 
 import base64
 
+from six import string_types
+
 import algorithms
 import key_store
 import receipt
@@ -19,6 +21,33 @@ class DEPException(Exception):
     """
 
     pass
+
+class MalformedDEPException(DEPException):
+    """
+    Indicates that the DEP is not properly formed.
+    """
+
+    def __init__(self, msg=None):
+        super(MalformedDEPException, self).__init__(
+                msg if msg else _("Malformed DEP"))
+
+class MalformedCertificateException(DEPException):
+    """
+    Indicates that the DEP is not properly formed.
+    """
+
+    def __init__(self, cert):
+        super(MalformedCertificateException, self).__init__(
+                _("Malformed certificate: \"{}\"").format(cert))
+
+class DEPElementMissingException(MalformedDEPException):
+    """
+    Indicates that the DEP is not properly formed.
+    """
+
+    def __init__(self, elem):
+        super(DEPElementMissingException, self).__init__(
+                _("Element \"{}\" missing from DEP").format(elem))
 
 class DEPReceiptException(DEPException):
     """
@@ -210,17 +239,15 @@ def verifyCert(cert, chain, keyStore):
     """
     Verifies that a certificate or one of its signers is in the given key store.
     Returns nothing on success and throws an exception otherwise.
-    :param cert: The certificate to verify as a PEM string without header and
-    footer.
-    :param chain: A list of certificates as PEM strings without header and
-    footer. These represent the signing chain for the certificate.
+    :param cert: The certificate to verify as an object.
+    :param chain: A list of certificates as objects. These represent the
+    signing chain for the certificate.
     :param keyStore: The key store.
     :throws: UntrustedCertificateException
     :throws: CertificateSerialCollisionException
     :throws: CertificateChainBrokenException
     """
-    prev = utils.loadCert(utils.addPEMCertHeaders(cert))
-    first = prev
+    prev = cert
 
     for c in chain:
         ksCert = keyStore.getCert(key_store.numSerialToKeyId(prev.serial))
@@ -232,14 +259,12 @@ def verifyCert(cert, chain, keyStore):
                         utils.certFingerprint(ksCert))
             return
 
-        cur = utils.loadCert(utils.addPEMCertHeaders(c))
-
-        if not utils.verifyCert(prev, cur):
+        if not utils.verifyCert(prev, c):
             raise CertificateChainBrokenException(
                     key_store.numSerialToKeyId(prev.serial),
-                    key_store.numSerialToKeyId(cur.serial))
+                    key_store.numSerialToKeyId(c.serial))
 
-        prev = cur
+        prev = c
 
     ksCert = keyStore.getCert(key_store.numSerialToKeyId(prev.serial))
     if ksCert:
@@ -251,7 +276,7 @@ def verifyCert(cert, chain, keyStore):
         return
 
     raise UntrustedCertificateException(key_store.numSerialToKeyId(
-        first.serial))
+        cert.serial))
 
 class VerifyGroupState(object):
     def __init__(self):
@@ -374,6 +399,91 @@ def verifyGroup(group, rv, key, state=None):
     state.lastReceiptJWS = prev
     return state
 
+def parseDEPCert(cert_str):
+    """
+    Turns a certificate string as used in a DEP into a certificate object.
+    :param cert_str: A certificate in PEM format without header and footer
+    and on a single line.
+    :return: A cryptography certificate object.
+    :throws: MalformedCertificateException
+    """
+    if not isinstance(cert_str, string_types):
+        raise MalformedCertificateException(cert_str)
+
+    try:
+        return utils.loadCert(utils.addPEMCertHeaders(cert_str))
+    except ValueError:
+        raise MalformedCertificateException(cert_str)
+
+def parseDEPGroup(group):
+    """
+    Parses a single group from a DEP and return a tuple with its contents.
+    :param group: The group as a JSON object.
+    :return: A list of receipts as JWS strings (these are _not_ checked), 
+    a certificate object containing the certificate used to sign the
+    receipts in this group (or None) and a list of certificate objects
+    containing the certificates used to sign the group certificate.
+    :throws: MalformedCertificateException
+    :throws: MalformedDEPException
+    :throws: DEPElementMissingException
+    """
+    if not isinstance(group, dict):
+        raise MalformedDEPException()
+
+    if 'Signaturzertifikat' not in group:
+        raise DEPElementMissingException('Signaturzertifikat')
+    if 'Zertifizierungsstellen' not in group:
+        raise DEPElementMissingException('Zertifizierungsstellen')
+    if 'Belege-kompakt' not in group:
+        raise DEPElementMissingException('Belege-kompakt')
+
+    cert_str = group['Signaturzertifikat']
+    cert_str_list = group['Zertifizierungsstellen']
+    receipts = group['Belege-kompakt']
+
+    if (not isinstance(cert_str, string_types) or
+            not isinstance(cert_str_list, list) or
+            not isinstance(receipts, list)):
+        raise MalformedDEPException()
+
+    cert = parseDEPCert(cert_str) if cert_str != '' else None
+    cert_list = (parseDEPCert(cs) for cs in cert_str_list)
+
+    return receipts, cert, cert_list
+
+def parseDEP(dep):
+    """
+    Retrieves the list of group elements from a JSON DEP. The group
+    elements themselves are _not_ parsed.
+    :param dep: The DEP as a JSON object.
+    :return: A list containing the groups as JSON objects.
+    :throws: MalformedDEPException
+    :throws: DEPElementMissingException
+    """
+    if not isinstance(dep, dict):
+        raise MalformedDEPException()
+    if 'Belege-Gruppe' not in dep:
+        raise DEPElementMissingException('Belege-Gruppe')
+
+    bg = dep['Belege-Gruppe']
+    if not isinstance(bg, list) or len(bg) <= 0:
+        raise MalformedDEPException()
+
+    return bg
+
+def parseDEPAndGroups(dep):
+    """
+    Retrieves the list of groups from a JSON DEP and parses each group
+    with parseDEPGroup().
+    :param dep: The DEP as a JSON object.
+    :return: A list containing a tuple as returned by parseDEPGroup() for
+    each group.
+    :throws: MalformedCertificateException
+    :throws: MalformedDEPException
+    :throws: DEPElementMissingException
+    """
+    return (parseDEPGroup(g) for g in parseDEP(dep))
+
 def verifyDEP(dep, keyStore, key):
     """
     Verifies an entire DEP. It checks if the signature of each receipt is valid,
@@ -410,23 +520,31 @@ def verifyDEP(dep, keyStore, key):
     :throws: ChangingTurnoverCounterSizeException
     :throws: CertificateChainBrokenException
     :throws: DuplicateReceiptIdException
+    :throws: MalformedCertificateException
+    :throws: MalformedDEPException
+    :throws: DEPElementMissingException
     """
-    if len(dep['Belege-Gruppe']) == 1 and not dep['Belege-Gruppe'][0]['Signaturzertifikat']:
-        rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
-        verifyGroup(dep['Belege-Gruppe'][0]['Belege-kompakt'], rv, key)
-        return
+    bg = parseDEP(dep)
+
+    if len(bg) == 1:
+        recs, cert, chain = parseDEPGroup(bg[0])
+        if not cert:
+            rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+            verifyGroup(recs, rv, key)
+            return
 
     state = VerifyGroupState()
-    for group in dep['Belege-Gruppe']:
-        cert = group['Signaturzertifikat']
+    for group in bg:
+        recs, cert, chain = parseDEPGroup(group)
+
         if not cert:
             raise NoCertificateGivenException()
 
-        chain = group['Zertifizierungsstellen']
         verifyCert(cert, chain, keyStore)
-        rv = verify_receipt.ReceiptVerifier.fromDEPCert(cert)
+
+        rv = verify_receipt.ReceiptVerifier.fromCert(cert)
     
-        state = verifyGroup(group['Belege-kompakt'], rv, key, state)
+        state = verifyGroup(recs, rv, key, state)
 
 def usage():
     print("Usage: ./verify.py keyStore <key store> <dep export file> [<base64 AES key file>]")

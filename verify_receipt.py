@@ -231,16 +231,12 @@ class ReceiptVerifier(ReceiptVerifierI):
         self.cert = cert
 
     @staticmethod
-    def fromDEPCert(depCert):
+    def fromCert(cert):
         """
-        Creates a new receipt verifier from a certificate as it is stored in a
-        DEP.
-        :param depCert: The certificate as a PEM formatted string without header
-        and footer.
+        Creates a new receipt verifier from a certificate object.
+        :param cert: The certificate as an object.
         :return: The new receipt verifier.
         """
-        cert = utils.loadCert(utils.addPEMCertHeaders(depCert))
-
         return ReceiptVerifier(None, cert)
 
     @staticmethod
