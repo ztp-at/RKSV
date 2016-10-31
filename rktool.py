@@ -511,8 +511,8 @@ class VerifyDEPWidget(BoxLayout):
 
     def viewReceipt(self, btn):
         try:
-            group = self._jsonDEP['Belege-Gruppe'][btn.group_id]
-            jws = group['Belege-kompakt'][btn.receipt_id]
+            recs, cert, cert_list = self.dep[btn.group_id]
+            jws = recs[btn.receipt_id]
             rec, prefix = receipt.Receipt.fromJWSString(jws)
 
             self._receipt_view = getModalView()
@@ -536,7 +536,7 @@ class VerifyDEPWidget(BoxLayout):
 
         try:
             groupIdx = 1
-            for group in self._jsonDEP['Belege-Gruppe']:
+            for recs, cert, cert_list in self.dep:
                 groupNode = tv.add_node(TreeViewLabel(
                     text=(_('Group %d') % groupIdx)))
 
@@ -547,17 +547,14 @@ class VerifyDEPWidget(BoxLayout):
                 receiptsNode = tv.add_node(TreeViewLabel(
                     text='Belege-kompakt'), groupNode)
 
-                pem = group['Signaturzertifikat']
-                if pem:
-                    cert = utils.loadCert(utils.addPEMCertHeaders(pem))
+                if cert:
                     serial = key_store.numSerialToKeyId(cert.serial)
                     tv.add_node(TreeViewKeyButton(
                         text=_('Serial: ') + serial,
                         key_id=serial, key=cert,
                         on_press=self.addCert), certNode)
 
-                for pem in group['Zertifizierungsstellen']:
-                    cert = utils.loadCert(utils.addPEMCertHeaders(pem))
+                for cert in cert_list:
                     serial = key_store.numSerialToKeyId(cert.serial)
                     tv.add_node(TreeViewKeyButton(
                         text=_('Serial: ') + serial,
@@ -565,7 +562,7 @@ class VerifyDEPWidget(BoxLayout):
                         on_press=self.addCert), chainNode)
 
                 receiptIdx = 0
-                for jws in group['Belege-kompakt']:
+                for jws in recs:
                     rec, prefix = receipt.Receipt.fromJWSString(jws)
                     tv.add_node(TreeViewReceiptButton(text=rec.receiptId,
                         group_id=groupIdx - 1, receipt_id=receiptIdx,
@@ -576,12 +573,8 @@ class VerifyDEPWidget(BoxLayout):
 
             return True
 
-        except ValueError as e:
-            displayError(e)
         except receipt.ReceiptException as e:
             displayError(e)
-        except KeyError as e:
-            displayError(_("Malformed DEP"))
 
         self.clearDEPDisplay()
         return False
@@ -621,7 +614,7 @@ class VerifyDEPWidget(BoxLayout):
         store = copy.deepcopy(App.get_running_app().keyStore)
 
         self._verifyThread = ThreadWithExc(target=self.verifyDEPTask,
-                args=(self._jsonDEP, store, key,))
+                args=(self.dep, store, key,))
         self._verifyThread.start()
 
     @mainthread
@@ -642,14 +635,11 @@ class VerifyDEPWidget(BoxLayout):
             self.verify_button.text = _('Valid DEP')
             self.verify_button.background_color = (0, 1, 0, 1)
 
-    def verifyDEPTask(self, json, store, key):
+    def verifyDEPTask(self, dep, store, key):
         try:
-            verify.verifyDEP(json, store, key)
+            verify.verifyParsedDEP(dep, store, key)
             self.verifyCb(None)
         except (receipt.ReceiptException, verify.DEPException) as e:
-            self.verifyCb(e)
-        # In case one of the certs is malformed.
-        except ValueError as e:
             self.verifyCb(e)
         except threading.ThreadError:
             pass
@@ -669,10 +659,11 @@ class VerifyDEPWidget(BoxLayout):
 
         try:
             with open(os.path.join(path, filename[0])) as f:
-                self._jsonDEP = json.loads(f.read())
+                jsonDEP = json.loads(f.read())
+                self.dep = list(verify.parseDEPAndGroups(jsonDEP))
 
             App.get_running_app().curSearchPath = path
-        except (IOError, ValueError) as e:
+        except (IOError, ValueError, verify.DEPException) as e:
             displayError(e)
             self.dismissPopup()
             return
@@ -680,7 +671,7 @@ class VerifyDEPWidget(BoxLayout):
         self.verifyAbort()
         if not self.updateDEPDisplay():
             self.verify_button.disabled = True
-            self._jsonDEP = None
+            self.dep = None
 
         self.dismissPopup()
 
