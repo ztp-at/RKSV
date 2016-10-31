@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-10-25 06:56+CEST\n"
+"POT-Creation-Date: 2016-10-31 12:32+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -23,18 +23,6 @@ msgstr "Umsatzzähler-Länge ungültig."
 #: cashreg.py:120 main.py:347 receipt.py:69 rktool.py:347
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
-
-#: cert_extract.py:34 cert_extract.py:41 cert_extract.py:52
-msgid "WARNING: {}"
-msgstr "WARNUNG: {}"
-
-#: cert_extract.py:35 cert_extract.py:42
-msgid "\"{}\" missing from group element."
-msgstr "\"{}\" fehlt in Beleg-Gruppe."
-
-#: cert_extract.py:53
-msgid "Cannot load certificate: {}"
-msgstr "Kann Zertifikat nicht laden: {}"
 
 #: demo.py:65
 msgid "The number of receipts must be at least 1."
@@ -108,21 +96,21 @@ msgstr "Verkettungswert"
 msgid "Signature"
 msgstr "Signatur"
 
-#: main.py:270 main.py:619 rktool.py:270 rktool.py:619
+#: main.py:270 main.py:612 rktool.py:270 rktool.py:612
 msgid "Verifying..."
 msgstr "Überprüfe..."
 
-#: main.py:283 main.py:600 main.py:635 rktool.kv:128 rktool.kv:231
-#: rktool.py:283 rktool.py:600 rktool.py:635
+#: main.py:283 main.py:593 main.py:628 rktool.kv:128 rktool.kv:231
+#: rktool.py:283 rktool.py:593 rktool.py:628
 msgid "Verify"
 msgstr "Überprüfen"
 
-#: main.py:310 main.py:690 rktool.kv:216 rktool.py:310 rktool.py:690
+#: main.py:310 main.py:681 rktool.kv:216 rktool.py:310 rktool.py:681
 msgid "Load AES Key"
 msgstr "AES Schlüssel laden"
 
-#: main.py:331 main.py:710 main.py:859 rktool.py:331 rktool.py:710
-#: rktool.py:859
+#: main.py:331 main.py:701 main.py:850 rktool.py:331 rktool.py:701
+#: rktool.py:850
 msgid "Malformed crypto container"
 msgstr "Ungültiges Schlüsselmaterial"
 
@@ -146,56 +134,52 @@ msgstr "Rechnung laden"
 msgid "Group %d"
 msgstr "Gruppe %d"
 
-#: main.py:555 main.py:563 main.py:753 rktool.py:555 rktool.py:563
-#: rktool.py:753
+#: main.py:553 main.py:560 main.py:744 rktool.py:553 rktool.py:560
+#: rktool.py:744
 msgid "Serial: "
 msgstr "Seriennummer: "
 
-#: main.py:584 rktool.py:584
-msgid "Malformed DEP"
-msgstr "Ungültiges DEP"
-
-#: main.py:642 rktool.py:642
+#: main.py:635 rktool.py:635
 msgid "Valid DEP"
 msgstr "Gültiges DEP"
 
-#: main.py:663 rktool.kv:213 rktool.py:663
+#: main.py:653 rktool.kv:213 rktool.py:653
 msgid "Load DEP"
 msgstr "DEP laden"
 
-#: main.py:721 rktool.py:721
+#: main.py:712 rktool.py:712
 msgid "Public Keys"
 msgstr "Öffentliche Schlüssel"
 
-#: main.py:723 rktool.py:723
+#: main.py:714 rktool.py:714
 msgid "Certificates"
 msgstr "Zertifikate"
 
-#: main.py:758 rktool.py:758
+#: main.py:749 rktool.py:749
 msgid "Key ID: "
 msgstr "Schlüssel ID: "
 
-#: main.py:771 rktool.py:771
+#: main.py:762 rktool.py:762
 msgid "Load PEM Public Key"
 msgstr "Öffentlichen Schlüssel (PEM) laden"
 
-#: main.py:776 rktool.py:776
+#: main.py:767 rktool.py:767
 msgid "Load PEM Certificate"
 msgstr "Zertifikat (PEM) laden "
 
-#: main.py:797 rktool.py:797
+#: main.py:788 rktool.py:788
 msgid "Enter Public Key ID"
 msgstr "ID des öffentlichen Schlüssels eingeben"
 
-#: main.py:827 rktool.py:827
+#: main.py:818 rktool.py:818
 msgid "Load Key Store"
 msgstr "Schlüsselspeicher laden"
 
-#: main.py:833 rktool.py:833
+#: main.py:824 rktool.py:824
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
 
-#: receipt.py:25 verify.py:31
+#: receipt.py:25 verify.py:60
 msgid "At receipt \"{0}\": {1}"
 msgstr "Bei Rechnung \"{0}\": {1}"
 
@@ -215,23 +199,23 @@ msgstr "Inkompatible Algorithmen."
 msgid "Unknown Receipt"
 msgstr "Unbekannte Rechnung."
 
-#: receipt.py:206 receipt.py:304 receipt.py:356 receipt.py:449
+#: receipt.py:209 receipt.py:310 receipt.py:365 receipt.py:461
 msgid "You need to sign the receipt first."
 msgstr "Die Rechnung muss zuerst signiert werden."
 
-#: receipt.py:489
+#: receipt.py:501
 msgid "Can't decrypt turnover counter, this is a dummy receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Trainingsbeleg."
 
-#: receipt.py:491
+#: receipt.py:503
 msgid "Can't decrypt turnover counter, this is a reversal receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Stornobeleg."
 
-#: receipt.py:527 verify_receipt.py:369
+#: receipt.py:539 verify_receipt.py:365
 msgid "Input format must be one of %s."
 msgstr "Eingabeformat muss eines aus %s sein."
 
-#: receipt.py:531
+#: receipt.py:543
 msgid "Output format must be one of %s."
 msgstr "Ausgabeformat muss eines aus %s sein."
 
@@ -317,7 +301,7 @@ msgstr ""
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:228 test_verify.py:160
+#: run_test.py:228 test_verify.py:198
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
@@ -325,75 +309,91 @@ msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
 
-#: test_verify.py:48 test_verify.py:51 test_verify.py:56
+#: test_verify.py:50 test_verify.py:53 test_verify.py:58
 msgid "no Exception"
 msgstr "kein Fehler"
 
-#: test_verify.py:76
+#: test_verify.py:81
 msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
 msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
 
-#: test_verify.py:83
+#: test_verify.py:88
 msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
 msgstr ""
 "Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
 "bekommen"
 
-#: test_verify.py:121
+#: test_verify.py:124
+msgid "Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<"
+msgstr "Ergebnisse verschieden: ohne parsing {}:>{}<, mit parsing {}:>{}<"
+
+#: test_verify.py:159
 msgid "No run label"
 msgstr "Kein Simulationsname"
 
-#: test_verify.py:138
+#: test_verify.py:176
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
-#: verify.py:42
+#: verify.py:32
+msgid "Malformed DEP"
+msgstr "Ungültiges DEP"
+
+#: verify.py:41
+msgid "Malformed certificate: \"{}\""
+msgstr "Ungültiges Zertifikat: \"{}\""
+
+#: verify.py:50
+msgid "Element \"{}\" missing from DEP"
+msgstr "Element \"{}\" fehlt in DEP"
+
+#: verify.py:71
 msgid "Previous receipt is not \"{0}\"."
 msgstr "Vorherige Rechnung ist nicht \"{0}\"."
 
-#: verify.py:53
+#: verify.py:82
 msgid "Receipt after restored signature system must not have any turnover."
 msgstr ""
 "Rechnung nach Wiederherstellung der Sicherheitseinrichtung darf keinen "
 "Umsatz haben."
 
-#: verify.py:63
+#: verify.py:92
 msgid "Receipt ID already in use."
 msgstr "Rechnungs-ID wird bereits verwendet."
 
-#: verify.py:72
+#: verify.py:101
 msgid "Turnover counter invalid."
 msgstr "Umsatzzähler ungültig."
 
-#: verify.py:81
+#: verify.py:110
 msgid "Register ID changed."
 msgstr "Kassen-ID geändert."
 
-#: verify.py:91
+#: verify.py:120
 msgid "Receipt was created before previous receipt."
 msgstr "Rechnung wurde vor vorhergehender Rechnung erstellt."
 
-#: verify.py:101
+#: verify.py:130
 msgid "The system type changed."
 msgstr "Typ des Systems wurde geändert."
 
-#: verify.py:111
+#: verify.py:140
 msgid "The size of the turnover counter changed."
 msgstr "Die Länge des Umsatzzählers wurde geändert."
 
-#: verify.py:120
+#: verify.py:149
 msgid "No certificate specified in DEP and multiple groups used."
 msgstr "Kein Zertifikat angegeben, aber DEP hat mehrere Gruppen."
 
-#: verify.py:131
+#: verify.py:160
 msgid "Certificate \"%s\" is not trusted."
 msgstr "Zertifikat \"%s\" wird nicht vertraut."
 
-#: verify.py:142
+#: verify.py:171
 msgid "Certificate \"{}\" was not signed by \"{}\"."
 msgstr "Zertifikat \"{}\" wurde nicht von \"{}\" signiert."
 
-#: verify.py:153
+#: verify.py:182
 msgid ""
 "Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and "
 "\"{2}\"). This may be an attempted attack."
@@ -401,23 +401,23 @@ msgstr ""
 "Zwei Zertifikate mit Seriennummer \"{0}\" gefunden (Fingerabdrücke \"{1}\" "
 "und \"{2}\"). Dies könnte ein versuchter Angriff sein."
 
-#: verify.py:162
+#: verify.py:191
 msgid "Initial receipt not signed."
 msgstr "Startbeleg nicht signiert."
 
-#: verify.py:170
+#: verify.py:199
 msgid "Initial receipt has nonzero turnover."
 msgstr "Startbeleg hat Umsatz ungleich Null."
 
-#: verify.py:180
+#: verify.py:209
 msgid "Initial receipt has not been chained to the cash register ID."
 msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
 
-#: verify.py:189
+#: verify.py:218
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: verify.py:481
+#: verify.py:668
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
@@ -453,6 +453,12 @@ msgstr "Ungültiger Zertifizierungsdiensteanbieter."
 msgid "Null receipt not signed."
 msgstr "Nullbeleg nicht signiert."
 
-#: verify_receipt.py:385
+#: verify_receipt.py:381
 msgid "All receipts verified successfully."
 msgstr "Alle Rechnungen wurden erfolgreich überprüft."
+
+#~ msgid "WARNING: {}"
+#~ msgstr "WARNUNG: {}"
+
+#~ msgid "\"{}\" missing from group element."
+#~ msgstr "\"{}\" fehlt in Beleg-Gruppe."
