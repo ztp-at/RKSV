@@ -8,6 +8,7 @@ import sys
 from flask import Flask, abort, jsonify, make_response
 
 import receipt
+import verify
 
 receipt_store = None
 
@@ -38,20 +39,21 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         usage()
 
-    recs = dict()
+    receipts = dict()
     if sys.argv[1] == 'dep':
         dep = json.loads(sys.stdin.read())
-        for g in dep['Belege-Gruppe']:
-            for r in g['Belege-kompakt']:
+        groups = verify.parseDEPAndGroups(dep)
+        for recs, cert, cert_list in groups:
+            for r in recs:
                 rec, pre = receipt.Receipt.fromJWSString(r)
-                recs[rec.toURLHash(pre)] = rec.toBasicCode(pre)
+                receipts[rec.toURLHash(pre)] = rec.toBasicCode(pre)
     elif sys.argv[1] == 'jws':
         for l in sys.stdin:
             rec, pre = receipt.Receipt.fromJWSString(l.strip())
-            recs[rec.toURLHash(pre)] = rec.toBasicCode(pre)
+            receipts[rec.toURLHash(pre)] = rec.toBasicCode(pre)
     else:
         usage()
 
-    receipt_store = recs
+    receipt_store = receipts
 
     app.run(debug = True, use_reloader = False)
