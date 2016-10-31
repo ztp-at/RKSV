@@ -447,7 +447,7 @@ def parseDEPGroup(group):
         raise MalformedDEPException()
 
     cert = parseDEPCert(cert_str) if cert_str != '' else None
-    cert_list = (parseDEPCert(cs) for cs in cert_str_list)
+    cert_list = [ parseDEPCert(cs) for cs in cert_str_list ]
 
     return receipts, cert, cert_list
 
@@ -483,6 +483,75 @@ def parseDEPAndGroups(dep):
     :throws: DEPElementMissingException
     """
     return (parseDEPGroup(g) for g in parseDEP(dep))
+
+def verifyParsedDEP(dep, keyStore, key):
+    """
+    Verifies a previously parsed DEP. It checks if the signature of each
+    receipt is valid, if the receipts are properly chained, if receipts
+    with zero turnover are present as required and if the certificates used
+    to sign the receipts are valid. If a key is specified it also verifies
+    the turnover counter. It does not check for errors that should already
+    be detected while parsing the DEP. Returns nothing on success and
+    throws an exception otherwise.
+    :param dep: The DEP as returned by parseDEPAndGroups().
+    :param keyStore: The key store object containing the used public keys and
+    certificates.
+    :param key: The key used to decrypt the turnover counter as a byte list or
+    None.
+    :throws: NoRestoreReceiptAfterSignatureSystemFailure
+    :throws: InvalidTurnoverCounterException
+    :throws: CertSerialInvalidException
+    :throws: CertSerialMismatchException
+    :throws: NoPublicKeyException
+    :throws: InvalidSignatureException
+    :throws: ChainingException
+    :throws: MalformedReceiptException
+    :throws: UnknownAlgorithmException
+    :throws: AlgorithmMismatchException
+    :throws: UntrustedCertificateException
+    :throws: CertificateSerialCollisionException
+    :throws: SignatureSystemFailedOnInitialReceiptException
+    :throws: UnsignedNullReceiptException
+    :throws: NonzeroTurnoverOnInitialReceiptException
+    :throws: NoCertificateGivenException
+    :throws: InvalidChainingOnInitialReceiptException
+    :throws: NonstandardTypeOnInitialReceiptException
+    :throws: ChangingRegisterIdException
+    :throws: DecreasingDateException
+    :throws: ChangingSystemTypeException
+    :throws: ChangingTurnoverCounterSizeException
+    :throws: CertificateChainBrokenException
+    :throws: DuplicateReceiptIdException
+    """
+    depI = iter(dep)
+    single = True
+
+    recs1, cert1, chain1 = next(depI)
+    state = VerifyGroupState()
+    for recs, cert, chain in depI:
+        if single:
+            single = False
+            if not cert1:
+                raise NoCertificateGivenException()
+            verifyCert(cert1, chain1, keyStore)
+            rv = verify_receipt.ReceiptVerifier.fromCert(cert1)
+            state = verifyGroup(recs1, rv, key, state)
+
+        if not cert:
+            raise NoCertificateGivenException()
+        verifyCert(cert, chain, keyStore)
+        rv = verify_receipt.ReceiptVerifier.fromCert(cert)
+        state = verifyGroup(recs, rv, key, state)
+
+    if not single:
+        return
+
+    if not cert1:
+        rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+    else:
+        verifyCert(cert1, chain1, keyStore)
+        rv = verify_receipt.ReceiptVerifier.fromCert(cert1)
+    verifyGroup(recs1, rv, key)
 
 def verifyDEP(dep, keyStore, key):
     """
