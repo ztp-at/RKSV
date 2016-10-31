@@ -24,7 +24,7 @@ class TestVerifyResult(enum.Enum):
     FAIL = 2
     ERROR = 3
 
-def testVerify(spec, pub, priv, closed):
+def _testVerify(spec, pub, priv, closed, parse=False):
     """
     Runs a single test case against verify.verifyDEP() and returns the
     result and potentially an error message. In addition to the elements
@@ -42,6 +42,8 @@ def testVerify(spec, pub, priv, closed):
     :param priv: The private key used to sign the generated receipts.
     :param closed: Indicates whether the system is a closed system (True) or
     an open system (False).
+    :param parse: True if the DEP should be parsed with
+    verify.parseDEPAndGroups() first, false otherwise.
     :return: A TestVerifyResult indicating the result of the test and an
     error message. If the result is OK, the message is None.
     """
@@ -62,7 +64,10 @@ def testVerify(spec, pub, priv, closed):
         dep, cc = run_test.runTest(spec, keymat, closed)
         ks = key_store.KeyStore.readStoreFromJson(cc)
 
-        verify.verifyDEP(dep, ks, key)
+        if parse:
+            verify.verifyParsedDEP(verify.parseDEPAndGroups(dep), ks, key)
+        else:
+            verify.verifyDEP(dep, ks, key)
     except (receipt.ReceiptException, verify.DEPException) as e:
         actual_exception = e
     except Exception as e:
@@ -85,6 +90,39 @@ def testVerify(spec, pub, priv, closed):
                         actual_exception.receipt))
 
     return TestVerifyResult.OK, None
+
+def testVerify(spec, pub, priv, closed):
+    """
+    Runs a single test case against verify.verifyDEP() and returns the
+    result and potentially an error message. In addition to the elements
+    understood by run_test.runTest(), this function also understands the
+    "expectedException" element, which indicates the name of the exception
+    the verifyDEP() function is expected to throw, and the
+    "exceptionReceipt" element, which indicates the receipt at which an
+    exception is expected to occur. If "exceptionReceipt" is omitted, the
+    expected exception may occur anywhere in the generated DEP. If
+    "expectedException" is omitted, verifyDEP() must not throw any
+    exception.
+    :param spec: The test case specification as a dict structure.
+    :param pub: The public key or certificate. For a closed system a public
+    key must be used, for an open system a certificate must be used.
+    :param priv: The private key used to sign the generated receipts.
+    :param closed: Indicates whether the system is a closed system (True) or
+    an open system (False).
+    :return: A TestVerifyResult indicating the result of the test and an
+    error message. If the result is OK, the message is None.
+    """
+    rN, mN = _testVerify(spec, pub, priv, closed, False)
+    rP, mP = _testVerify(spec, pub, priv, closed, True)
+    if rN == rP and mN == mP:
+        return rN, mN
+
+    r = TestVerifyResult.FAIL
+    if rN == TestVerifyResult.ERROR or rP == TestVerifyResult.ERROR:
+        r = TestVerifyResult.ERROR
+    return r, Exception(
+            _('Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<').format(
+                    rN.name, mN, rP.name, mP))
 
 def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize):
     """
