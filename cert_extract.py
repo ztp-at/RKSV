@@ -8,6 +8,7 @@ import sys
 
 import key_store
 import utils
+import verify
 
 def usage():
     print("Usage: ./cert_extract.py <output dir>")
@@ -26,28 +27,13 @@ if __name__ == "__main__":
     os.chdir(outDir)
 
     dep = json.loads(sys.stdin.read())
-    for g in dep['Belege-Gruppe']:
-        groupCerts = []
-        if 'Zertifizierungsstellen' in g:
-            groupCerts = g['Zertifizierungsstellen']
-        else:
-            print(_('WARNING: {}').format(
-                    _('\"{}\" missing from group element.').format(
-                        'Zertifizierungsstellen')))
+    groups = verify.parseDEPAndGroups(dep)
+    for recs, cert, cert_list in groups:
+        groupCerts = list(cert_list)
+        if cert:
+            groupCerts.append(cert)
 
-        if 'Signaturzertifikat' in g:
-            groupCerts.append(g['Signaturzertifikat'])
-        else:
-            print(_('WARNING: {}').format(
-                    _('\"{}\" missing from group element.').format(
-                        'Signaturzertifikat')))
-
-        for cert in groupCerts:
-            try:
-                co = utils.loadCert(utils.addPEMCertHeaders(cert))
-                cs = key_store.numSerialToKeyId(co.serial)
-                with open('{}.crt'.format(cs), 'w') as f:
-                    f.write(utils.exportCertToPEM(co))
-            except ValueError as e:
-                print(_('WARNING: {}').format(
-                    _('Cannot load certificate: {}').format(e)))
+        for co in groupCerts:
+            cs = key_store.numSerialToKeyId(co.serial)
+            with open('{}.crt'.format(cs), 'w') as f:
+                f.write(utils.exportCertToPEM(co))
