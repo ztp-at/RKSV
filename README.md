@@ -251,11 +251,10 @@ This script verifies receipts. The used certificates or public keys must be
 available in the given key store. The formats `jws`, `qr`, `ocr`, `url` and
 `csv` are supported. If `receipt string` is given, the receipt from the command
 line is verified, otherwise the script reads and verifies receipts from stdin.
-If all receipts are valid the script prints nothing, if the verification fails
-it will print an error message.
-
-If the `url` input format is used, the script expects each URL to contain the
-URL hash in the anchor element.
+If the verification of a receipt fails the script prints an error message
+indicating the line where the error occurred and what went wrong. Before
+terminating it will also print a summary showing how many of the given receipts
+were correct.
 
 convert.py
 ----------

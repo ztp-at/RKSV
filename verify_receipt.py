@@ -8,6 +8,8 @@ from builtins import int
 import base64
 import enum
 
+from six import string_types
+
 import algorithms
 import key_store
 import receipt
@@ -43,7 +45,16 @@ class InvalidSignatureException(receipt.ReceiptException):
     def __init__(self, rec):
         super(InvalidSignatureException, self).__init__(rec, _("Invalid Signature."))
 
-class SignatureSystemFailedException(receipt.ReceiptException):
+class NonFatalReceiptException(receipt.ReceiptException):
+    """
+    Indicates an error with the given receipt that may be alright in the
+    context of the complete DEP.
+    """
+    def __init__(self, rec, msg):
+        super(NonFatalReceiptException, self).__init__(rec,
+                _("{} This is probably fine.").format(msg))
+
+class SignatureSystemFailedException(NonFatalReceiptException):
     """
     Indicates that the signature system failed and that the receipt was not
     signed.
@@ -68,7 +79,7 @@ class InvalidCertificateProviderException(receipt.ReceiptException):
     def __init__(self, rec):
         super(InvalidCertificateProviderException, self).__init__(rec, _("Invalid certificate provider."))
 
-class UnsignedNullReceiptException(receipt.ReceiptException):
+class UnsignedNullReceiptException(NonFatalReceiptException):
     """
     Indicates that a non-dummy and non-reversal null receipt has not been
     signed.
@@ -342,12 +353,22 @@ def getAndVerifyReceiptURL(rv, url):
     rec, algorithm = rv.verifyBasicCode(basicCode)
     verifyURLHash(rec, algorithm, urlHash)
 
+def receiptGenerator(lines):
+    for l in lines:
+        yield l.strip()
+
+def singleInputToGenerator(inp):
+    if isinstance(inp, string_types):
+        return receiptGenerator([inp])
+    return receiptGenerator(inp)
+
 INPUT_FORMATS = {
-        'jws': lambda rv, s: rv.verifyJWS(s),
-        'qr': lambda rv, s: rv.verifyBasicCode(s),
-        'ocr': lambda rv, s: rv.verifyOCRCode(s),
-        'url': lambda rv, s: getAndVerifyReceiptURL(rv, s),
-        'csv': lambda rv, s: rv.verifyCSV(s)
+        'jws': lambda rv, inp: (singleInputToGenerator(inp), rv.verifyJWS),
+        'qr': lambda rv, inp: (singleInputToGenerator(inp), rv.verifyBasicCode),
+        'ocr': lambda rv, inp: (singleInputToGenerator(inp), rv.verifyOCRCode),
+        'url': lambda rv, inp: (singleInputToGenerator(inp),
+            lambda s: getAndVerifyReceiptURL(rv, s)),
+        'csv': lambda rv, inp: (singleInputToGenerator(inp), rv.verifyCSV)
         }
 
 if __name__ == "__main__":
@@ -373,9 +394,18 @@ if __name__ == "__main__":
     rv = ReceiptVerifier.fromKeyStore(keyStore)
 
     if len(sys.argv) == 4:
-        INPUT_FORMATS[sys.argv[1]](rv, sys.argv[3])
+        recs, ver = INPUT_FORMATS[sys.argv[1]](rv, sys.argv[3])
     else:
-        for l in sys.stdin:
-            INPUT_FORMATS[sys.argv[1]](rv, l.strip())
+        recs, ver = INPUT_FORMATS[sys.argv[1]](rv, sys.stdin)
 
-    print(_("All receipts verified successfully."))
+    idx = 0
+    fails = 0
+    for r in recs:
+        try:
+            ver(r)
+        except receipt.ReceiptException as e:
+            fails += 1
+            print(_("Line {: >3}: {}").format(idx, e))
+        idx += 1
+
+    print(_("{} of {} receipts verified successfully.").format(idx - fails, idx))

@@ -1,4 +1,3 @@
-don't abort verify_receipt.py if there is a problem with a receipt
 allow for different algorithms in one DEP?
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
 collect multiple errors? right now we fail on the first one
