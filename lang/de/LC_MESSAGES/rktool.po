@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-10-31 12:32+CET\n"
+"POT-Creation-Date: 2016-11-08 13:13+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -211,7 +211,7 @@ msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Trainingsbeleg."
 msgid "Can't decrypt turnover counter, this is a reversal receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Stornobeleg."
 
-#: receipt.py:539 verify_receipt.py:365
+#: receipt.py:539 verify_receipt.py:386
 msgid "Input format must be one of %s."
 msgstr "Eingabeformat muss eines aus %s sein."
 
@@ -297,11 +297,11 @@ msgstr ""
 "Brauche Schlüsselmaterial für {} Sicherheitseinrichtungen, habe {} "
 "Schlüsselpaare bekommen."
 
-#: run_test.py:216
+#: run_test.py:215
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:228 test_verify.py:198
+#: run_test.py:227 test_verify.py:199
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
@@ -309,29 +309,29 @@ msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
 
-#: test_verify.py:50 test_verify.py:53 test_verify.py:58
+#: test_verify.py:51 test_verify.py:54 test_verify.py:59
 msgid "no Exception"
 msgstr "kein Fehler"
 
-#: test_verify.py:81
+#: test_verify.py:82
 msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
 msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
 
-#: test_verify.py:88
+#: test_verify.py:89
 msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
 msgstr ""
 "Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
 "bekommen"
 
-#: test_verify.py:124
+#: test_verify.py:125
 msgid "Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<"
 msgstr "Ergebnisse verschieden: ohne parsing {}:>{}<, mit parsing {}:>{}<"
 
-#: test_verify.py:159
+#: test_verify.py:160
 msgid "No run label"
 msgstr "Kein Simulationsname"
 
-#: test_verify.py:176
+#: test_verify.py:177
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
@@ -417,48 +417,50 @@ msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: verify.py:668
+#: verify.py:666
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
-#: verify_receipt.py:22
+#: verify_receipt.py:24
 msgid "Certificate serial mismatch."
 msgstr "Zertifikat-Seriennummern stimmen nicht überein."
 
-#: verify_receipt.py:29
+#: verify_receipt.py:31
 msgid "Certificate serial invalid."
 msgstr "Zertifikat-Seriennummer ungültig."
 
-#: verify_receipt.py:37
+#: verify_receipt.py:39
 msgid "No public key found."
 msgstr "Kein öffentlicher Schlüssel gefunden."
 
-#: verify_receipt.py:44
+#: verify_receipt.py:46
 msgid "Invalid Signature."
 msgstr "Ungültige Signatur."
 
-#: verify_receipt.py:52
+#: verify_receipt.py:55
+msgid "{} This is probably fine."
+msgstr "{} Das ist wahrscheinlich in Ordnung."
+
+#: verify_receipt.py:63
 msgid "Signature System failed."
 msgstr "Sicherheitseinrichtung ausgefallen."
 
-#: verify_receipt.py:60
+#: verify_receipt.py:71
 msgid "Invalid URL hash."
 msgstr "Ungültige URL Prüfsumme."
 
-#: verify_receipt.py:69
+#: verify_receipt.py:80
 msgid "Invalid certificate provider."
 msgstr "Ungültiger Zertifizierungsdiensteanbieter."
 
-#: verify_receipt.py:77
+#: verify_receipt.py:88
 msgid "Null receipt not signed."
 msgstr "Nullbeleg nicht signiert."
 
-#: verify_receipt.py:381
-msgid "All receipts verified successfully."
-msgstr "Alle Rechnungen wurden erfolgreich überprüft."
+#: verify_receipt.py:408
+msgid "Line {: >3}: {}"
+msgstr "Zeile {: >3}: {}"
 
-#~ msgid "WARNING: {}"
-#~ msgstr "WARNUNG: {}"
-
-#~ msgid "\"{}\" missing from group element."
-#~ msgstr "\"{}\" fehlt in Beleg-Gruppe."
+#: verify_receipt.py:411
+msgid "{} of {} receipts verified successfully."
+msgstr "{} von {} Rechnungen wurden erfolgreich überprüft."
