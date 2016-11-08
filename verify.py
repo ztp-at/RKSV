@@ -432,15 +432,11 @@ def parseDEPGroup(group):
     if not isinstance(group, dict):
         raise MalformedDEPException()
 
-    if 'Signaturzertifikat' not in group:
-        raise DEPElementMissingException('Signaturzertifikat')
-    if 'Zertifizierungsstellen' not in group:
-        raise DEPElementMissingException('Zertifizierungsstellen')
     if 'Belege-kompakt' not in group:
         raise DEPElementMissingException('Belege-kompakt')
 
-    cert_str = group['Signaturzertifikat']
-    cert_str_list = group['Zertifizierungsstellen']
+    cert_str = group.get('Signaturzertifikat', '')
+    cert_str_list = group.get('Zertifizierungsstellen', [])
     receipts = group['Belege-kompakt']
 
     if (not isinstance(cert_str, string_types) or
