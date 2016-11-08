@@ -33,7 +33,5 @@
       },
       "typeOfReceipt": "STANDARD_BELEG"
     }
-  ],
-  "expectedException": "UnsignedNullReceiptException",
-  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-2"
+  ]
 }

@@ -2,7 +2,7 @@
   "cashBoxId": "CASHBOX-DEMO-1",
   "base64AesKey": "WQRtiiya3hYh/Uz44Bv3x8ETl1nrH6nCdErn69g5/lU=",
   "companyID": "U:ATU12345678",
-  "simulationRunLabel": "test_restore_unsigned",
+  "simulationRunLabel": "test_restore_zero",
   "numberOfSignatureDevices": 1,
   "cashBoxInstructionList": [
     {
@@ -34,21 +34,21 @@
       "typeOfReceipt": "STANDARD_BELEG"
     },
     {
-      "signatureDeviceDamaged": false,
+      "signatureDeviceDamaged": true,
       "receiptIdentifier": "CASHBOX-DEMO-1-Receipt-ID-3",
       "dateToUse": "2016-03-18T11:04:15",
       "usedSignatureDevice": 0,
       "simplifiedReceipt": {
-        "taxSetNormal": 91.22,
-        "taxSetErmaessigt1": 198.23,
-        "taxSetErmaessigt2": 89.89,
-        "taxSetNull": 172.01,
-        "taxSetBesonders": 3.84
+        "taxSetNormal": 0.0,
+        "taxSetErmaessigt1": 0.0,
+        "taxSetErmaessigt2": 0.0,
+        "taxSetNull": 0.0,
+        "taxSetBesonders": 0.0
       },
-      "typeOfReceipt": "STANDARD_BELEG"
+      "typeOfReceipt": "NULL_BELEG"
     },
     {
-      "signatureDeviceDamaged": true,
+      "signatureDeviceDamaged": false,
       "receiptIdentifier": "CASHBOX-DEMO-1-Receipt-ID-4",
       "dateToUse": "2016-03-20T13:06:17",
       "usedSignatureDevice": 0,
@@ -61,7 +61,5 @@
       },
       "typeOfReceipt": "NULL_BELEG"
     }
-  ],
-  "expectedException": "NoRestoreReceiptAfterSignatureSystemFailureException",
-  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-4"
+  ]
 }

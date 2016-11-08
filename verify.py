@@ -345,17 +345,19 @@ def verifyGroup(group, rv, key, state=None):
             else:
                 state.needRestoreReceipt = False
         except verify_receipt.SignatureSystemFailedException as e:
+            pass
+        except verify_receipt.UnsignedNullReceiptException as e:
+            pass
+
+        # Exception occured and was caught
+        if not ro:
             ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
             if not prevObj:
                 raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
             if state.needRestoreReceipt:
                 raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
+            # fromJWSString() already raises an UnknownAlgorithmException if necessary
             algorithm = algorithms.ALGORITHMS[algorithmPrefix]
-        except verify_receipt.UnsignedNullReceiptException as e:
-            ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
-            if not prevObj:
-                raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
-            raise e
 
         if not prevObj:
             if not ro.isNull():
