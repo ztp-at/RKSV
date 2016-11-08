@@ -6,6 +6,7 @@ and test the verification functions against them.
 
 from __future__ import print_function
 from builtins import int
+from builtins import str
 
 import base64
 import enum
@@ -114,7 +115,7 @@ def testVerify(spec, pub, priv, closed):
     """
     rN, mN = _testVerify(spec, pub, priv, closed, False)
     rP, mP = _testVerify(spec, pub, priv, closed, True)
-    if rN == rP and mN == mP:
+    if rN == rP and str(mN) == str(mP):
         return rN, mN
 
     r = TestVerifyResult.FAIL
