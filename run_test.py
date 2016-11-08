@@ -179,8 +179,7 @@ def runTest(spec, keymat, closed=False, tcSize=None):
 
     dep = exporter.export()
 
-    ksJson = keyStore.writeStoreToJson()
-    ksJson['base64AESKey'] = spec['base64AesKey']
+    ksJson = keyStore.writeStoreToJson(spec['base64AesKey'])
 
     return dep, ksJson
 

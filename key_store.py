@@ -225,10 +225,12 @@ class KeyStore(KeyStoreI):
 
         return keyStore
 
-    def writeStoreToJson(self):
+    def writeStoreToJson(self, b64Key):
         """
         Writes the store to a JSON structure that is compatible with the JSON
         crypto container format and can be used with json.dumps().
+        :param b64Key: The AES256 key to attach to the container as a base64
+        encoded string.
         :return: The JSON container.
         """
 
@@ -246,7 +248,10 @@ class KeyStore(KeyStoreI):
 
             kDict[keyId] = cont
 
-        return {'certificateOrPublicKeyMap': kDict}
+        return {
+                'certificateOrPublicKeyMap': kDict,
+                'base64AESKey': b64Key
+        }
 
     @staticmethod
     def readStoreFromJson(json):
@@ -279,7 +284,7 @@ class KeyStore(KeyStoreI):
 def usage():
     print("Usage: ./key_store.py <key store> create")
     print("       ./key_store.py <key store> list")
-    print("       ./key_store.py <key store> toJson")
+    print("       ./key_store.py <key store> toJson <base64 AES key file>")
     print("       ./key_store.py <key store> fromJson <json container file>")
     print("       ./key_store.py <key store> add <pem cert file>")
     print("       ./key_store.py <key store> add <pem pubkey file> <pubkey id>")
@@ -319,7 +324,7 @@ if __name__ == "__main__":
             print(keyId)
 
     elif sys.argv[2] == 'toJson':
-        if len(sys.argv) != 3:
+        if len(sys.argv) != 4:
             usage()
 
         config = configparser.RawConfigParser()
@@ -327,7 +332,11 @@ if __name__ == "__main__":
         config.read(filename)
         keyStore = KeyStore.readStore(config)
 
-        data = keyStore.writeStoreToJson()
+        aesKey = None
+        with open(sys.argv[3]) as f:
+            aesKey = f.read().strip()
+
+        data = keyStore.writeStoreToJson(aesKey)
         print(json.dumps(data, sort_keys=False, indent=2))
 
     elif sys.argv[2] == 'fromJson':
