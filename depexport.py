@@ -33,6 +33,14 @@ class DEPExporterI(object):
         """
         raise NotImplementedError("Please implement this yourself.")
 
+    def addExtra(self, key, value):
+        """
+        Adds an extra item to the DEPs main dictionary.
+        :param key: The key under that the extra data will be stored.
+        :param value: The value of the extra data.
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
 class DEPExporter(DEPExporterI):
     """
     A primitive DEP exporter. It generates one group of receipts as a
@@ -41,27 +49,29 @@ class DEPExporter(DEPExporterI):
 
     def __init__(self):
         self.groups = []
+        self.extra = dict()
 
     def addGroup(self, receipt_tuples, cert=None, cert_chain=[]):
-        self.groups.append({
-            'receipts': receipt_tuples,
-            'cert': cert,
-            'cert_chain': cert_chain,
-        })
+        self.groups.append((receipt_tuples, cert, cert_chain))
 
     def export(self):
         dep_groups = list()
         for g in self.groups:
-            cert = utils.exportCertToPEM(g['cert']) if g['cert'] else ""
-            cert_chain = [utils.exportCertToPEM(c) for c in
-                    g['cert_chain']]
+            cert = utils.exportCertToPEM(g[1]) if g[1] else ""
+            cert_chain = [utils.exportCertToPEM(c) for c in g[2]]
             dep_groups.append({
                 "Signaturzertifikat": cert,
                 "Zertifizierungsstellen": cert_chain,
                 "Belege-kompakt": [r[0].toJWSString(r[1]) for r in
-                    g['receipts']],
+                    g[0]],
             })
-        return { "Belege-Gruppe": dep_groups }
+
+        ret = { "Belege-Gruppe": dep_groups }
+        ret.update(self.extra)
+        return ret
+
+    def addExtra(self, key, value):
+        self.extra[key] = value
 
 class JSONExporter(DEPExporter):
     """
@@ -90,3 +100,6 @@ class CSVExporter(DEPExporterI):
         for r in self.receipts:
             ret = ret + '\n' + r[0].toCSV(r[1])
         return ret
+
+    def addExtra(self, key, value):
+        pass
