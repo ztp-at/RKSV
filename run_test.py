@@ -24,8 +24,8 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     "decimalSerial", "turnoverCounterSize", "includePublicKey",
     "multipleGroups", "certChainLength", "omitSignCert", "omitRootCert",
     "certChainFailure" and "certChainSerialCollision" elements in the root
-    dictionary and the "override" element in the dictionaries in the
-    "cashBoxInstructionList" element.
+    dictionary and the "override" and "beginNewDEP" elements in the dictionaries
+    in the "cashBoxInstructionList" element.
     :param spec: The test specification as a dict structure.
     :param keymat: The key material as a list of tuples with the public key/
     certificate in the first element and the private key in the second
@@ -126,6 +126,9 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         groupCerts.append(certList)
 
     exporter = depexport.DEPExporter()
+    deps = list()
+    lastStartJWS = None
+    previousClusterDEPIdx = 0
 
     override = dict()
     receipts = list()
@@ -149,10 +152,32 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         else:
             sig = sigsWorking[sigId]
 
-        if doGroups and prevSigId is not None and prevSigId != sigId:
-            exporter.addGroup(receipts, groupCerts[prevSigId][0],
-                    groupCerts[prevSigId][1:])
-            receipts = list()
+        newDEP = recI.get('beginNewDEP', 'NO_NEW_DEP')
+        override = recI.get('override', dict())
+
+        if newDEP == 'NEW_CLUSTER_DEP' and lastStartJWS:
+            register.lastReceiptSig = lastStartJWS
+            lastStartJWS = None
+
+        if doGroups and prevSigId is not None:
+            if newDEP != 'NO_NEW_DEP' or prevSigId != sigId:
+                exporter.addGroup(receipts, groupCerts[prevSigId][0],
+                        groupCerts[prevSigId][1:])
+                receipts = list()
+        else:
+            if newDEP != 'NO_NEW_DEP':
+                exporter.addGroup(receipts)
+                receipts = list()
+
+        if newDEP != 'NO_NEW_DEP':
+            dep = exporter.export()
+            exporter = depexport.DEPExporter()
+            if newDEP == 'NEW_CLUSTER_DEP':
+                exporter.addExtra('Vorheriges-DEP', previousClusterDEPIdx)
+            else:
+                exporter.addExtra('Vorheriges-DEP', len(deps))
+                exporter.addExtra('Fortgesetztes-DEP', True)
+            deps.append(dep)
 
         dummy = False
         reversal = False
@@ -162,12 +187,14 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             if recI['typeOfReceipt'] == 'TRAINING_BELEG':
                 dummy = True
 
-        override = recI.get('override', dict())
-
         rec = register.receipt('R1', receiptId, dateTime, sumA, sumB,
                 sumC, sumD, sumE, sig, dummy, reversal, override)
         algorithmPrefix = override.get('algorithmPrefix', 'R1')
         receipts.append((rec, algorithmPrefix))
+
+        if not lastStartJWS:
+            lastStartJWS = rec.toJWSString(algorithmPrefix)
+            previousClusterDEPIdx = len(deps)
 
         prevSigId = sigId
 
@@ -177,11 +204,11 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     else:
         exporter.addGroup(receipts)
 
-    dep = exporter.export()
+    deps.append(exporter.export())
 
     ksJson = keyStore.writeStoreToJson(spec['base64AesKey'])
 
-    return dep, ksJson
+    return deps, ksJson
 
 import json
 import os
@@ -237,12 +264,17 @@ if __name__ == "__main__":
             priv = f.read()
         keymat.append((pub, priv))
 
-    dep, ks = runTest(tcJson, keymat, closed, turnoverCounterSize)
+    deps, ks = runTest(tcJson, keymat, closed, turnoverCounterSize)
 
     os.chdir(baseDir)
 
-    with open('dep-export.json', 'w') as f:
-        f.write(json.dumps(dep, sort_keys=False, indent=2))
-
     with open('cryptographicMaterialContainer.json', 'w') as f:
         f.write(json.dumps(ks, sort_keys=False, indent=2))
+
+    if len(deps) == 1:
+        with open('dep-export.json', 'w') as f:
+            f.write(json.dumps(deps[0], sort_keys=False, indent=2))
+    else:
+        for i in range(len(deps)):
+            with open('dep-export{}.json'.format(i), 'w') as f:
+                f.write(json.dumps(deps[i], sort_keys=False, indent=2))

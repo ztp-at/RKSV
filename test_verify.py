@@ -62,13 +62,23 @@ def _testVerify(spec, pub, priv, closed, parse=False):
         keymat = [(pub, priv)] * spec['numberOfSignatureDevices']
         key = base64.b64decode(spec['base64AesKey'])
 
-        dep, cc = run_test.runTest(spec, keymat, closed)
+        deps, cc = run_test.runTest(spec, keymat, closed)
         ks = key_store.KeyStore.readStoreFromJson(cc)
 
-        if parse:
-            verify.verifyParsedDEP(verify.parseDEPAndGroups(dep), ks, key)
-        else:
-            verify.verifyDEP(dep, ks, key)
+        states = list()
+        for dep in deps:
+            prevState = None
+            if 'Vorheriges-DEP' in dep:
+                prevState = states[dep['Vorheriges-DEP']]
+            partialDEP = dep.get('Fortgesetztes-DEP', False)
+
+            if parse:
+                states.append(verify.verifyParsedDEP(
+                    verify.parseDEPAndGroups(dep), ks,key, prevState,
+                    partialDEP))
+            else:
+                states.append(verify.verifyDEP(dep, ks, key, prevState,
+                    partialDEP))
     except (receipt.ReceiptException, verify.DEPException) as e:
         actual_exception = e
     except Exception as e:

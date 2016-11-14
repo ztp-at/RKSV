@@ -6,6 +6,7 @@ This module provides functions to verify a DEP.
 from builtins import int
 
 import base64
+import copy
 
 from six import string_types
 
@@ -48,6 +49,16 @@ class DEPElementMissingException(MalformedDEPException):
     def __init__(self, elem):
         super(DEPElementMissingException, self).__init__(
                 _("Element \"{}\" missing from DEP").format(elem))
+
+class ClusterInOpenSystemException(DEPException):
+    """
+    This exception indicates that a cluster of cash registers was
+    detected in an open system.
+    """
+
+    def __init__(self):
+        super(ClusterInOpenSystemException, self).__init__(
+                _("GGS Cluster is not supported in an open system."))
 
 class DEPReceiptException(DEPException):
     """
@@ -285,6 +296,16 @@ class VerifyGroupState(object):
         self.turnoverCounterSize = None
         self.usedReceiptIds = set()
         self.needRestoreReceipt = False
+        self.startReceiptsJWS = []
+
+    def resetForNewGGSClusterDEP(self):
+        self.lastReceiptJWS = None
+        self.lastTurnoverCounter = 0
+        self.needRestoreReceipt = False
+
+    @staticmethod
+    def fromPreviousDEP(obj):
+        return copy.deepcopy(obj)
 
 def verifyGroup(group, rv, key, state=None):
     """
@@ -324,6 +345,7 @@ def verifyGroup(group, rv, key, state=None):
     :throws: ChangingSystemTypeException
     :throws: ChangingTurnoverCounterSizeException
     :throws: DuplicateReceiptIdException
+    :throws: ClusterInOpenSystemException
     """
     if not state:
         state = VerifyGroupState()
@@ -364,8 +386,24 @@ def verifyGroup(group, rv, key, state=None):
                 raise NonzeroTurnoverOnInitialReceiptException(ro.receiptId)
             if ro.isDummy() or ro.isReversal():
                 raise NonstandardTypeOnInitialReceiptException(ro.receiptId)
-            state.turnoverCounterSize = len(ro.encTurnoverCounter)
-        else:
+
+            # We are checking a DEP in a GGS cluster.
+            if len(state.startReceiptsJWS) > 0:
+                if ro.zda != 'AT0':
+                    raise ClusterInOpenSystemException()
+                prev = state.startReceiptsJWS[-1]
+                prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
+
+                # Just in case.
+                state.resetForNewGGSClusterDEP()
+            else:
+                state.turnoverCounterSize = len(ro.encTurnoverCounter)
+
+            # Keep track of start receipts in case we have a GGS cluster.
+            if ro.zda == 'AT0':
+                state.startReceiptsJWS.append(r)
+
+        if prevObj:
             if ro.receiptId in state.usedReceiptIds:
                 raise DuplicateReceiptIdException(ro.receiptId)
             if prevObj.registerId != ro.registerId:
@@ -482,7 +520,7 @@ def parseDEPAndGroups(dep):
     """
     return (parseDEPGroup(g) for g in parseDEP(dep))
 
-def verifyParsedDEP(dep, keyStore, key):
+def verifyParsedDEP(dep, keyStore, key, state = None, partialDEP = False):
     """
     Verifies a previously parsed DEP. It checks if the signature of each
     receipt is valid, if the receipts are properly chained, if receipts
@@ -496,6 +534,10 @@ def verifyParsedDEP(dep, keyStore, key):
     certificates.
     :param key: The key used to decrypt the turnover counter as a byte list or
     None.
+    :param state: The state returned by evaluating a previous DEP or None.
+    :param partialDEP: Whether this DEP is part of a full DEP (True) or a
+    new DEP in a GGS cluster.
+    :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
     :throws: CertSerialInvalidException
@@ -520,12 +562,21 @@ def verifyParsedDEP(dep, keyStore, key):
     :throws: ChangingTurnoverCounterSizeException
     :throws: CertificateChainBrokenException
     :throws: DuplicateReceiptIdException
+    :throws: ClusterInOpenSystemException
     """
+    if not state:
+        state = VerifyGroupState()
+    else:
+        state = VerifyGroupState.fromPreviousDEP(state)
+
+    if not partialDEP:
+        state.resetForNewGGSClusterDEP()
+
     depI = iter(dep)
     single = True
 
+    # parsed DEP has at least one group
     recs1, cert1, chain1 = next(depI)
-    state = VerifyGroupState()
     for recs, cert, chain in depI:
         if single:
             single = False
@@ -542,16 +593,16 @@ def verifyParsedDEP(dep, keyStore, key):
         state = verifyGroup(recs, rv, key, state)
 
     if not single:
-        return
+        return state
 
     if not cert1:
         rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
     else:
         verifyCert(cert1, chain1, keyStore)
         rv = verify_receipt.ReceiptVerifier.fromCert(cert1)
-    verifyGroup(recs1, rv, key)
+    return verifyGroup(recs1, rv, key, state)
 
-def verifyDEP(dep, keyStore, key):
+def verifyDEP(dep, keyStore, key, state = None, partialDEP = False):
     """
     Verifies an entire DEP. It checks if the signature of each receipt is valid,
     if the receipts are properly chained, if receipts with zero turnover are
@@ -563,6 +614,10 @@ def verifyDEP(dep, keyStore, key):
     certificates.
     :param key: The key used to decrypt the turnover counter as a byte list or
     None.
+    :param state: The state returned by evaluating a previous DEP or None.
+    :param partialDEP: Whether this DEP is part of a full DEP (True) or a
+    new DEP in a GGS cluster.
+    :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
     :throws: CertSerialInvalidException
@@ -590,17 +645,24 @@ def verifyDEP(dep, keyStore, key):
     :throws: MalformedCertificateException
     :throws: MalformedDEPException
     :throws: DEPElementMissingException
+    :throws: ClusterInOpenSystemException
     """
+    if not state:
+        state = VerifyGroupState()
+    else:
+        state = VerifyGroupState.fromPreviousDEP(state)
+
+    if not partialDEP:
+        state.resetForNewGGSClusterDEP()
+
     bg = parseDEP(dep)
 
     if len(bg) == 1:
         recs, cert, chain = parseDEPGroup(bg[0])
         if not cert:
             rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
-            verifyGroup(recs, rv, key)
-            return
+            return verifyGroup(recs, rv, key, state)
 
-    state = VerifyGroupState()
     for group in bg:
         recs, cert, chain = parseDEPGroup(group)
 
@@ -612,6 +674,8 @@ def verifyDEP(dep, keyStore, key):
         rv = verify_receipt.ReceiptVerifier.fromCert(cert)
     
         state = verifyGroup(recs, rv, key, state)
+
+    return state
 
 def usage():
     print("Usage: ./verify.py keyStore <key store> <dep export file> [<base64 AES key file>]")
