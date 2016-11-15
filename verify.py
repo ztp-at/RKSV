@@ -6,7 +6,6 @@ This module provides functions to verify a DEP.
 from builtins import int
 
 import base64
-import copy
 
 from six import string_types
 
@@ -14,6 +13,7 @@ import algorithms
 import key_store
 import receipt
 import utils
+import verification_state
 import verify_receipt
 
 class DEPException(Exception):
@@ -289,24 +289,6 @@ def verifyCert(cert, chain, keyStore):
     raise UntrustedCertificateException(key_store.numSerialToKeyId(
         cert.serial))
 
-class VerifyGroupState(object):
-    def __init__(self):
-        self.lastReceiptJWS = None
-        self.lastTurnoverCounter = 0
-        self.turnoverCounterSize = None
-        self.usedReceiptIds = set()
-        self.needRestoreReceipt = False
-        self.startReceiptsJWS = []
-
-    def resetForNewGGSClusterDEP(self):
-        self.lastReceiptJWS = None
-        self.lastTurnoverCounter = 0
-        self.needRestoreReceipt = False
-
-    @staticmethod
-    def fromPreviousDEP(obj):
-        return copy.deepcopy(obj)
-
 def verifyGroup(group, rv, key, state=None):
     """
     Verifies a group of receipts from a DEP. It checks if the signature of each
@@ -348,7 +330,7 @@ def verifyGroup(group, rv, key, state=None):
     :throws: ClusterInOpenSystemException
     """
     if not state:
-        state = VerifyGroupState()
+        state = verification_state.VerificationState()
 
     prev = state.lastReceiptJWS
     prevObj = None
@@ -534,7 +516,8 @@ def verifyParsedDEP(dep, keyStore, key, state = None, partialDEP = False):
     certificates.
     :param key: The key used to decrypt the turnover counter as a byte list or
     None.
-    :param state: The state returned by evaluating a previous DEP or None.
+    :param state: The state returned by evaluating a previous DEP or None. This
+    function will not modify the state object passed to it.
     :param partialDEP: Whether this DEP is part of a full DEP (True) or a
     new DEP in a GGS cluster.
     :return: The state of the evaluation. (Can be used for the next DEP.)
@@ -565,9 +548,9 @@ def verifyParsedDEP(dep, keyStore, key, state = None, partialDEP = False):
     :throws: ClusterInOpenSystemException
     """
     if not state:
-        state = VerifyGroupState()
+        state = verification_state.VerificationState()
     else:
-        state = VerifyGroupState.fromPreviousDEP(state)
+        state = verification_state.VerificationState.fromPreviousDEP(state)
 
     if not partialDEP:
         state.resetForNewGGSClusterDEP()
@@ -614,7 +597,8 @@ def verifyDEP(dep, keyStore, key, state = None, partialDEP = False):
     certificates.
     :param key: The key used to decrypt the turnover counter as a byte list or
     None.
-    :param state: The state returned by evaluating a previous DEP or None.
+    :param state: The state returned by evaluating a previous DEP or None. This
+    function will not modify the state object passed to it.
     :param partialDEP: Whether this DEP is part of a full DEP (True) or a
     new DEP in a GGS cluster.
     :return: The state of the evaluation. (Can be used for the next DEP.)
@@ -648,9 +632,9 @@ def verifyDEP(dep, keyStore, key, state = None, partialDEP = False):
     :throws: ClusterInOpenSystemException
     """
     if not state:
-        state = VerifyGroupState()
+        state = verification_state.VerificationState()
     else:
-        state = VerifyGroupState.fromPreviousDEP(state)
+        state = verification_state.VerificationState.fromPreviousDEP(state)
 
     if not partialDEP:
         state.resetForNewGGSClusterDEP()
