@@ -157,6 +157,7 @@ def runTest(spec, keymat, closed=False, tcSize=None):
 
         if newDEP == 'NEW_CLUSTER_DEP' and lastStartJWS:
             register.lastReceiptSig = lastStartJWS
+            register.turnoverCounter = 0
             lastStartJWS = None
 
         if doGroups and prevSigId is not None:
