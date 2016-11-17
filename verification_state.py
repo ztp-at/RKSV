@@ -45,6 +45,7 @@ def printVerificationState(state):
     printStateField(_('Last Receipt'), state.lastReceiptJWS)
     printStateField(_('Last Turnover Counter'), state.lastTurnoverCounter)
     printStateField(_('Turnover Counter Size'), state.turnoverCounterSize)
+    printStateField(_('Used Receipt IDs'), len(state.usedReceiptIds))
     printStateField(_('Need Restore Receipt'), state.needRestoreReceipt)
     for i in range(len(state.startReceiptsJWS)):
         printStateField(_('Start Receipt {}').format(i),
@@ -54,6 +55,7 @@ def usage():
     print("Usage: ./verification_state.py <state> create")
     print("       ./verification_state.py <state> show")
     print("       ./verification_state.py <state> setLastReceiptJWS <receipt in JWS format>")
+    print("       ./verification_state.py <state> readLastReceiptJWSFromDEP <DEP file>")
     print("       ./verification_state.py <state> setLastTurnoverCounter <counter in cents>")
     print("       ./verification_state.py <state> setTurnoverCounterSize <size in bytes>")
     print("       ./verification_state.py <state> toggleNeedRestoreReceipt")
@@ -61,6 +63,7 @@ def usage():
     print("       ./verification_state.py <state> setStartReceiptsJWS <JWS receipt 1>...")
     print("       ./verification_state.py <state> addStartReceiptsJWS <JWS receipt>")
     print("       ./verification_state.py <state> readStartReceiptsJWS <file with one JWS receipt per line>")
+    print("       ./verification_state.py <state> addStartReceiptsJWSFromDEP <DEP file>")
     print("       ./verification_state.py <state> reset")
     print("       ./verification_state.py <state> resetForGGS")
     sys.exit(0)
@@ -71,6 +74,8 @@ if __name__ == "__main__":
 
     import json
     import sys
+
+    import verify
 
     def load_state(filename):
         with open(filename, 'r') as f:
@@ -92,6 +97,10 @@ if __name__ == "__main__":
             return list()
         with open(arg, 'r') as f:
             return [l.strip() for l in f.readlines()]
+
+    def arg_dep_from_file(arg):
+        with open(arg, 'r') as f:
+            return verify.parseDEP(json.load(f))
 
     if len(sys.argv) < 3:
         usage()
@@ -119,6 +128,18 @@ if __name__ == "__main__":
 
         state = load_state(filename)
         state.lastReceiptJWS = arg_str_or_none(sys.argv[3])
+
+    elif sys.argv[2] == 'readLastReceiptJWSFromDEP':
+        if len(sys.argv) != 4:
+            usage()
+
+        state = load_state(filename)
+        dep = arg_dep_from_file(sys.argv[3])
+        receipts, cert, cert_list = verify.parseDEPGroup(dep[-1])
+        if len(receipts) <= 0:
+            print(_("No receipts found."))
+            sys.exit(1)
+        state.lastReceiptJWS = receipts[-1]
 
     elif sys.argv[2] == 'setLastTurnoverCounter':
         if len(sys.argv) != 4:
@@ -173,6 +194,18 @@ if __name__ == "__main__":
 
         state = load_state(filename)
         state.startReceiptsJWS = arg_list_from_file_or_empty(sys.argv[3])
+
+    elif sys.argv[2] == 'addStartReceiptsJWSFromDEP':
+        if len(sys.argv) != 4:
+            usage()
+
+        state = load_state(filename)
+        dep = arg_dep_from_file(sys.argv[3])
+        receipts, cert, cert_list = verify.parseDEPGroup(dep[0])
+        if len(receipts) <= 0:
+            print(_("No receipts found."))
+            sys.exit(1)
+        state.startReceiptsJWS.append(receipts[0])
 
     elif sys.argv[2] == 'reset':
         if len(sys.argv) != 3:
