@@ -65,20 +65,27 @@ def _testVerify(spec, pub, priv, closed, parse=False):
         deps, cc = run_test.runTest(spec, keymat, closed)
         ks = key_store.KeyStore.readStoreFromJson(cc)
 
-        states = list()
-        for dep in deps:
-            prevState = None
-            if 'Vorheriges-DEP' in dep:
-                prevState = states[dep['Vorheriges-DEP']]
+        state = None
+        depToRegisterIdx = list()
+        nRegisters = 0
+        for i in range(len(deps)):
+            dep = deps[i]
+
+            registerIdx = nRegisters
             partialDEP = dep.get('Fortgesetztes-DEP', False)
 
-            if parse:
-                states.append(verify.verifyParsedDEP(
-                    verify.parseDEPAndGroups(dep), ks,key, prevState,
-                    partialDEP))
+            if partialDEP:
+                registerIdx = depToRegisterIdx[dep['Vorheriges-DEP']]
             else:
-                states.append(verify.verifyDEP(dep, ks, key, prevState,
-                    partialDEP))
+                nRegisters += 1
+
+            depToRegisterIdx.append(registerIdx)
+
+            if parse:
+                state = verify.verifyParsedDEP(verify.parseDEPAndGroups(
+                    dep), ks,key, state, registerIdx)
+            else:
+                state = verify.verifyDEP(dep, ks, key, state, registerIdx)
     except (receipt.ReceiptException, verify.DEPException) as e:
         actual_exception = e
     except Exception as e:

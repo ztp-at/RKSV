@@ -3,6 +3,8 @@
 """
 This module provides functions to verify a DEP.
 """
+
+from __future__ import print_function
 from builtins import int
 
 import base64
@@ -289,24 +291,29 @@ def verifyCert(cert, chain, keyStore):
     raise UntrustedCertificateException(key_store.numSerialToKeyId(
         cert.serial))
 
-def verifyGroup(group, rv, key, state=None):
+def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
+        cashRegisterState=None, usedReceiptIds = None):
     """
-    Verifies a group of receipts from a DEP. It checks if the signature of each
-    receipt is valid, if the receipts are properly chained and if receipts with
-    zero turnover are present as required. If a key is specified it also
-    verifies the turnover counter. Returns the last receipt in the group and the
-    last known value of the turnover counter on success and throws an exception
-    otherwise.
+    Verifies a group of receipts from a DEP. It checks if the signature of
+    each receipt is valid, if the receipts are properly chained and if
+    receipts with zero turnover are present as required. If a key is
+    specified it also verifies the turnover counter.
     :param group: The receipts in the group as a list of JWS strings.
     :param rv: The receipt verifier object used to verify single receipts.
-    :param key: The key used to decrypt the turnover counter as a byte list or
-    None.
-    :param state: The state returned by a previous call to verifyGroup(), or
-    None if this is the first group.
-    :return: A state object containing the last receipt in the group as JWS
-    string, the last known value of the turnover counter as int and the size of
-    the encrypted base64 encoded turnover counter as int. This object should be
-    passed to the next call to verifyGroup().
+    :param key: The key used to decrypt the turnover counter as a byte list
+    or None.
+    :param prevStartReceiptJWS: The start receipt (in JWS format) of the
+    previous cash register in the GGS cluster or None if there is no
+    cluster or the register is the first in one. This is only used if
+    cashRegisterState does not contain a previous receipt for the register.
+    :param cashRegisterState: State of the cash register as a
+    CashRegisterState object.
+    :param usedReceiptIds: A set containing all previously used receipt IDs
+    as strings. Note that this set is not per DEP or per cash register but
+    per GGS cluster.
+    :return: The updated cashRegisterState object and the updated
+    usedReceiptIds set. These can be passed to a subsequent call to
+    verifyGroup().
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
     :throws: CertSerialInvalidException
@@ -329,10 +336,12 @@ def verifyGroup(group, rv, key, state=None):
     :throws: DuplicateReceiptIdException
     :throws: ClusterInOpenSystemException
     """
-    if not state:
-        state = verification_state.VerificationState()
+    if not cashRegisterState:
+        cashRegisterState = verification_state.CashRegisterState()
+    if not usedReceiptIds:
+        usedReceiptIds = set()
 
-    prev = state.lastReceiptJWS
+    prev = cashRegisterState.lastReceiptJWS
     prevObj = None
     if prev:
         prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
@@ -342,12 +351,12 @@ def verifyGroup(group, rv, key, state=None):
         try:
             ro, algorithm = rv.verifyJWS(r)
             if prevObj and (not ro.isNull() or ro.isDummy() or ro.isReversal()):
-                if state.needRestoreReceipt:
+                if cashRegisterState.needRestoreReceipt:
                     raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
                 if prevObj.isSignedBroken():
-                    state.needRestoreReceipt = True
+                    cashRegisterState.needRestoreReceipt = True
             else:
-                state.needRestoreReceipt = False
+                cashRegisterState.needRestoreReceipt = False
         except verify_receipt.SignatureSystemFailedException as e:
             pass
         except verify_receipt.UnsignedNullReceiptException as e:
@@ -358,7 +367,7 @@ def verifyGroup(group, rv, key, state=None):
             ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
             if not prevObj:
                 raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
-            if state.needRestoreReceipt:
+            if cashRegisterState.needRestoreReceipt:
                 raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
             # fromJWSString() already raises an UnknownAlgorithmException if necessary
             algorithm = algorithms.ALGORITHMS[algorithmPrefix]
@@ -370,23 +379,18 @@ def verifyGroup(group, rv, key, state=None):
                 raise NonstandardTypeOnInitialReceiptException(ro.receiptId)
 
             # We are checking a DEP in a GGS cluster.
-            if len(state.startReceiptsJWS) > 0:
+            if prevStartReceiptJWS:
                 if ro.zda != 'AT0':
                     raise ClusterInOpenSystemException()
-                prev = state.startReceiptsJWS[-1]
+                prev = prevStartReceiptJWS
                 prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
-
-                # Just in case.
-                state.resetForNewGGSClusterDEP()
-            else:
-                state.turnoverCounterSize = len(ro.encTurnoverCounter)
 
             # Keep track of start receipts in case we have a GGS cluster.
             if ro.zda == 'AT0':
-                state.startReceiptsJWS.append(r)
+                cashRegisterState.startReceiptJWS = r
 
         if prevObj:
-            if ro.receiptId in state.usedReceiptIds:
+            if ro.receiptId in usedReceiptIds:
                 raise DuplicateReceiptIdException(ro.receiptId)
             if prevObj.registerId != ro.registerId:
                 raise ChangingRegisterIdException(ro.receiptId)
@@ -397,29 +401,26 @@ def verifyGroup(group, rv, key, state=None):
             # https://github.com/a-sit-plus/at-registrierkassen-mustercode/issues/144#issuecomment-255786335
             #if prevObj.dateTime > ro.dateTime:
             #    raise DecreasingDateException(ro.receiptId)
-            #if not ro.isDummy() and not ro.isReversal() and len(
-            #        ro.encTurnoverCounter) != state.turnoverCounterSize:
-            #    raise ChangingTurnoverCounterSizeException(ro.receiptId)
 
-        state.usedReceiptIds.add(ro.receiptId)
+        usedReceiptIds.add(ro.receiptId)
 
         if not ro.isDummy():
             if key:
-                newC = state.lastTurnoverCounter + int(round(
+                newC = cashRegisterState.lastTurnoverCounter + int(round(
                     (ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
                 if not ro.isReversal():
                     turnoverCounter = ro.decryptTurnoverCounter(key, algorithm)
                     if turnoverCounter != newC:
                         raise InvalidTurnoverCounterException(ro.receiptId)
-                state.lastTurnoverCounter = newC
+                cashRegisterState.lastTurnoverCounter = newC
 
         verifyChain(ro, prev, algorithm)
 
         prev = r
         prevObj = ro
 
-    state.lastReceiptJWS = prev
-    return state
+    cashRegisterState.lastReceiptJWS = prev
+    return cashRegisterState, usedReceiptIds
 
 def parseDEPCert(cert_str):
     """
@@ -502,24 +503,23 @@ def parseDEPAndGroups(dep):
     """
     return (parseDEPGroup(g) for g in parseDEP(dep))
 
-def verifyParsedDEP(dep, keyStore, key, state = None, partialDEP = False):
+def verifyParsedDEP(dep, keyStore, key, state = None,
+        cashRegisterIdx = None):
     """
     Verifies a previously parsed DEP. It checks if the signature of each
     receipt is valid, if the receipts are properly chained, if receipts
     with zero turnover are present as required and if the certificates used
     to sign the receipts are valid. If a key is specified it also verifies
     the turnover counter. It does not check for errors that should already
-    be detected while parsing the DEP. Returns nothing on success and
-    throws an exception otherwise.
+    be detected while parsing the DEP.
     :param dep: The DEP as returned by parseDEPAndGroups().
     :param keyStore: The key store object containing the used public keys and
     certificates.
     :param key: The key used to decrypt the turnover counter as a byte list or
     None.
-    :param state: The state returned by evaluating a previous DEP or None. This
-    function will not modify the state object passed to it.
-    :param partialDEP: Whether this DEP is part of a full DEP (True) or a
-    new DEP in a GGS cluster.
+    :param state: The state returned by evaluating a previous DEP or None.
+    :param cashRegisterIdx: The index of the cash register that created the
+    DEP in the state parameter or None to create a new register state.
     :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
@@ -546,15 +546,14 @@ def verifyParsedDEP(dep, keyStore, key, state = None, partialDEP = False):
     :throws: CertificateChainBrokenException
     :throws: DuplicateReceiptIdException
     :throws: ClusterInOpenSystemException
+    :throws: InvalidCashRegisterIndexException
+    :throws: NoStartReceiptForLastCashRegisterException
     """
     if not state:
-        state = verification_state.VerificationState()
-    else:
-        state = verification_state.VerificationState.fromPreviousDEP(state)
+        state = verification_state.ClusterState()
 
-    if not partialDEP:
-        state.resetForNewGGSClusterDEP()
-
+    prevStart, rState, usedRecIds = state.getCashRegisterInfo(
+            cashRegisterIdx)
     depI = iter(dep)
     single = True
 
@@ -567,15 +566,20 @@ def verifyParsedDEP(dep, keyStore, key, state = None, partialDEP = False):
                 raise NoCertificateGivenException()
             verifyCert(cert1, chain1, keyStore)
             rv = verify_receipt.ReceiptVerifier.fromCert(cert1)
-            state = verifyGroup(recs1, rv, key, state)
+
+            rState, usedRecIds = verifyGroup(recs1, rv, key, prevStart,
+                    rState, usedRecIds)
 
         if not cert:
             raise NoCertificateGivenException()
         verifyCert(cert, chain, keyStore)
         rv = verify_receipt.ReceiptVerifier.fromCert(cert)
-        state = verifyGroup(recs, rv, key, state)
+
+        rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
+                rState, usedRecIds)
 
     if not single:
+        state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
         return state
 
     if not cert1:
@@ -583,24 +587,28 @@ def verifyParsedDEP(dep, keyStore, key, state = None, partialDEP = False):
     else:
         verifyCert(cert1, chain1, keyStore)
         rv = verify_receipt.ReceiptVerifier.fromCert(cert1)
-    return verifyGroup(recs1, rv, key, state)
 
-def verifyDEP(dep, keyStore, key, state = None, partialDEP = False):
+    rState, usedRecIds = verifyGroup(recs1, rv, key, prevStart,
+            rState, usedRecIds)
+
+    state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
+    return state
+
+def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
     """
-    Verifies an entire DEP. It checks if the signature of each receipt is valid,
-    if the receipts are properly chained, if receipts with zero turnover are
-    present as required and if the certificates used to sign the receipts are
-    valid. If a key is specified it also verifies the turnover counter. Returns
-    nothing on success and throws an exception otherwise.
+    Verifies an entire DEP. It checks if the signature of each receipt is
+    valid, if the receipts are properly chained, if receipts with zero
+    turnover are present as required and if the certificates used to sign
+    the receipts are valid. If a key is specified it also verifies the
+    turnover counter.
     :param dep: The DEP as a json object.
-    :param keyStore: The key store object containing the used public keys and
-    certificates.
-    :param key: The key used to decrypt the turnover counter as a byte list or
-    None.
-    :param state: The state returned by evaluating a previous DEP or None. This
-    function will not modify the state object passed to it.
-    :param partialDEP: Whether this DEP is part of a full DEP (True) or a
-    new DEP in a GGS cluster.
+    :param keyStore: The key store object containing the used public keys
+    and certificates.
+    :param key: The key used to decrypt the turnover counter as a byte list
+    or None.
+    :param state: The state returned by evaluating a previous DEP or None.
+    :param cashRegisterIdx: The index of the cash register that created the
+    DEP in the state parameter or None to create a new register state.
     :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
@@ -630,14 +638,14 @@ def verifyDEP(dep, keyStore, key, state = None, partialDEP = False):
     :throws: MalformedDEPException
     :throws: DEPElementMissingException
     :throws: ClusterInOpenSystemException
+    :throws: InvalidCashRegisterIndexException
+    :throws: NoStartReceiptForLastCashRegisterException
     """
     if not state:
-        state = verification_state.VerificationState()
-    else:
-        state = verification_state.VerificationState.fromPreviousDEP(state)
+        state = verification_state.ClusterState()
 
-    if not partialDEP:
-        state.resetForNewGGSClusterDEP()
+    prevStart, rState, usedRecIds = state.getCashRegisterInfo(
+            cashRegisterIdx)
 
     bg = parseDEP(dep)
 
@@ -645,7 +653,13 @@ def verifyDEP(dep, keyStore, key, state = None, partialDEP = False):
         recs, cert, chain = parseDEPGroup(bg[0])
         if not cert:
             rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
-            return verifyGroup(recs, rv, key, state)
+
+            rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
+                    rState, usedRecIds)
+
+            state.updateCashRegisterInfo(cashRegisterIdx, rState,
+                    usedRecIds)
+            return state
 
     for group in bg:
         recs, cert, chain = parseDEPGroup(group)
@@ -657,13 +671,16 @@ def verifyDEP(dep, keyStore, key, state = None, partialDEP = False):
 
         rv = verify_receipt.ReceiptVerifier.fromCert(cert)
     
-        state = verifyGroup(recs, rv, key, state)
+        rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
+                rState, usedRecIds)
 
+    state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
     return state
 
 def usage():
-    print("Usage: ./verify.py keyStore <key store> <dep export file> [<base64 AES key file>]")
-    print("       ./verify.py json <json container file> <dep export file>")
+    print("Usage: ./verify.py [state [continue|<n>]] keyStore <key store> <dep export file> [<base64 AES key file>]")
+    print("       ./verify.py [state [continue|<n>]] json <json container file> <dep export file>")
+    print("       ./verify.py state")
     sys.exit(0)
 
 if __name__ == "__main__":
@@ -676,11 +693,37 @@ if __name__ == "__main__":
 
     import key_store
 
-    if len(sys.argv) < 4 or len(sys.argv) > 5:
+    if len(sys.argv) < 2 or len(sys.argv) > 7:
         usage()
 
     key = None
     keyStore = None
+
+    statePassthrough = False
+    continueLast = False
+    registerIdx = None
+    if sys.argv[1] == 'state':
+        statePassthrough = True
+        del sys.argv[1]
+
+    if statePassthrough and len(sys.argv) == 1:
+        print(json.dumps(
+            verification_state.ClusterState().writeStateToJson(),
+            sort_keys=False, indent=2))
+        sys.exit(0)
+
+    if sys.argv[1] == 'continue':
+        continueLast = True
+        del sys.argv[1]
+    else:
+        try:
+            registerIdx = int(sys.argv[1])
+            del sys.argv[1]
+        except ValueError:
+            pass
+
+    if len(sys.argv) < 4 or len(sys.argv) > 5:
+        usage()
 
     if sys.argv[1] == 'keyStore':
         if len(sys.argv) == 5:
@@ -697,7 +740,7 @@ if __name__ == "__main__":
             usage()
 
         with open(sys.argv[2]) as f:
-            jsonStore = json.loads(f.read())
+            jsonStore = json.load(f)
 
             key = utils.loadKeyFromJson(jsonStore)
             keyStore = key_store.KeyStore.readStoreFromJson(jsonStore)
@@ -707,8 +750,19 @@ if __name__ == "__main__":
 
     dep = None
     with open(sys.argv[3]) as f:
-        dep = json.loads(f.read())
+        dep = json.load(f)
 
-    verifyDEP(dep, keyStore, key)
+    state = None
+    if statePassthrough:
+        state = verification_state.ClusterState.readStateFromJson(
+                json.load(sys.stdin))
+        if continueLast:
+            registerIdx = len(state.cashRegisters) - 1
 
-    print(_("Verification successful."))
+    state = verifyDEP(dep, keyStore, key, state, registerIdx)
+
+    if statePassthrough:
+        print(json.dumps(
+            state.writeStateToJson(), sort_keys=False, indent=2))
+
+    print(_("Verification successful."), file=sys.stderr)

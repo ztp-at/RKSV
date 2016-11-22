@@ -8,64 +8,121 @@ from builtins import int
 
 import copy
 
-class VerificationState(object):
+class StateException(Exception):
+    pass
+
+class InvalidCashRegisterIndexException(StateException):
+    def __init__(self, idx):
+        super(InvalidCashRegisterIndexException, self).__init__(
+                _("No cash register with index {}.").format(idx))
+
+class NoStartReceiptForLastCashRegisterException(StateException):
     def __init__(self):
-        self.lastReceiptJWS = None
-        self.lastTurnoverCounter = 0
-        self.turnoverCounterSize = None
-        self.usedReceiptIds = set()
-        self.needRestoreReceipt = False
-        self.startReceiptsJWS = []
+        super(NoStartReceiptForLastCashRegisterException,
+                self).__init__(_("The last cash register has no registered start receipt."))
 
-    def resetForNewGGSClusterDEP(self):
+class CashRegisterState(object):
+    def __init__(self):
+        self.startReceiptJWS = None
         self.lastReceiptJWS = None
         self.lastTurnoverCounter = 0
         self.needRestoreReceipt = False
-
-    @staticmethod
-    def fromPreviousDEP(obj):
-        return copy.deepcopy(obj)
-
-    @staticmethod
-    def readStateFromJson(json):
-        ret = VerificationState()
-        ret.__dict__.update(json)
-        ret.usedReceiptIds = set(ret.usedReceiptIds)
-        return ret
-
-    def writeStateToJson(self):
-        ret = copy.deepcopy(self.__dict__)
-        ret['usedReceiptIds'] = list(ret['usedReceiptIds'])
-        return ret
 
 def printStateField(name, value):
     print('{: >25}: {}'.format(name, value))
 
-def printVerificationState(state):
+def printCashRegisterState(state):
+    printStateField(_('Start Receipt'), state.startReceiptJWS)
     printStateField(_('Last Receipt'), state.lastReceiptJWS)
     printStateField(_('Last Turnover Counter'), state.lastTurnoverCounter)
-    printStateField(_('Turnover Counter Size'), state.turnoverCounterSize)
-    printStateField(_('Used Receipt IDs'), len(state.usedReceiptIds))
     printStateField(_('Need Restore Receipt'), state.needRestoreReceipt)
-    for i in range(len(state.startReceiptsJWS)):
-        printStateField(_('Start Receipt {}').format(i),
-                state.startReceiptsJWS[i])
+
+class ClusterState(object):
+    def __init__(self, initReceiptJWS = None, initUsedReceiptIds = None):
+        self.cashRegisters = list()
+        self.usedReceiptIds = set()
+
+        if initReceiptJWS:
+            self.addNewCashRegister()
+            self.cashRegisters[0].startReceiptJWS = initReceiptJWS
+
+        if initUsedReceiptIds:
+            self.usedReceiptIds.update(initUsedReceiptIds)
+
+    def addNewCashRegister(self):
+        if (len(self.cashRegisters) > 0 and not
+                self.cashRegisters[-1].startReceiptJWS):
+            raise NoStartReceiptForLastCashRegisterException()
+
+        self.cashRegisters.append(CashRegisterState())
+
+    def getCashRegisterInfo(self, registerIdx):
+        if registerIdx is None or registerIdx == len(self.cashRegisters):
+            registerIdx = len(self.cashRegisters)
+            self.addNewCashRegister()
+        if registerIdx < 0 or registerIdx > len(self.cashRegisters):
+            raise InvalidCashRegisterIndexException(registerIdx)
+
+        prev = None
+        if registerIdx > 0:
+            prev = self.cashRegisters[registerIdx - 1].startReceiptJWS
+
+        return prev, copy.copy(
+                self.cashRegisters[registerIdx]), copy.copy(
+                        self.usedReceiptIds)
+
+    def updateCashRegisterInfo(self, registerIdx, newRegisterState,
+            newUsedReceiptIds):
+        if registerIdx is None:
+            registerIdx = len(self.cashRegisters) - 1
+        elif registerIdx < 0 or registerIdx >= len(self.cashRegisters):
+            raise InvalidCashRegisterIndexException(registerIdx)
+
+        self.cashRegisters[registerIdx] = newRegisterState
+        self.usedReceiptIds.update(newUsedReceiptIds)
+
+    @staticmethod
+    def readStateFromJson(json):
+        ret = ClusterState()
+
+        for cr in json['cashRegisters']:
+            cro = CashRegisterState()
+            cro.__dict__.update(cr)
+            ret.cashRegisters.append(cro)
+
+        ret.usedReceiptIds = set(json['usedReceiptIds'])
+
+        return ret
+
+    def writeStateToJson(self):
+        regs = list()
+        for cr in self.cashRegisters:
+            regs.append(copy.copy(cr.__dict__))
+
+        return {
+                'cashRegisters': regs,
+                'usedReceiptIds': list(self.usedReceiptIds)
+        }
+
+def printClusterState(state):
+    for i in range(len(state.cashRegisters)):
+        print(_('Cash Register {}:').format(i))
+        printCashRegisterState(state.cashRegisters[i])
+        print('')
+    printStateField(_('Used Receipt IDs'), len(state.usedReceiptIds))
 
 def usage():
     print("Usage: ./verification_state.py <state> create")
     print("       ./verification_state.py <state> show")
-    print("       ./verification_state.py <state> setLastReceiptJWS <receipt in JWS format>")
-    print("       ./verification_state.py <state> readLastReceiptJWSFromDEP <DEP file>")
-    print("       ./verification_state.py <state> setLastTurnoverCounter <counter in cents>")
-    print("       ./verification_state.py <state> setTurnoverCounterSize <size in bytes>")
-    print("       ./verification_state.py <state> toggleNeedRestoreReceipt")
+    print("       ./verification_state.py <state> addCashRegister")
+    print("       ./verification_state.py <state> resetCashRegister <n>")
+    print("       ./verification_state.py <state> deleteCashRegister <n>")
+    print("       ./verification_state.py <state> setLastReceiptJWS <n> <receipt in JWS format>")
+    print("       ./verification_state.py <state> setLastTurnoverCounter <n> <counter in cents>")
+    print("       ./verification_state.py <state> toggleNeedRestoreReceipt <n>")
+    print("       ./verification_state.py <state> setStartReceiptJWS <n> <receipt in JWS format>")
     print("       ./verification_state.py <state> readUsedReceiptIds <file with one receipt ID per line>")
-    print("       ./verification_state.py <state> setStartReceiptsJWS <JWS receipt 1>...")
-    print("       ./verification_state.py <state> addStartReceiptsJWS <JWS receipt>")
-    print("       ./verification_state.py <state> readStartReceiptsJWS <file with one JWS receipt per line>")
-    print("       ./verification_state.py <state> addStartReceiptsJWSFromDEP <DEP file>")
-    print("       ./verification_state.py <state> reset")
-    print("       ./verification_state.py <state> resetForGGS")
+    print("       ./verification_state.py <state> copyCashRegister <n-Target> <source state file> <n-Source>")
     sys.exit(0)
 
 if __name__ == "__main__":
@@ -80,27 +137,18 @@ if __name__ == "__main__":
     def load_state(filename):
         with open(filename, 'r') as f:
             stateJson = json.load(f)
-            return VerificationState.readStateFromJson(stateJson)
+            return ClusterState.readStateFromJson(stateJson)
 
     def arg_str_or_none(arg):
         if arg == 'None':
             return None
         return arg
 
-    def arg_int_or_none(arg):
-        if arg == 'None':
-            return None
-        return int(arg)
-
     def arg_list_from_file_or_empty(arg):
         if arg == 'None':
             return list()
         with open(arg, 'r') as f:
             return [l.strip() for l in f.readlines()]
-
-    def arg_dep_from_file(arg):
-        with open(arg, 'r') as f:
-            return verify.parseDEP(json.load(f))
 
     if len(sys.argv) < 3:
         usage()
@@ -112,7 +160,7 @@ if __name__ == "__main__":
         if len(sys.argv) != 3:
             usage()
 
-        state = VerificationState()
+        state = ClusterState()
 
     elif sys.argv[2] == 'show':
         if len(sys.argv) != 3:
@@ -120,51 +168,62 @@ if __name__ == "__main__":
 
         state = load_state(filename)
 
-        printVerificationState(state)
+        printClusterState(state)
 
-    elif sys.argv[2] == 'setLastReceiptJWS':
-        if len(sys.argv) != 4:
-            usage()
-
-        state = load_state(filename)
-        state.lastReceiptJWS = arg_str_or_none(sys.argv[3])
-
-    elif sys.argv[2] == 'readLastReceiptJWSFromDEP':
-        if len(sys.argv) != 4:
-            usage()
-
-        state = load_state(filename)
-        dep = arg_dep_from_file(sys.argv[3])
-        receipts, cert, cert_list = verify.parseDEPGroup(dep[-1])
-        if len(receipts) <= 0:
-            print(_("No receipts found."))
-            sys.exit(1)
-        state.lastReceiptJWS = receipts[-1]
-
-    elif sys.argv[2] == 'setLastTurnoverCounter':
-        if len(sys.argv) != 4:
-            usage()
-
-        state = load_state(filename)
-        state.lastTurnoverCounter = int(sys.argv[3])
-
-    elif sys.argv[2] == 'setTurnoverCounterSize':
-        if len(sys.argv) != 4:
-            usage()
-
-        state = load_state(filename)
-        tcs = arg_int_or_none(sys.argv[3])
-        if tcs is not None and (tcs < 5 or tcs > 16):
-            print(_("Turnover counter size needs to be between 5 and 16."))
-            sys.exit(1)
-        state.turnoverCounterSize = tcs
-
-    elif sys.argv[2] == 'toggleNeedRestoreReceipt':
+    elif sys.argv[2] == 'addCashRegister':
         if len(sys.argv) != 3:
             usage()
 
         state = load_state(filename)
-        state.needRestoreReceipt = not state.needRestoreReceipt
+        state.addNewCashRegister()
+
+    elif sys.argv[2] == 'resetCashRegister':
+        if len(sys.argv) != 4:
+            usage()
+
+        state = load_state(filename)
+        state.updateCashRegisterInfo(int(sys.argv[3]), CashRegisterState(),
+                set())
+
+    elif sys.argv[2] == 'deleteCashRegister':
+        if len(sys.argv) != 4:
+            usage()
+
+        state = load_state(filename)
+        del state.cashRegisters[int(sys.argv[3])]
+
+    elif sys.argv[2] == 'setLastReceiptJWS':
+        if len(sys.argv) != 5:
+            usage()
+
+        state = load_state(filename)
+        state.cashRegisters[int(
+            sys.argv[3])].lastReceiptJWS = arg_str_or_none(sys.argv[4])
+
+    elif sys.argv[2] == 'setLastTurnoverCounter':
+        if len(sys.argv) != 5:
+            usage()
+
+        state = load_state(filename)
+        state.cashRegisters[int(
+            sys.argv[3])].lastTurnoverCounter = int(sys.argv[4])
+
+    elif sys.argv[2] == 'toggleNeedRestoreReceipt':
+        if len(sys.argv) != 4:
+            usage()
+
+        state = load_state(filename)
+        state.cashRegisters[int(
+            sys.argv[3])].needRestoreReceipt = not state.cashRegisters[int(
+                sys.argv[3])].needRestoreReceipt
+
+    elif sys.argv[2] == 'setStartReceiptJWS':
+        if len(sys.argv) != 5:
+            usage()
+
+        state = load_state(filename)
+        state.cashRegisters[int(
+            sys.argv[3])].startReceiptJWS = arg_str_or_none(sys.argv[4])
 
     elif sys.argv[2] == 'readUsedReceiptIds':
         if len(sys.argv) != 4:
@@ -174,51 +233,15 @@ if __name__ == "__main__":
         state.usedReceiptIds = set(
                 arg_list_from_file_or_empty(sys.argv[3]))
 
-    elif sys.argv[2] == 'setStartReceiptsJWS':
-        if len(sys.argv) < 3:
+    elif sys.argv[2] == 'copyCashRegister':
+        if len(sys.argv) != 6:
             usage()
 
         state = load_state(filename)
-        state.startReceiptsJWS = sys.argv[3:]
+        srcState = load_state(sys.argv[4])
 
-    elif sys.argv[2] == 'addStartReceiptsJWS':
-        if len(sys.argv) != 4:
-            usage()
-
-        state = load_state(filename)
-        state.startReceiptsJWS.append(sys.argv[3])
-
-    elif sys.argv[2] == 'readStartReceiptsJWS':
-        if len(sys.argv) != 4:
-            usage()
-
-        state = load_state(filename)
-        state.startReceiptsJWS = arg_list_from_file_or_empty(sys.argv[3])
-
-    elif sys.argv[2] == 'addStartReceiptsJWSFromDEP':
-        if len(sys.argv) != 4:
-            usage()
-
-        state = load_state(filename)
-        dep = arg_dep_from_file(sys.argv[3])
-        receipts, cert, cert_list = verify.parseDEPGroup(dep[0])
-        if len(receipts) <= 0:
-            print(_("No receipts found."))
-            sys.exit(1)
-        state.startReceiptsJWS.append(receipts[0])
-
-    elif sys.argv[2] == 'reset':
-        if len(sys.argv) != 3:
-            usage()
-
-        state = VerificationState()
-
-    elif sys.argv[2] == 'resetForGGS':
-        if len(sys.argv) != 3:
-            usage()
-
-        state = load_state(filename)
-        state.resetForNewGGSClusterDEP()
+        state.cashRegisters[int(
+            sys.argv[3])] = srcState.cashRegisters[int(sys.argv[5])]
 
     else:
         usage()
