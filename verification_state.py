@@ -156,12 +156,12 @@ def usage():
     print("       ./verification_state.py <state> addCashRegister")
     print("       ./verification_state.py <state> resetCashRegister <n>")
     print("       ./verification_state.py <state> deleteCashRegister <n>")
+    print("       ./verification_state.py <state> copyCashRegister <n-Target> <source state file> <n-Source>")
     print("       ./verification_state.py <state> setLastReceiptJWS <n> <receipt in JWS format>")
     print("       ./verification_state.py <state> setLastTurnoverCounter <n> <counter in cents>")
     print("       ./verification_state.py <state> toggleNeedRestoreReceipt <n>")
     print("       ./verification_state.py <state> setStartReceiptJWS <n> <receipt in JWS format>")
     print("       ./verification_state.py <state> readUsedReceiptIds <file with one receipt ID per line>")
-    print("       ./verification_state.py <state> copyCashRegister <n-Target> <source state file> <n-Source>")
     sys.exit(0)
 
 if __name__ == "__main__":

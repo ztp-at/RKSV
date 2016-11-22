@@ -192,12 +192,12 @@ verification_state.py
 	       ./verification_state.py <state> addCashRegister
 	       ./verification_state.py <state> resetCashRegister <n>
 	       ./verification_state.py <state> deleteCashRegister <n>
+	       ./verification_state.py <state> copyCashRegister <n-Target> <source state file> <n-Source>
 	       ./verification_state.py <state> setLastReceiptJWS <n> <receipt in JWS format>
 	       ./verification_state.py <state> setLastTurnoverCounter <n> <counter in cents>
 	       ./verification_state.py <state> toggleNeedRestoreReceipt <n>
 	       ./verification_state.py <state> setStartReceiptJWS <n> <receipt in JWS format>
 	       ./verification_state.py <state> readUsedReceiptIds <file with one receipt ID per line>
-	       ./verification_state.py <state> copyCashRegister <n-Target> <source state file> <n-Source>
 
 This script manages the verification state if multiple related DEPs need to be
 verified. A state store is a simple JSON file. It conains a list of used receipt
@@ -228,6 +228,12 @@ Note that this operation can result in an inconsistent state as the start
 receipt is lost and the start receipt of the (n+1)st register can not be
 verified.
 
+The `copyCashRegister` command copies the state of the n-Source-th cash register
+from the specified source state file to the n-Target-th cash register state.
+Note that this operation can result in an inconsistent state as the start
+receipt is lost and the start receipt of the (n-Target+1)st register can not be
+verified.
+
 The `setLastReceiptJWS` command sets the last known receipt for the nth cash
 register to the given value.
 
@@ -244,9 +250,6 @@ inconsistent state as the start receipt is lost and the start receipt of the
 
 The `readUsedReceiptIds` command reads the list of used receipt IDs from the
 specified file.
-
-The `copyCashRegister` command copies the state of the n-Source-th cash register
-from the specified source state file to the n-Target-th cash register state.
 
 receipt.py
 -----------
