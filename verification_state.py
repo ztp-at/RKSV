@@ -22,6 +22,11 @@ class NoStartReceiptForLastCashRegisterException(StateException):
                 self).__init__(_("The last cash register has no registered start receipt."))
 
 class CashRegisterState(object):
+    """
+    An object holding the state of a cash register. This allows for the
+    verification of partial DEPs.
+    """
+
     def __init__(self):
         self.startReceiptJWS = None
         self.lastReceiptJWS = None
@@ -38,6 +43,12 @@ def printCashRegisterState(state):
     printStateField(_('Need Restore Receipt'), state.needRestoreReceipt)
 
 class ClusterState(object):
+    """
+    An object holding the state of a GGS cluster. It keeps a list of
+    CashRegisterState objects and a set of used receipt IDs. For a register
+    that is not in a GGS use a ClusterState with a single cash register.
+    """
+
     def __init__(self, initReceiptJWS = None, initUsedReceiptIds = None):
         self.cashRegisters = list()
         self.usedReceiptIds = set()
@@ -50,6 +61,12 @@ class ClusterState(object):
             self.usedReceiptIds.update(initUsedReceiptIds)
 
     def addNewCashRegister(self):
+        """
+        Appends a new cash register to the list of cash registers. If the
+        current last cash register does not have a start receipt, this
+        operation fails with an exception.
+        :throws: NoStartReceiptForLastCashRegisterException
+        """
         if (len(self.cashRegisters) > 0 and not
                 self.cashRegisters[-1].startReceiptJWS):
             raise NoStartReceiptForLastCashRegisterException()
@@ -57,6 +74,18 @@ class ClusterState(object):
         self.cashRegisters.append(CashRegisterState())
 
     def getCashRegisterInfo(self, registerIdx):
+        """
+        Retrieves the requested cash register state, the previous cash
+        register's start receipt and the used receipt IDs from the cluster
+        state. This info is needed to verify a new DEP.
+        :param registerIdx: The index of the cash register or None if a new
+        one should be added.
+        :return: The start receipt of the previous cash register in JWS
+        format or None, if registerIdx equals zero, a copy of the state
+        of the specified cash register as CashRegisterState object and a
+        copy of the set of used receipt IDs.
+        :throws InvalidCashRegisterIndexException
+        """
         if registerIdx is None or registerIdx == len(self.cashRegisters):
             registerIdx = len(self.cashRegisters)
             self.addNewCashRegister()
@@ -73,6 +102,16 @@ class ClusterState(object):
 
     def updateCashRegisterInfo(self, registerIdx, newRegisterState,
             newUsedReceiptIds):
+        """
+        Updates the cluster state after a DEP by the given register has
+        been verified.
+        :param registerIdx: The index of the cash register or None if the
+        last one should be updated.
+        :param newRegisterState: The updated state of the cash register as
+        a CashRegisterState object.
+        :param newUsedReceiptIds: The updated set of used receipt IDs.
+        :throws InvalidCashRegisterIndexException
+        """
         if registerIdx is None:
             registerIdx = len(self.cashRegisters) - 1
         elif registerIdx < 0 or registerIdx >= len(self.cashRegisters):
