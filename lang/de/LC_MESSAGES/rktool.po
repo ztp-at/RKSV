@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-11-08 13:13+CET\n"
+"POT-Creation-Date: 2016-11-22 14:44+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -179,7 +179,7 @@ msgstr "Schlüsselspeicher laden"
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
 
-#: receipt.py:25 verify.py:60
+#: receipt.py:25 verify.py:73
 msgid "At receipt \"{0}\": {1}"
 msgstr "Bei Rechnung \"{0}\": {1}"
 
@@ -297,11 +297,11 @@ msgstr ""
 "Brauche Schlüsselmaterial für {} Sicherheitseinrichtungen, habe {} "
 "Schlüsselpaare bekommen."
 
-#: run_test.py:215
+#: run_test.py:243
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:227 test_verify.py:199
+#: run_test.py:255 test_verify.py:216
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
@@ -313,87 +313,123 @@ msgstr "Gewählter Algorithmus wird nicht unterstützt."
 msgid "no Exception"
 msgstr "kein Fehler"
 
-#: test_verify.py:82
+#: test_verify.py:99
 msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
 msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
 
-#: test_verify.py:89
+#: test_verify.py:106
 msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
 msgstr ""
 "Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
 "bekommen"
 
-#: test_verify.py:125
+#: test_verify.py:142
 msgid "Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<"
 msgstr "Ergebnisse verschieden: ohne parsing {}:>{}<, mit parsing {}:>{}<"
 
-#: test_verify.py:160
+#: test_verify.py:177
 msgid "No run label"
 msgstr "Kein Simulationsname"
 
-#: test_verify.py:177
+#: test_verify.py:194
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
-#: verify.py:32
+#: verification_state.py:17
+msgid "No cash register with index {}."
+msgstr "Keine Kassa mit Index {}."
+
+#: verification_state.py:22
+msgid "The last cash register has no registered start receipt."
+msgstr "Die letzte Kassa hat keinen registrierten Startbeleg."
+
+#: verification_state.py:40
+msgid "Start Receipt"
+msgstr "Startbeleg"
+
+#: verification_state.py:41
+msgid "Last Receipt"
+msgstr "Letzter Beleg"
+
+#: verification_state.py:42
+msgid "Last Turnover Counter"
+msgstr "Letzter Umsatzzähler"
+
+#: verification_state.py:43
+msgid "Need Restore Receipt"
+msgstr "Benötigt Nullbeleg"
+
+#: verification_state.py:148
+msgid "Cash Register {}:"
+msgstr "Kassa {}:"
+
+#: verification_state.py:151
+msgid "Used Receipt IDs"
+msgstr "Benutzte Belegnummern"
+
+#: verify.py:35
 msgid "Malformed DEP"
 msgstr "Ungültiges DEP"
 
-#: verify.py:41
+#: verify.py:44
 msgid "Malformed certificate: \"{}\""
 msgstr "Ungültiges Zertifikat: \"{}\""
 
-#: verify.py:50
+#: verify.py:53
 msgid "Element \"{}\" missing from DEP"
 msgstr "Element \"{}\" fehlt in DEP"
 
-#: verify.py:71
+#: verify.py:63
+msgid "GGS Cluster is not supported in an open system."
+msgstr "GGS Verbund wird in offenen Systemen nicht unterstützt."
+
+#: verify.py:84
 msgid "Previous receipt is not \"{0}\"."
 msgstr "Vorherige Rechnung ist nicht \"{0}\"."
 
-#: verify.py:82
+#: verify.py:95
 msgid "Receipt after restored signature system must not have any turnover."
 msgstr ""
 "Rechnung nach Wiederherstellung der Sicherheitseinrichtung darf keinen "
 "Umsatz haben."
 
-#: verify.py:92
+#: verify.py:105
 msgid "Receipt ID already in use."
 msgstr "Rechnungs-ID wird bereits verwendet."
 
-#: verify.py:101
+#: verify.py:114
 msgid "Turnover counter invalid."
 msgstr "Umsatzzähler ungültig."
 
-#: verify.py:110
+#: verify.py:123
 msgid "Register ID changed."
 msgstr "Kassen-ID geändert."
 
-#: verify.py:120
+#: verify.py:133
 msgid "Receipt was created before previous receipt."
 msgstr "Rechnung wurde vor vorhergehender Rechnung erstellt."
 
-#: verify.py:130
+#: verify.py:143
 msgid "The system type changed."
 msgstr "Typ des Systems wurde geändert."
 
-#: verify.py:140
+#: verify.py:153
 msgid "The size of the turnover counter changed."
 msgstr "Die Länge des Umsatzzählers wurde geändert."
 
-#: verify.py:149
+#: verify.py:162
 msgid "No certificate specified in DEP and multiple groups used."
 msgstr "Kein Zertifikat angegeben, aber DEP hat mehrere Gruppen."
 
-#: verify.py:160
+#: verify.py:173
 msgid "Certificate \"%s\" is not trusted."
 msgstr "Zertifikat \"%s\" wird nicht vertraut."
 
-#: verify.py:171
+#: verify.py:184
 msgid "Certificate \"{}\" was not signed by \"{}\"."
 msgstr "Zertifikat \"{}\" wurde nicht von \"{}\" signiert."
 
-#: verify.py:182
+#: verify.py:195
 msgid ""
 "Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and "
 "\"{2}\"). This may be an attempted attack."
@@ -401,23 +437,23 @@ msgstr ""
 "Zwei Zertifikate mit Seriennummer \"{0}\" gefunden (Fingerabdrücke \"{1}\" "
 "und \"{2}\"). Dies könnte ein versuchter Angriff sein."
 
-#: verify.py:191
+#: verify.py:204
 msgid "Initial receipt not signed."
 msgstr "Startbeleg nicht signiert."
 
-#: verify.py:199
+#: verify.py:212
 msgid "Initial receipt has nonzero turnover."
 msgstr "Startbeleg hat Umsatz ungleich Null."
 
-#: verify.py:209
+#: verify.py:222
 msgid "Initial receipt has not been chained to the cash register ID."
 msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
 
-#: verify.py:218
+#: verify.py:231
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: verify.py:666
+#: verify.py:768
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
