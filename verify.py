@@ -384,10 +384,10 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
                     raise ClusterInOpenSystemException()
                 prev = prevStartReceiptJWS
                 prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
+                if prevObj.zda != 'AT0':
+                    raise ClusterInOpenSystemException()
 
-            # Keep track of start receipts in case we have a GGS cluster.
-            if ro.zda == 'AT0':
-                cashRegisterState.startReceiptJWS = r
+            cashRegisterState.startReceiptJWS = r
 
         if prevObj:
             if ro.receiptId in usedReceiptIds:
