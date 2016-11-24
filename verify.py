@@ -235,18 +235,15 @@ def verifyChain(rec, prev, algorithm):
     Verifies that a receipt is preceeded by another receipt in the receipt
     chain. It returns nothing on success and throws an exception otherwise.
     :param rec: The new receipt as a receipt object.
-    :param prev: The previous receipt as a JWS string.
+    :param prev: The previous receipt as a JWS string or None if this is
+    the first receipt.
     :param algorithm: The algorithm class to use.
     :throws: ChainingException
-    :throws: InvalidChainingOnInitialReceiptException
     """
     chainingValue = algorithm.chain(rec, prev)
     chainingValue = base64.b64encode(chainingValue)
     if chainingValue.decode("utf-8") != rec.previousChain:
-        if prev:
-            raise ChainingException(rec.receiptId, prev)
-        else:
-            raise InvalidChainingOnInitialReceiptException(rec.receiptId)
+        raise ChainingException(rec.receiptId, prev)
 
 def verifyCert(cert, chain, keyStore):
     """
@@ -414,7 +411,13 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
                         raise InvalidTurnoverCounterException(ro.receiptId)
                 cashRegisterState.lastTurnoverCounter = newC
 
-        verifyChain(ro, prev, algorithm)
+        try:
+            verifyChain(ro, prev, algorithm)
+        except ChainingException as e:
+            # Special exception for the initial receipt
+            if cashRegisterState.startReceiptJWS == r:
+                raise InvalidChainingOnInitialReceiptException(e.receipt)
+            raise e
 
         prev = r
         prevObj = ro
