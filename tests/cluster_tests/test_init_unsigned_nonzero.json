@@ -1,0 +1,44 @@
+{
+  "cashBoxId": "CASHBOX-DEMO-1",
+  "base64AesKey": "WQRtiiya3hYh/Uz44Bv3x8ETl1nrH6nCdErn69g5/lU=",
+  "companyID": "U:ATU12345678",
+  "simulationRunLabel": "test_init_unsigned_nonzero_cluster",
+  "numberOfSignatureDevices": 1,
+  "cashBoxInstructionList": [
+    {
+      "signatureDeviceDamaged": false,
+      "receiptIdentifier": "CASHBOX-DEMO-1-Receipt-ID-1",
+      "dateToUse": "2016-03-10T03:57:08",
+      "usedSignatureDevice": 0,
+      "simplifiedReceipt": {
+        "taxSetNormal": 0.0,
+        "taxSetErmaessigt1": 0.0,
+        "taxSetErmaessigt2": 0.0,
+        "taxSetNull": 0.0,
+        "taxSetBesonders": 0.0
+      },
+      "typeOfReceipt": "START_BELEG"
+    },
+    {
+      "signatureDeviceDamaged": true,
+      "receiptIdentifier": "CASHBOX-DEMO-1-Receipt-ID-2",
+      "dateToUse": "2016-03-11T03:57:08",
+      "usedSignatureDevice": 0,
+      "simplifiedReceipt": {
+        "taxSetNormal": 7.0,
+        "taxSetErmaessigt1": 0.0,
+        "taxSetErmaessigt2": 0.0,
+        "taxSetNull": 0.0,
+        "taxSetBesonders": 0.0
+      },
+      "typeOfReceipt": "START_BELEG",
+      "beginNewDEP": "NEW_CLUSTER_DEP",
+      "override": {
+        "turnoverCounter": 0
+      }
+    }
+  ],
+  "expectedException": "SignatureSystemFailedOnInitialReceiptException",
+  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-2",
+  "closedSystem": true
+}
