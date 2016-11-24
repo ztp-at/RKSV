@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-11-22 14:44+CET\n"
+"POT-Creation-Date: 2016-11-24 20:20+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -453,7 +453,7 @@ msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: verify.py:768
+#: verify.py:771
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
