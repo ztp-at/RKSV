@@ -46,7 +46,7 @@ Additionally needed to build the APK:
 * >=zlib1g:i386-1.2.8 (for x86_64 systems)
 
 On Ubuntu 16.04 you can install all requirements to create the Python virtual
-enviroment to run all scripts with `apt-get install python-virtualenv
+environment to run all scripts with `apt-get install python-virtualenv
 mesa-common-dev libgl1-mesa-dev libssl-dev libpython2.7-dev libzbar-dev
 build-essential gettext libffi-dev`. The requirements needed to build the APK
 can be installed with `dpkg --add-architecture i386 && apt-get update &&
@@ -75,7 +75,7 @@ make test
 
 Runs `test_verify.py` for all test cases in `tests` for open and closed systems
 with turnover counters of 5, 8 and 6 bytes with both Python 2 and 3. If no
-certificate has been gernerated yet, it will create one first.
+certificate has been generated yet, it will create one first.
 
 make update-trans
 -----------------
@@ -200,7 +200,7 @@ verification_state.py
 	       ./verification_state.py <state> readUsedReceiptIds <file with one receipt ID per line>
 
 This script manages the verification state if multiple related DEPs need to be
-verified. A state store is a simple JSON file. It conains a list of used receipt
+verified. A state store is a simple JSON file. It contains a list of used receipt
 IDs and a list of cash register states. The cash register states record the
 start receipt of a cash register, the last verified receipt, the last known
 turnover counter (if available) and whether or not the next receipt has to be a
@@ -321,11 +321,11 @@ cases in `tests`.
 As opposed to `run_test.py`, `test_verify.py` only takes one key pair and reuses
 it for all signature devices a test requires.
 
-The `multi` mode allows the user to specify multiple komma-separated turnover
+The `multi` mode allows the user to specify multiple comma-separated turnover
 counter sizes and multiple JSON test specification files as the last parameters.
 It will run each specified test as both open and closed system for each of the
 given turnover counter sizes. This mode requires both a certificate and a public
-key file. It will also recognise the `closedSystem` element in the test
+key file. It will also recognize the `closedSystem` element in the test
 specification. If it is present, the script will only execute the test as a
 closed system (if it is `True`) or an open system (if it is `False`). This
 allows for tests that are specific to open/closed systems.
