@@ -38,7 +38,7 @@
       }
     }
   ],
-  "expectedException": "InvalidChainingOnInitialReceiptException",
+  "expectedException": "InvalidChainingOnClusterInitialReceiptException",
   "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-2",
   "closedSystem": true
 }

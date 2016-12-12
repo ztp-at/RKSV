@@ -221,6 +221,16 @@ class InvalidChainingOnInitialReceiptException(DEPReceiptException):
                 rec,
                 _("Initial receipt has not been chained to the cash register ID."))
 
+class InvalidChainingOnClusterInitialReceiptException(InvalidChainingOnInitialReceiptException):
+    """
+    Indicates that the initial receipt of a GGS cluster register has not
+    been chained to the previous cash register's initial receipt.
+    """
+    def __init__(self, rec):
+        super(InvalidChainingOnInitialReceiptException, self).__init__(
+                rec,
+                _("Initial receipt in cluster has not been chained to the previous cash register's initial receipt."))
+
 class NonstandardTypeOnInitialReceiptException(DEPReceiptException):
     """
     Indicates that the initial receipt is a dummy or reversal receipt.
@@ -416,6 +426,8 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
         except ChainingException as e:
             # Special exception for the initial receipt
             if cashRegisterState.startReceiptJWS == r:
+                if prevStartReceiptJWS:
+                    raise InvalidChainingOnClusterInitialReceiptException(e.receipt)
                 raise InvalidChainingOnInitialReceiptException(e.receipt)
             raise e
 
