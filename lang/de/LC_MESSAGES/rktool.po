@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-11-24 20:20+CET\n"
+"POT-Creation-Date: 2016-12-13 00:11+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -449,11 +449,19 @@ msgstr "Startbeleg hat Umsatz ungleich Null."
 msgid "Initial receipt has not been chained to the cash register ID."
 msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
 
-#: verify.py:231
+#: verify.py:232
+msgid ""
+"Initial receipt in cluster has not been chained to the previous cash "
+"register's initial receipt."
+msgstr ""
+"Startbeleg in Verbund ist nicht mit dem Startbeleg der vorherigen Kassa "
+"verkettet."
+
+#: verify.py:241
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: verify.py:771
+#: verify.py:783
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
