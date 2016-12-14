@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2016-12-13 00:11+CET\n"
+"POT-Creation-Date: 2016-12-14 20:57+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -199,23 +199,23 @@ msgstr "Inkompatible Algorithmen."
 msgid "Unknown Receipt"
 msgstr "Unbekannte Rechnung."
 
-#: receipt.py:209 receipt.py:310 receipt.py:365 receipt.py:461
+#: receipt.py:215 receipt.py:322 receipt.py:377 receipt.py:473
 msgid "You need to sign the receipt first."
 msgstr "Die Rechnung muss zuerst signiert werden."
 
-#: receipt.py:501
+#: receipt.py:513
 msgid "Can't decrypt turnover counter, this is a dummy receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Trainingsbeleg."
 
-#: receipt.py:503
+#: receipt.py:515
 msgid "Can't decrypt turnover counter, this is a reversal receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Stornobeleg."
 
-#: receipt.py:539 verify_receipt.py:386
+#: receipt.py:551 verify_receipt.py:386
 msgid "Input format must be one of %s."
 msgstr "Eingabeformat muss eines aus %s sein."
 
-#: receipt.py:543
+#: receipt.py:555
 msgid "Output format must be one of %s."
 msgstr "Ausgabeformat muss eines aus %s sein."
 
