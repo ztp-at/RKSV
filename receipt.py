@@ -180,11 +180,17 @@ class Receipt(object):
         if not dateTime:
             raise MalformedReceiptException(jwsString)
 
-        sumA = float(segments[5].replace(',', '.'))
-        sumB = float(segments[6].replace(',', '.'))
-        sumC = float(segments[7].replace(',', '.'))
-        sumD = float(segments[8].replace(',', '.'))
-        sumE = float(segments[9].replace(',', '.'))
+        sumA = utils.getReceiptFloat(segments[5])
+        sumB = utils.getReceiptFloat(segments[6])
+        sumC = utils.getReceiptFloat(segments[7])
+        sumD = utils.getReceiptFloat(segments[8])
+        sumE = utils.getReceiptFloat(segments[9])
+        if (sumA is None
+                or sumB is None
+                or sumC is None
+                or sumD is None
+                or sumE is None):
+            raise MalformedReceiptException(jwsString)
 
         turnoverCounter = segments[10]
         certSerial = segments[11]
@@ -275,11 +281,17 @@ class Receipt(object):
         if not dateTime:
             raise MalformedReceiptException(basicCode)
 
-        sumA = float(segments[5].replace(',', '.'))
-        sumB = float(segments[6].replace(',', '.'))
-        sumC = float(segments[7].replace(',', '.'))
-        sumD = float(segments[8].replace(',', '.'))
-        sumE = float(segments[9].replace(',', '.'))
+        sumA = utils.getReceiptFloat(segments[5])
+        sumB = utils.getReceiptFloat(segments[6])
+        sumC = utils.getReceiptFloat(segments[7])
+        sumD = utils.getReceiptFloat(segments[8])
+        sumE = utils.getReceiptFloat(segments[9])
+        if (sumA is None
+                or sumB is None
+                or sumC is None
+                or sumD is None
+                or sumE is None):
+            raise MalformedReceiptException(basicCode)
 
         turnoverCounter = segments[10]
         certSerial = segments[11]

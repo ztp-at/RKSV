@@ -187,6 +187,8 @@ def getBasicCodeFromURL(url):
     r.raise_for_status()
     return r.json()['code']
 
+urlHashRegex = re.compile(
+        r'(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{11}(?![A-Za-z0-9_-])')
 def getURLHashFromURL(url):
     """
     Extracts the URL hash from the given URL. If an anchor part is given,
@@ -199,9 +201,7 @@ def getURLHashFromURL(url):
     if len(urlParts) >= 2:
         return urlParts[1]
 
-    matches = re.findall(
-            r'(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{11}(?![A-Za-z0-9_-])',
-            urlParts[0])
+    matches = urlHashRegex.findall(urlParts[0])
     if len(matches) == 0:
         return None
 
@@ -263,3 +263,13 @@ def makeSignedCert(cpub, ccn, cvdays, cserial, spriv, scert=None):
     )
     return builder.sign(private_key=spriv, algorithm=hashes.SHA256(),
             backend=default_backend())
+
+receiptFloatRegex = re.compile(r'^-?\d+\,\d\d$')
+def getReceiptFloat(fstr):
+    if receiptFloatRegex.match(fstr) is None:
+        return None
+
+    try:
+        return float(fstr.replace(',', '.'))
+    except:
+        return None
