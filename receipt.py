@@ -94,9 +94,10 @@ class Receipt(object):
         :param previousChain: The chaining value for the previous receipt as a
         base64 encoded string.
         """
-        if not isinstance(receiptId, string_types):
+        if not isinstance(receiptId, string_types) or not receiptId:
             raise MalformedReceiptException(_("Unknown Receipt"))
-        if not isinstance(zda, string_types) or not isinstance(registerId, string_types):
+        if not isinstance(zda, string_types) or not isinstance(registerId, string_types) \
+                or not zda or not registerId:
             raise MalformedReceiptException(receiptId)
         if not isinstance(dateTime, datetime.datetime):
             raise MalformedReceiptException(receiptId)
@@ -104,9 +105,13 @@ class Receipt(object):
                 or not isinstance(sumC, float) or not isinstance(sumD, float) \
                 or not isinstance(sumE, float):
             raise MalformedReceiptException(receiptId)
+        # Due to how algorithm works encTurnoverCounter and previousChain
+        # can both be the empty string when the receipt is created and not
+        # parsed from a string.
         if not isinstance(encTurnoverCounter, string_types) \
                 or not isinstance(certSerial, string_types) \
-                or not isinstance(previousChain, string_types):
+                or not isinstance(previousChain, string_types) \
+                or not certSerial:
             raise MalformedReceiptException(receiptId)
         try:
             base64.b64decode(encTurnoverCounter.encode('utf-8'))
@@ -195,6 +200,13 @@ class Receipt(object):
         turnoverCounter = segments[10]
         certSerial = segments[11]
         previousChain = segments[12]
+
+        # __init__ does not perform the latter two checks
+        if not isinstance(turnoverCounter, string_types) \
+                or not isinstance(previousChain, string_types) \
+                or not turnoverCounter.replace('=', '') \
+                or not previousChain.replace('=', ''):
+            raise MalformedReceiptException(jwsString)
 
         receipt = Receipt(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
@@ -304,6 +316,13 @@ class Receipt(object):
             raise MalformedReceiptException(basicCode)
         signature = base64.urlsafe_b64encode(signature).replace(b'=', b'')
         signature = signature.decode("utf-8")
+
+        # __init__ does not perform the latter two checks
+        if not isinstance(turnoverCounter, string_types) \
+                or not isinstance(previousChain, string_types) \
+                or not turnoverCounter.replace('=', '') \
+                or not previousChain.replace('=', ''):
+            raise MalformedReceiptException(basicCode)
 
         receipt = Receipt(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
