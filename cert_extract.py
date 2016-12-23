@@ -36,4 +36,5 @@ if __name__ == "__main__":
         for co in groupCerts:
             cs = key_store.numSerialToKeyId(co.serial)
             with open('{}.crt'.format(cs), 'w') as f:
-                f.write(utils.exportCertToPEM(co))
+                f.write(utils.addPEMCertHeaders(
+                    utils.exportCertToPEM(co)))
