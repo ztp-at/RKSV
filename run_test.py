@@ -24,8 +24,9 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     "decimalSerial", "turnoverCounterSize", "includePublicKey",
     "multipleGroups", "certChainLength", "omitSignCert", "omitRootCert",
     "certChainFailure" and "certChainSerialCollision" elements in the root
-    dictionary and the "override" and "beginNewDEP" elements in the dictionaries
-    in the "cashBoxInstructionList" element.
+    dictionary and the "annotateTurnoverCounter", "override" and
+    "beginNewDEP" elements in the dictionaries in the
+    "cashBoxInstructionList" element.
     :param spec: The test specification as a dict structure.
     :param keymat: The key material as a list of tuples with the public key/
     certificate in the first element and the private key in the second
@@ -133,6 +134,7 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     override = dict()
     receipts = list()
     prevSigId = None
+    expectedTurnover = None
     for recI in spec['cashBoxInstructionList']:
         receiptId = recI['receiptIdentifier']
         dateTime = datetime.datetime.strptime(recI['dateToUse'],
@@ -171,6 +173,8 @@ def runTest(spec, keymat, closed=False, tcSize=None):
                 receipts = list()
 
         if newDEP != 'NO_NEW_DEP':
+            if expectedTurnover:
+                exporter.addExtra('Umsatz-gesamt', expectedTurnover)
             dep = exporter.export()
             exporter = depexport.DEPExporter()
             if newDEP == 'NEW_CLUSTER_DEP':
@@ -179,6 +183,8 @@ def runTest(spec, keymat, closed=False, tcSize=None):
                 exporter.addExtra('Vorheriges-DEP', len(deps))
                 exporter.addExtra('Fortgesetztes-DEP', True)
             deps.append(dep)
+
+        expectedTurnover = recI.get('annotateTurnoverCounter', None)
 
         dummy = False
         reversal = False
@@ -205,6 +211,8 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     else:
         exporter.addGroup(receipts)
 
+    if expectedTurnover:
+        exporter.addExtra('Umsatz-gesamt', expectedTurnover)
     deps.append(exporter.export())
 
     ksJson = keyStore.writeStoreToJson(spec['base64AesKey'])

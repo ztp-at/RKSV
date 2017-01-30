@@ -79,6 +79,8 @@ def _testVerify(spec, pub, priv, closed, parse=False):
             else:
                 nRegisters += 1
 
+            expectedTurnover = dep.get('Umsatz-gesamt', None)
+
             depToRegisterIdx.append(registerIdx)
 
             if parse:
@@ -86,6 +88,15 @@ def _testVerify(spec, pub, priv, closed, parse=False):
                     dep), ks,key, state, registerIdx)
             else:
                 state = verify.verifyDEP(dep, ks, key, state, registerIdx)
+
+            if expectedTurnover:
+                prevJWS, cashRegState, ids = state.getCashRegisterInfo(registerIdx)
+                expectedTurnoverCounter = int(expectedTurnover * 100)
+                if expectedTurnoverCounter != cashRegState.lastTurnoverCounter:
+                    return TestVerifyResult.FAIL, Exception(
+                            _('Expected {} in turnover counter but got {}.').format(
+                                expectedTurnoverCounter,
+                                cashRegState.lastTurnoverCounter))
     except (receipt.ReceiptException, verify.DEPException) as e:
         actual_exception = e
     except Exception as e:
