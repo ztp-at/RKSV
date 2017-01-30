@@ -1,3 +1,25 @@
+Python RKSV Scripts
+===================
+
+This repository contains a collection of scripts für verifying and
+analyzing cash register logs (DEPs) and signed receipts according to the
+Registrierkassensicherheitsverordnung (RKSV).
+
+A German tutorial for some of the tools here is available in the
+[Wiki](https://github.com/prentner/RKSV/wiki).
+
+Disclaimer
+----------
+
+The verification tools available here are not fit to ensure the correct
+functioning of a cash register implementation according to law. The
+correctness of the verification results cannot be guaranteed. Only the
+official tools provided by A-SIT Plus GmbH and the Austrian Federal
+Ministry of Finance are reliable.
+
+Furthermore, no part of the code in this repository is fit to be used in a
+cash register in productive use.
+
 Dependencies
 ------------
 To run `make env`:
