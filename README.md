@@ -1,7 +1,7 @@
 Python RKSV Scripts
 ===================
 
-This repository contains a collection of scripts für verifying and
+This repository contains a collection of scripts for verifying and
 analyzing cash register logs (DEPs) and signed receipts according to the
 Registrierkassensicherheitsverordnung (RKSV).
 
