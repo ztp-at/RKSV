@@ -20,6 +20,11 @@ Ministry of Finance are reliable.
 Furthermore, no part of the code in this repository is fit to be used in a
 cash register in productive use.
 
+License
+-------
+
+All scripts and source files are licensed under the GPLv3.
+
 Dependencies
 ------------
 To run `make env`:
