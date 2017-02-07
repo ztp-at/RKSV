@@ -12,7 +12,7 @@ import uuid
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric import ec, rsa, padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key, Encoding, PublicFormat
 from cryptography.hazmat.primitives import hashes
@@ -122,7 +122,7 @@ def verifyCert(cert, signCert):
     Verifies that a certificate has been signed with another. Note that this
     function only verifies the cryptographic signature and is probably wrong and
     dangerous. Do not use it to verify certificates. This function only supports
-    ECDSA signatures, all other signature types will fail.
+    ECDSA and RSA+PKCS1 signatures, all other signature types will fail.
     :param cert: The certificate whose signature we want to verify as a
     cryptography certificate object.
     :param signCert: The certificate that was used to sign the first certificate
@@ -136,13 +136,16 @@ def verifyCert(cert, signCert):
 
     pubKey = signCert.public_key()
     alg = None
-    # We only support ECDSA for now
+    # We only support ECDSA and RSA+PKCS1
     if isinstance(pubKey, ec.EllipticCurvePublicKey):
         alg = ec.ECDSA(halg)
+        ver = pubKey.verifier(sig, alg)
+    elif isinstance(pubKey, rsa.RSAPublicKey):
+        pad = padding.PKCS1v15()
+        ver = pubKey.verifier(sig, pad, halg)
     else:
         return False
 
-    ver = pubKey.verifier(sig, alg)
     ver.update(data)
 
     try:
