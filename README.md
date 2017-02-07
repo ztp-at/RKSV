@@ -81,6 +81,18 @@ can be installed with `dpkg --add-architecture i386 && apt-get update &&
 apt-get install default-jdk git unzip wget libncurses5:i386 libstdc++6:i386
 zlib1g:i386 autoconf`.
 
+
+Dockerfile
+----------
+
+Using the included `Dockerfile`, you can create a Docker container
+containing all the necessary dependencies to run any of the scripts and to
+build the APK.
+
+The container also includes an SSH server that can be started with `service
+ssh start`. The default user (and password) is `rksv`. Together with X11
+forwarding, the SSH server can be used to run the GUI.
+
 make env
 --------
 
