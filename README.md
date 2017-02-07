@@ -1,5 +1,6 @@
 Python RKSV Scripts
 ===================
+**(c) ZTP.at**
 
 This repository contains a collection of scripts for verifying and
 analyzing cash register logs (DEPs) and signed receipts according to the
