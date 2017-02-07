@@ -87,6 +87,7 @@ android.minapi = 19
 
 # (str) Android NDK version to use
 #android.ndk = 9c
+android.ndk = 10e
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
