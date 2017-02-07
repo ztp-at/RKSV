@@ -411,16 +411,6 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
 
         usedReceiptIds.add(ro.receiptId)
 
-        if not ro.isDummy():
-            if key:
-                newC = cashRegisterState.lastTurnoverCounter + int(round(
-                    (ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
-                if not ro.isReversal():
-                    turnoverCounter = ro.decryptTurnoverCounter(key, algorithm)
-                    if turnoverCounter != newC:
-                        raise InvalidTurnoverCounterException(ro.receiptId)
-                cashRegisterState.lastTurnoverCounter = newC
-
         try:
             verifyChain(ro, prev, algorithm)
         except ChainingException as e:
@@ -430,6 +420,16 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
                     raise InvalidChainingOnClusterInitialReceiptException(e.receipt)
                 raise InvalidChainingOnInitialReceiptException(e.receipt)
             raise e
+
+        if not ro.isDummy():
+            if key:
+                newC = cashRegisterState.lastTurnoverCounter + int(round(
+                    (ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
+                if not ro.isReversal():
+                    turnoverCounter = ro.decryptTurnoverCounter(key, algorithm)
+                    if turnoverCounter != newC:
+                        raise InvalidTurnoverCounterException(ro.receiptId)
+                cashRegisterState.lastTurnoverCounter = newC
 
         prev = r
         prevObj = ro
