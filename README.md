@@ -24,7 +24,7 @@ cash register in productive use.
 License
 -------
 
-All scripts and source files are licensed under the GPLv3.
+All scripts and source files are licensed under the AGPLv3.
 
 Dependencies
 ------------
