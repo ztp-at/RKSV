@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-01-30 14:23+CET\n"
+"POT-Creation-Date: 2017-02-07 13:42+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: ZTP\n"
 "Language-Team: German\n"
@@ -239,7 +239,7 @@ msgstr "Ok"
 msgid "Receipt"
 msgstr "Rechnung"
 
-#: rktool.kv:115 rktool.kv:266
+#: rktool.kv:115 rktool.kv:269
 msgid "Exit"
 msgstr "Beenden"
 
@@ -279,15 +279,15 @@ msgstr "Exportieren"
 msgid "Registrierkassen Tool"
 msgstr "Registrierkassen Tool"
 
-#: rktool.kv:277
+#: rktool.kv:280
 msgid "Verify Receipt"
 msgstr "Rechnung überprüfen"
 
-#: rktool.kv:281
+#: rktool.kv:284
 msgid "Verify DEP"
 msgstr "DEP überprüfen"
 
-#: rktool.kv:285
+#: rktool.kv:288
 msgid "Key Store"
 msgstr "Schlüsselspeicher"
 
