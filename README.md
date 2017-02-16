@@ -233,6 +233,7 @@ verification_state.py
 	       ./verification_state.py <state> resetCashRegister <n>
 	       ./verification_state.py <state> deleteCashRegister <n>
 	       ./verification_state.py <state> copyCashRegister <n-Target> <source state file> <n-Source>
+	       ./verification_state.py <state> updateCashRegister <n-Target> <dep export file> [<base64 AES key file>]
 	       ./verification_state.py <state> setLastReceiptJWS <n> <receipt in JWS format>
 	       ./verification_state.py <state> setLastTurnoverCounter <n> <counter in cents>
 	       ./verification_state.py <state> toggleNeedRestoreReceipt <n>
@@ -273,6 +274,11 @@ from the specified source state file to the n-Target-th cash register state.
 Note that this operation can result in an inconsistent state as the start
 receipt is lost and the start receipt of the (n-Target+1)st register can not be
 verified.
+
+The `updateCashRegister` command updates the state of the n-Target-th cash
+register as if the DEP in `dep export file` had been verified. If an AES
+key is specified in `base64 AES key file`, the turnover counter is updated
+as well.
 
 The `setLastReceiptJWS` command sets the last known receipt for the nth cash
 register to the given value.

@@ -23,7 +23,12 @@ verifcation function and can be fed to a subsequent call.
 """
 from builtins import int
 
+import base64
 import copy
+
+import algorithms
+import receipt
+import verify
 
 class StateException(Exception):
     pass
@@ -49,6 +54,64 @@ class CashRegisterState(object):
         self.lastReceiptJWS = None
         self.lastTurnoverCounter = 0
         self.needRestoreReceipt = False
+
+    @staticmethod
+    def fromDEPGroup(old, group, key = None):
+        new = copy.copy(old)
+        new.updateFromDEPGroup(group, key)
+        return new
+
+    def updateFromDEPGroup(self, group, key = None):
+        if len(group) <= 0:
+            return
+
+        if len(group) == 1:
+            secondToLastReceiptJWS = self.lastReceiptJWS
+        else:
+            secondToLastReceiptJWS = group[-2]
+
+        stl = None
+        if secondToLastReceiptJWS:
+            stl, prefix = receipt.Receipt.fromJWSString(secondToLastReceiptJWS)
+        last, prefix = receipt.Receipt.fromJWSString(group[-1])
+
+        if not last.isSignedBroken() and stl and (not last.isNull() or
+                last.isDummy() or last.isReversal()) and stl.isSignedBroken():
+            self.needRestoreReceipt = True
+        else:
+            self.needRestoreReceipt = False
+
+        if not self.startReceiptJWS:
+            self.startReceiptJWS = group[0]
+
+        self.lastReceiptJWS = group[-1]
+
+        if not key:
+            return
+
+        reversals = list()
+        for i in range(len(group) - 1, -1, -1):
+            ro, prefix = receipt.Receipt.fromJWSString(group[i])
+            if (not ro.isDummy()) and (not ro.isReversal()):
+                alg = algorithms.ALGORITHMS[prefix]
+                self.lastTurnoverCounter = ro.decryptTurnoverCounter(key, alg)
+                break
+            if ro.isReversal():
+                reversals.insert(0, ro)
+
+        for ro in reversals:
+            self.lastTurnoverCounter += int(round(
+                (ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
 
 def printStateField(name, value):
     print('{: >25}: {}'.format(name, value))
@@ -174,6 +237,7 @@ def usage():
     print("       ./verification_state.py <state> resetCashRegister <n>")
     print("       ./verification_state.py <state> deleteCashRegister <n>")
     print("       ./verification_state.py <state> copyCashRegister <n-Target> <source state file> <n-Source>")
+    print("       ./verification_state.py <state> updateCashRegister <n-Target> <dep export file> [<base64 AES key file>]")
     print("       ./verification_state.py <state> setLastReceiptJWS <n> <receipt in JWS format>")
     print("       ./verification_state.py <state> setLastTurnoverCounter <n> <counter in cents>")
     print("       ./verification_state.py <state> toggleNeedRestoreReceipt <n>")
@@ -298,6 +362,23 @@ if __name__ == "__main__":
 
         state.cashRegisters[int(
             sys.argv[3])] = srcState.cashRegisters[int(sys.argv[5])]
+
+    elif sys.argv[2] == 'updateCashRegister':
+        if len(sys.argv) != 5 and len(sys.argv) != 6:
+            usage()
+
+        with open(sys.argv[4]) as f:
+            dep = verify.parseDEPAndGroups(json.load(f))
+
+        key = None
+        if len(sys.argv) == 6:
+            with open(sys.argv[5]) as f:
+                key = base64.b64decode(f.read().encode("utf-8"))
+
+        state = load_state(filename)
+
+        for recs, cert, chain in dep:
+            state.cashRegisters[int(sys.argv[3])].updateFromDEPGroup(recs, key)
 
     else:
         usage()

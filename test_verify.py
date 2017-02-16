@@ -31,6 +31,7 @@ import enum
 
 import key_store
 import receipt
+import verification_state
 import verify
 
 import run_test
@@ -83,7 +84,7 @@ def _testVerify(spec, pub, priv, closed, parse=False):
         deps, cc = run_test.runTest(spec, keymat, closed)
         ks = key_store.KeyStore.readStoreFromJson(cc)
 
-        state = None
+        state = verification_state.ClusterState()
         depToRegisterIdx = list()
         nRegisters = 0
         for i in range(len(deps)):
@@ -102,8 +103,17 @@ def _testVerify(spec, pub, priv, closed, parse=False):
             depToRegisterIdx.append(registerIdx)
 
             if parse:
-                state = verify.verifyParsedDEP(verify.parseDEPAndGroups(
-                    dep), ks,key, state, registerIdx)
+                prevJWS, crsOld, ids = state.getCashRegisterInfo(registerIdx)
+
+                pdep = list(verify.parseDEPAndGroups(dep))
+                state = verify.verifyParsedDEP(pdep, ks, key, state, registerIdx)
+
+                for recs, cert, chain in pdep:
+                    crsOld.updateFromDEPGroup(recs, key)
+                prevJWS, crsNew, ids = state.getCashRegisterInfo(registerIdx)
+                if crsOld != crsNew:
+                    return TestVerifyResult.FAIL, Exception(
+                            _('State update without verification failed.'))
             else:
                 state = verify.verifyDEP(dep, ks, key, state, registerIdx)
 

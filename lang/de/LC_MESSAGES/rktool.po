@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-02-07 15:22+CET\n"
+"POT-Creation-Date: 2017-02-16 20:56+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -313,7 +313,7 @@ msgstr ""
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:281 test_verify.py:245
+#: run_test.py:281 test_verify.py:255
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
@@ -321,65 +321,69 @@ msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
 
-#: test_verify.py:69 test_verify.py:72 test_verify.py:77
+#: test_verify.py:70 test_verify.py:73 test_verify.py:78
 msgid "no Exception"
 msgstr "kein Fehler"
 
-#: test_verify.py:115
+#: test_verify.py:116
+msgid "State update without verification failed."
+msgstr "Zustandsupdate ohne Verifikation fehlgeschlagen."
+
+#: test_verify.py:125
 msgid "Expected {} in turnover counter but got {}."
 msgstr "Erwartete {} im Umsatzzähler, aber habe {} bekommen."
 
-#: test_verify.py:128
+#: test_verify.py:138
 msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
 msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
 
-#: test_verify.py:135
+#: test_verify.py:145
 msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
 msgstr ""
 "Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
 "bekommen"
 
-#: test_verify.py:171
+#: test_verify.py:181
 msgid "Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<"
 msgstr "Ergebnisse verschieden: ohne parsing {}:>{}<, mit parsing {}:>{}<"
 
-#: test_verify.py:206
+#: test_verify.py:216
 msgid "No run label"
 msgstr "Kein Simulationsname"
 
-#: test_verify.py:223
+#: test_verify.py:233
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
-#: verification_state.py:34
+#: verification_state.py:39
 msgid "No cash register with index {}."
 msgstr "Keine Kassa mit Index {}."
 
-#: verification_state.py:39
+#: verification_state.py:44
 msgid "The last cash register has no registered start receipt."
 msgstr "Die letzte Kassa hat keinen registrierten Startbeleg."
 
-#: verification_state.py:57
+#: verification_state.py:120
 msgid "Start Receipt"
 msgstr "Startbeleg"
 
-#: verification_state.py:58
+#: verification_state.py:121
 msgid "Last Receipt"
 msgstr "Letzter Beleg"
 
-#: verification_state.py:59
+#: verification_state.py:122
 msgid "Last Turnover Counter"
 msgstr "Letzter Umsatzzähler"
 
-#: verification_state.py:60
+#: verification_state.py:123
 msgid "Need Restore Receipt"
 msgstr "Benötigt Nullbeleg"
 
-#: verification_state.py:165
+#: verification_state.py:228
 msgid "Cash Register {}:"
 msgstr "Kassa {}:"
 
-#: verification_state.py:168
+#: verification_state.py:231
 msgid "Used Receipt IDs"
 msgstr "Benutzte Belegnummern"
 
