@@ -23,6 +23,7 @@ can be stored under an identifier. Keys (and certificates) can also be retrieved
 or deleted from the key store.
 """
 from builtins import int
+from builtins import range
 
 import copy
 import numbers

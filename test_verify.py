@@ -24,6 +24,7 @@ and test the verification functions against them.
 
 from __future__ import print_function
 from builtins import int
+from builtins import range
 from builtins import str
 
 import base64

@@ -18,6 +18,7 @@
 ###########################################################################
 
 from builtins import int
+from builtins import range
 
 # FIXME: ugly hack to work with both pillow and PIL
 def img_to_bytes(img):

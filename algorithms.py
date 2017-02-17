@@ -21,6 +21,7 @@ receipts. The available algorithms are stored in the ALGORITHMS dictionary which
 is indexed by the algorithm codes specified in the regulation.
 """
 from builtins import int
+from builtins import range
 
 import base64
 import jwt

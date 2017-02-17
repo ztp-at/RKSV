@@ -21,6 +21,7 @@
 This module contains classes to verify receipts.
 """
 from builtins import int
+from builtins import range
 
 import base64
 import enum

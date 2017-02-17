@@ -18,6 +18,7 @@
 ###########################################################################
 
 from builtins import int
+from builtins import range
 
 import json
 import sys

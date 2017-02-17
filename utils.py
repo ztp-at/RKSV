@@ -20,6 +20,7 @@ This module contains several utility functions regarding certificate and
 key handling, as well has hashing, encoding and downloading receipts.
 """
 from builtins import int
+from builtins import range
 
 import base64
 import datetime

@@ -22,6 +22,7 @@ This module contains classes for a verification state that is returned by a
 verifcation function and can be fed to a subsequent call.
 """
 from builtins import int
+from builtins import range
 
 import base64
 import copy

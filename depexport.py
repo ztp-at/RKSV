@@ -19,6 +19,7 @@
 This module contains simple classes to export receipts in the DEP format.
 """
 from builtins import int
+from builtins import range
 
 import json
 

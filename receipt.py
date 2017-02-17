@@ -22,6 +22,7 @@ This module provides an abstraction for a receipt and several basic conversion
 functions.
 """
 from builtins import int
+from builtins import range
 
 import base64
 import binascii

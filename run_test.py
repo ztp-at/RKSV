@@ -24,6 +24,7 @@ according to a JSON test specification.
 
 from __future__ import unicode_literals
 from builtins import int
+from builtins import range
 
 import base64
 import datetime

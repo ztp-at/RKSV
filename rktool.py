@@ -18,6 +18,7 @@
 ###########################################################################
 
 from builtins import int
+from builtins import range
 
 import kivy
 kivy.require('1.9.0')

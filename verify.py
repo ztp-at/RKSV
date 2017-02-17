@@ -23,6 +23,7 @@ This module provides functions to verify a DEP.
 
 from __future__ import print_function
 from builtins import int
+from builtins import range
 
 import base64
 
