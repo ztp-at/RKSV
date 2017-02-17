@@ -76,7 +76,7 @@ class ClusterInOpenSystemException(DEPException):
     detected in an open system.
     """
 
-    def __init__(self):
+    def __init__(self, dummy = 'THIS IS A BUG'):
         super(ClusterInOpenSystemException, self).__init__(
                 _("GGS Cluster is not supported in an open system."))
 
@@ -86,7 +86,7 @@ class DEPReceiptException(DEPException):
     specific receipt.
     """
 
-    def __init__(self, receipt, message):
+    def __init__(self, receipt, message = 'THIS IS A BUG'):
         super(DEPReceiptException, self).__init__(
                 _("At receipt \"{0}\": {1}").format(receipt, message))
         self.receipt = receipt
@@ -97,7 +97,7 @@ class ChainingException(DEPReceiptException):
     that the chain of receipts can not be verified.
     """
 
-    def __init__(self, rec, recPrev):
+    def __init__(self, rec, recPrev = 'THIS IS A BUG'):
         super(ChainingException, self).__init__(rec,
                 _("Previous receipt is not \"{0}\".").format(recPrev))
 
@@ -176,7 +176,7 @@ class NoCertificateGivenException(DEPException):
     specify the used certificate for a group.
     """
 
-    def __init__(self):
+    def __init__(self, dummy = 'THIS IS A BUG'):
         super(NoCertificateGivenException, self).__init__(_("No certificate specified in DEP and multiple groups used."))
 
 class UntrustedCertificateException(DEPException):
@@ -197,7 +197,7 @@ class CertificateChainBrokenException(DEPException):
     by the next in the chain).
     """
 
-    def __init__(self, cert, sign):
+    def __init__(self, cert, sign = 'THIS IS A BUG'):
         super(CertificateChainBrokenException, self).__init__(
                 _("Certificate \"{}\" was not signed by \"{}\".").format(
                     cert, sign))
@@ -208,7 +208,8 @@ class CertificateSerialCollisionException(DEPException):
     different fingerprints were detected which could indicate an attempted attack.
     """
 
-    def __init__(self, serial, cert1FP, cert2FP):
+    def __init__(self, serial, cert1FP = 'THIS IS A BUG',
+            cert2FP = 'THIS IS A BUG'):
         super(CertificateSerialCollisionException, self).__init__(
                 _("Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and \"{2}\"). This may be an attempted attack.").format(
                     serial, cert1FP, cert2FP))

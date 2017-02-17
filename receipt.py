@@ -39,7 +39,7 @@ class ReceiptException(Exception):
     the receipt in some string representation (usually JWS).
     """
 
-    def __init__(self, receipt, message):
+    def __init__(self, receipt, message = 'THIS IS A BUG'):
         super(ReceiptException, self).__init__(_("At receipt \"{0}\": {1}").format(receipt, message))
         self.receipt = receipt
 
@@ -49,7 +49,7 @@ class ReceiptParseException(ReceiptException):
     receipt object.
     """
 
-    def __init__(self, receipt, message):
+    def __init__(self, receipt, message = 'THIS IS A BUG'):
         super(ReceiptParseException, self).__init__(receipt, message)
 
 class MalformedReceiptException(ReceiptParseException):

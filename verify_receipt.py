@@ -68,7 +68,7 @@ class NonFatalReceiptException(receipt.ReceiptException):
     Indicates an error with the given receipt that may be alright in the
     context of the complete DEP.
     """
-    def __init__(self, rec, msg):
+    def __init__(self, rec, msg = 'THIS IS A BUG'):
         super(NonFatalReceiptException, self).__init__(rec,
                 _("{} This is probably fine.").format(msg))
 
