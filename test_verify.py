@@ -105,7 +105,7 @@ def _testVerify(spec, pub, priv, closed, parse=False):
             if parse:
                 prevJWS, crsOld, ids = state.getCashRegisterInfo(registerIdx)
 
-                pdep = list(verify.parseDEPAndGroups(dep))
+                pdep = verify.parseDEPAndGroups(dep)
                 state = verify.verifyParsedDEP(pdep, ks, key, state, registerIdx)
 
                 for recs, cert, chain in pdep:

@@ -677,7 +677,7 @@ class VerifyDEPWidget(BoxLayout):
         try:
             with open(os.path.join(path, filename[0])) as f:
                 jsonDEP = json.loads(f.read())
-                self.dep = list(verify.parseDEPAndGroups(jsonDEP))
+                self.dep = verify.parseDEPAndGroups(jsonDEP)
 
             App.get_running_app().curSearchPath = path
         except (IOError, ValueError, verify.DEPException) as e:

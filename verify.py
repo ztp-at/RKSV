@@ -533,7 +533,7 @@ def parseDEPAndGroups(dep):
     :throws: MalformedDEPException
     :throws: DEPElementMissingException
     """
-    return (parseDEPGroup(g) for g in parseDEP(dep))
+    return [parseDEPGroup(g) for g in parseDEP(dep)]
 
 def verifyParsedDEP(dep, keyStore, key, state = None,
         cashRegisterIdx = None):
