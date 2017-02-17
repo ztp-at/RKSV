@@ -586,42 +586,29 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
 
     prevStart, rState, usedRecIds = state.getCashRegisterInfo(
             cashRegisterIdx)
-    depI = iter(dep)
-    single = True
 
-    # parsed DEP has at least one group
-    recs1, cert1, chain1 = next(depI)
-    for recs, cert, chain in depI:
-        if single:
-            single = False
-            if not cert1:
-                raise NoCertificateGivenException()
-            verifyCert(cert1, chain1, keyStore)
-            rv = verify_receipt.ReceiptVerifier.fromCert(cert1)
+    if len(dep) == 1:
+        recs, cert, chain = dep[0]
+        if not cert:
+            rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
 
-            rState, usedRecIds = verifyGroup(recs1, rv, key, prevStart,
+            rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
                     rState, usedRecIds)
 
+            state.updateCashRegisterInfo(cashRegisterIdx, rState,
+                    usedRecIds)
+            return state
+
+    for recs, cert, chain in dep:
         if not cert:
             raise NoCertificateGivenException()
-        verifyCert(cert, chain, keyStore)
-        rv = verify_receipt.ReceiptVerifier.fromCert(cert)
 
+        verifyCert(cert, chain, keyStore)
+
+        rv = verify_receipt.ReceiptVerifier.fromCert(cert)
+    
         rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
                 rState, usedRecIds)
-
-    if not single:
-        state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
-        return state
-
-    if not cert1:
-        rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
-    else:
-        verifyCert(cert1, chain1, keyStore)
-        rv = verify_receipt.ReceiptVerifier.fromCert(cert1)
-
-    rState, usedRecIds = verifyGroup(recs1, rv, key, prevStart,
-            rState, usedRecIds)
 
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
     return state
