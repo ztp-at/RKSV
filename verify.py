@@ -26,7 +26,10 @@ from builtins import int
 from builtins import range
 
 import base64
+import multiprocessing
 
+from itertools import groupby
+from math import ceil
 from six import string_types
 
 import algorithms
@@ -537,8 +540,37 @@ def parseDEPAndGroups(dep):
     """
     return [parseDEPGroup(g) for g in parseDEP(dep)]
 
+def verifyGroupsWithVerifiers(groups, key, prevStart = None,
+        rState = None, usedRecIds = None):
+    for recs, rv in groups:
+        rState, usedRecIds = verifyGroup(recs, rv, key, prevStart, rState,
+                usedRecIds)
+
+    return rState, usedRecIds
+
+def verifyGroupsWithVerifiersTuple(args):
+    return verifyGroupsWithVerifiers(*args)
+
+def balanceGroupsWithVerifiers(groups, nprocs):
+    recsWithVerifiers = [ (r, rv) for recs, rv in groups for r in recs ]
+
+    recsPerProc = int(ceil(float(len(recsWithVerifiers)) / nprocs))
+    subs = [ recsWithVerifiers[i:i + recsPerProc] for i in range(0,
+        len(recsWithVerifiers), recsPerProc) ]
+
+    pkgs = list()
+    for sub in subs:
+        groups = list()
+        for rv, recsAndVerifiers in groupby(sub, lambda x: x[1]):
+            recs = [ r for r, v in recsAndVerifiers ]
+            groups.append((recs, rv))
+        pkgs.append(groups)
+
+    return pkgs
+
+# TODO: maybe pass through entire pool to allow external control?
 def verifyParsedDEP(dep, keyStore, key, state = None,
-        cashRegisterIdx = None):
+        cashRegisterIdx = None, nprocs = multiprocessing.cpu_count()):
     """
     Verifies a previously parsed DEP. It checks if the signature of each
     receipt is valid, if the receipts are properly chained, if receipts
@@ -554,6 +586,10 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
     :param state: The state returned by evaluating a previous DEP or None.
     :param cashRegisterIdx: The index of the cash register that created the
     DEP in the state parameter or None to create a new register state.
+    :param nprocs: The number of processes to use in parallel. Defaults to
+    the number of threads available on the system. If the DEP is very large
+    there may not be enough RAM available to run with the maximum number of
+    processes.
     :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
@@ -589,30 +625,74 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
     prevStart, rState, usedRecIds = state.getCashRegisterInfo(
             cashRegisterIdx)
 
+    groupsWithVerifiers = list()
+
     if len(dep) == 1:
         recs, cert, chain = dep[0]
+
         if not cert:
             rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+        else:
+            verifyCert(cert, chain, keyStore)
+            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
 
-            rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
-                    rState, usedRecIds)
+        groupsWithVerifiers.append((recs, rv))
+    else:
+        for recs, cert, chain in dep:
+            if not cert:
+                raise NoCertificateGivenException()
 
-            state.updateCashRegisterInfo(cashRegisterIdx, rState,
-                    usedRecIds)
-            return state
+            verifyCert(cert, chain, keyStore)
 
-    for recs, cert, chain in dep:
-        if not cert:
-            raise NoCertificateGivenException()
+            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
 
-        verifyCert(cert, chain, keyStore)
+            groupsWithVerifiers.append((recs, rv))
 
-        rv = verify_receipt.ReceiptVerifier.fromCert(cert)
-    
-        rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
-                rState, usedRecIds)
+    # repackage recs and verifiers according to nproc
+    pkgs = balanceGroupsWithVerifiers(groupsWithVerifiers, nprocs)
 
-    state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
+    # create start cashreg state for each package
+    pkgRStates = [rState]
+    pkgRState = rState
+    for pkg in pkgs:
+        for group, rv in pkg:
+            pkgRState = verification_state.CashRegisterState.fromDEPGroup(
+                    pkgRState, group, key)
+        pkgRStates.append(pkgRState)
+    del pkgRStates[-1]
+
+    # prepare arguments for each worker
+    inargs = zip(pkgs, [key] * nprocs, [prevStart] * nprocs, pkgRStates,
+            [set()] * nprocs)
+
+    # apply verifyGroup() to each package
+    pool = multiprocessing.Pool(nprocs, maxtasksperchild=1)
+    try:
+        outresults = pool.map(verifyGroupsWithVerifiersTuple, inargs, 1)
+        pool.close()
+    except Exception as e:
+        pool.terminate()
+        raise e
+    finally:
+        pool.join()
+
+    outRStates, outUsedRecIds = zip(*outresults)
+
+    # merge usedRecIds and check for duplicates
+    seen = set()
+    for rids in [usedRecIds] + list(outUsedRecIds):
+        for rid in rids:
+            if rid in seen:
+                raise DuplicateReceiptIdException(rid)
+            else:
+                seen.add(rid)
+
+    mergedUsedRecIds = usedRecIds | set.union(*outUsedRecIds)
+
+    # update with latest cashreg state and return
+    state.updateCashRegisterInfo(cashRegisterIdx, outRStates[-1],
+            mergedUsedRecIds)
+
     return state
 
 def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
@@ -698,6 +778,7 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
     return state
 
+# TODO: UI for multiproc
 def usage():
     print("Usage: ./verify.py [state [continue|<n>]] keyStore <key store> <dep export file> [<base64 AES key file>]")
     print("       ./verify.py [state [continue|<n>]] json <json container file> <dep export file>")
