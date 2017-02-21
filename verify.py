@@ -664,10 +664,13 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
     :param state: The state returned by evaluating a previous DEP or None.
     :param cashRegisterIdx: The index of the cash register that created the
     DEP in the state parameter or None to create a new register state.
-    :param nprocs: The number of processes to use in parallel. Defaults to
-    the number of threads available on the system. If the DEP is very large
-    there may not be enough RAM available to run with the maximum number of
-    processes.
+    :param pool: A pool of processes to distribute the work of verifying a
+    DEP among. The pool must support the map() function. If no pool is
+    specified, the current process will perform all the work itself.
+    :param nprocs: The number of processes to expect/use in pool. This
+    function will create at most nprocs work packages and either pass them
+    to a pool or (if no pool is given) process them itself. How the
+    packages are distributed among the pool's processes is up to the pool.
     :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
