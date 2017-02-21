@@ -945,7 +945,7 @@ if __name__ == "__main__":
     pool = None
     if nprocs > 1:
         import multiprocessing
-        pool = multiprocessing.Pool(nprocs, maxtasksperchild=1)
+        pool = multiprocessing.Pool(nprocs)
 
     dep = None
     with open(sys.argv[3]) as f:
