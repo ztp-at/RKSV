@@ -26,7 +26,6 @@ from builtins import int
 from builtins import range
 
 import base64
-import multiprocessing
 
 from itertools import groupby
 from math import ceil
@@ -327,7 +326,8 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
     each receipt is valid, if the receipts are properly chained and if
     receipts with zero turnover are present as required. If a key is
     specified it also verifies the turnover counter.
-    :param group: The receipts in the group as a list of JWS strings.
+    :param group: The receipts in the group as a list of compressed JWS strings
+    as returned by parseDEPGroup().
     :param rv: The receipt verifier object used to verify single receipts.
     :param key: The key used to decrypt the turnover counter as a byte list
     or None.
@@ -374,7 +374,8 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
     prevObj = None
     if prev:
         prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
-    for r in group:
+    for cr in group:
+        r = expandDEPReceipt(cr)
         ro = None
         algorithm = None
         try:
@@ -475,14 +476,27 @@ def parseDEPCert(cert_str):
     except ValueError:
         raise MalformedCertificateException(cert_str)
 
+def shrinkDEPReceipt(rec):
+    try:
+        return rec.encode('utf-8')
+    except TypeError:
+        raise MalformedDEPException()
+
+def expandDEPReceipt(rec):
+    try:
+        return rec.decode('utf-8')
+    except UnicodeDecodeError:
+        raise MalformedDEPException()
+
 def parseDEPGroup(group):
     """
     Parses a single group from a DEP and return a tuple with its contents.
     :param group: The group as a JSON object.
-    :return: A list of receipts as JWS strings (these are _not_ checked), 
-    a certificate object containing the certificate used to sign the
-    receipts in this group (or None) and a list of certificate objects
-    containing the certificates used to sign the group certificate.
+    :return: A list of receipts as compressed (i.e. stored as encoded byte
+    array) JWS strings (these are _not_ checked), a certificate object
+    containing the certificate used to sign the receipts in this group (or None)
+    and a list of certificate objects containing the certificates used to sign
+    the group certificate.
     :throws: MalformedCertificateException
     :throws: MalformedDEPException
     :throws: DEPElementMissingException
@@ -495,7 +509,8 @@ def parseDEPGroup(group):
 
     cert_str = group.get('Signaturzertifikat', '')
     cert_str_list = group.get('Zertifizierungsstellen', [])
-    receipts = group['Belege-kompakt']
+    # TODO: see if there is a smarter way to do this/do it during JSON parsing
+    receipts = list(map(shrinkDEPReceipt, group['Belege-kompakt']))
 
     if (not isinstance(cert_str, string_types) or
             not isinstance(cert_str_list, list) or
@@ -568,9 +583,8 @@ def balanceGroupsWithVerifiers(groups, nprocs):
 
     return pkgs
 
-# TODO: maybe pass through entire pool to allow external control?
 def verifyParsedDEP(dep, keyStore, key, state = None,
-        cashRegisterIdx = None, nprocs = multiprocessing.cpu_count()):
+        cashRegisterIdx = None, pool = None, nprocs = 1):
     """
     Verifies a previously parsed DEP. It checks if the signature of each
     receipt is valid, if the receipts are properly chained, if receipts
@@ -666,15 +680,10 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
             [set()] * nprocs)
 
     # apply verifyGroup() to each package
-    pool = multiprocessing.Pool(nprocs, maxtasksperchild=1)
-    try:
+    if not pool:
+        outresults = map(verifyGroupsWithVerifiersTuple, inargs)
+    else:
         outresults = pool.map(verifyGroupsWithVerifiersTuple, inargs, 1)
-        pool.close()
-    except Exception as e:
-        pool.terminate()
-        raise e
-    finally:
-        pool.join()
 
     outRStates, outUsedRecIds = zip(*outresults)
 

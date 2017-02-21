@@ -45,8 +45,8 @@ if __name__ == "__main__":
         exporter = depexport.CSVExporter()
         groups = verify.parseDEPAndGroups(dep)
         for recs, cert, cert_list in groups:
-            exporter.addGroup([ receipt.Receipt.fromJWSString(r) for r
-                    in recs ], cert, cert_list)
+            exporter.addGroup([ receipt.Receipt.fromJWSString(
+                verify.expandDEPReceipt(r)) for r in recs ], cert, cert_list)
     elif sys.argv[1] == 'csv2json':
         next(sys.stdin)
         for row in sys.stdin:

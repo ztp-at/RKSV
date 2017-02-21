@@ -69,12 +69,13 @@ class CashRegisterState(object):
         if len(group) == 1:
             secondToLastReceiptJWS = self.lastReceiptJWS
         else:
-            secondToLastReceiptJWS = group[-2]
+            secondToLastReceiptJWS = verify.expandDEPReceipt(group[-2])
 
         stl = None
         if secondToLastReceiptJWS:
             stl, prefix = receipt.Receipt.fromJWSString(secondToLastReceiptJWS)
-        last, prefix = receipt.Receipt.fromJWSString(group[-1])
+        last, prefix = receipt.Receipt.fromJWSString(
+                verify.expandDEPReceipt(group[-1]))
 
         if not last.isSignedBroken() and stl and (not last.isNull() or
                 last.isDummy() or last.isReversal()) and stl.isSignedBroken():
@@ -83,16 +84,17 @@ class CashRegisterState(object):
             self.needRestoreReceipt = False
 
         if not self.startReceiptJWS:
-            self.startReceiptJWS = group[0]
+            self.startReceiptJWS = verify.expandDEPReceipt(group[0])
 
-        self.lastReceiptJWS = group[-1]
+        self.lastReceiptJWS = verify.expandDEPReceipt(group[-1])
 
         if not key:
             return
 
         reversals = list()
         for i in range(len(group) - 1, -1, -1):
-            ro, prefix = receipt.Receipt.fromJWSString(group[i])
+            ro, prefix = receipt.Receipt.fromJWSString(
+                verify.expandDEPReceipt(group[i]))
             if (not ro.isDummy()) and (not ro.isReversal()):
                 alg = algorithms.ALGORITHMS[prefix]
                 self.lastTurnoverCounter = ro.decryptTurnoverCounter(key, alg)

@@ -655,7 +655,7 @@ class VerifyDEPWidget(BoxLayout):
 
     def verifyDEPTask(self, dep, store, key):
         try:
-            verify.verifyParsedDEP(dep, store, key, None, None, 1)
+            verify.verifyParsedDEP(dep, store, key)
             self.verifyCb(None)
         except (receipt.ReceiptException, verify.DEPException) as e:
             self.verifyCb(e)

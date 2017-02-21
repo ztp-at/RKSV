@@ -62,7 +62,8 @@ if __name__ == "__main__":
         dep = json.loads(sys.stdin.read())
         groups = verify.parseDEPAndGroups(dep)
         for recs, cert, cert_list in groups:
-            for r in recs:
+            for cr in recs:
+                r = verify.expandDEPReceipt(cr)
                 rec, pre = receipt.Receipt.fromJWSString(r)
                 receipts[rec.toURLHash(pre)] = rec.toBasicCode(pre)
     elif sys.argv[1] == 'jws':
