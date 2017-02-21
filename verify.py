@@ -557,6 +557,50 @@ def parseDEPAndGroups(dep):
 
 def verifyGroupsWithVerifiers(groups, key, prevStart = None,
         rState = None, usedRecIds = None):
+    """
+    Takes a list of tuples containing a list of receipts and their
+    according ReceiptVerifier each and calls verifyGroup() for each of
+    those tuples passing the register state and used receipt IDs along for
+    each call.
+    :param groups: The list of tuples. The first element of each tuple is a
+    list of receipts as returned by parseDEPGroup(), the second element is
+    a ReceiptVerifier object intented to verify all receipts in the list.
+    :param key: The key used to decrypt the turnover counter as a byte list
+    or None.
+    :param prevStart: The start receipt (in JWS format) of the previous
+    cash register in the GGS cluster or None if there is no cluster or the
+    register is the first in one. This is only used if rState does not
+    contain a previous receipt for the register.
+    :param rState: State of the cash register as a CashRegisterState
+    object.
+    :param usedRecIds: A set containing all previously used receipt IDs as
+    strings. Note that this set is not per DEP or per cash register but per
+    GGS cluster.
+    :return: The updated rState object and the updated usedRecIds set.
+    These can be passed to a subsequent call to verifyGroup() or
+    verifyGroupsWithVerifiers().
+    :throws: NoRestoreReceiptAfterSignatureSystemFailure
+    :throws: InvalidTurnoverCounterException
+    :throws: CertSerialInvalidException
+    :throws: CertSerialMismatchException
+    :throws: NoPublicKeyException
+    :throws: InvalidSignatureException
+    :throws: ChainingException
+    :throws: MalformedReceiptException
+    :throws: UnknownAlgorithmException
+    :throws: AlgorithmMismatchException
+    :throws: SignatureSystemFailedOnInitialReceiptException
+    :throws: UnsignedNullReceiptException
+    :throws: NonzeroTurnoverOnInitialReceiptException
+    :throws: InvalidChainingOnInitialReceiptException
+    :throws: NonstandardTypeOnInitialReceiptException
+    :throws: ChangingRegisterIdException
+    :throws: DecreasingDateException
+    :throws: ChangingSystemTypeException
+    :throws: ChangingTurnoverCounterSizeException
+    :throws: DuplicateReceiptIdException
+    :throws: ClusterInOpenSystemException
+    """
     for recs, rv in groups:
         rState, usedRecIds = verifyGroup(recs, rv, key, prevStart, rState,
                 usedRecIds)
@@ -564,9 +608,29 @@ def verifyGroupsWithVerifiers(groups, key, prevStart = None,
     return rState, usedRecIds
 
 def verifyGroupsWithVerifiersTuple(args):
+    """
+    This function is used as an adapter for the process pool's map()
+    function. It simply calls verifyGroupsWithVerifiers with the arguments
+    given in the args tuple.
+    """
     return verifyGroupsWithVerifiers(*args)
 
 def balanceGroupsWithVerifiers(groups, nprocs):
+    """
+    Takes a list of tuples with lists of receipts and their according
+    ReceiptVerifiers and returns a list of at most nprocs packages with
+    each package containing a such a list of tuples. Each package should be
+    roughly of equal size with the last one possibly being smaller than the
+    rest. This function is intended to split the workload for verifying a
+    DEP into nprocs packages of equal size which can then be assigned to
+    multiple worker processes.
+    :param groups: The list of tuples. The first element of each tuple is a
+    list of receipts as returned by parseDEPGroup(), the second element is
+    a ReceiptVerifier object intented to verify all receipts in the list.
+    :param nprocs: The maximum number of packages to create.
+    :return: The list of packages. Each package in turn contains a list
+    structured like the groups parameter.
+    """
     recsWithVerifiers = [ (r, rv) for recs, rv in groups for r in recs ]
 
     recsPerProc = int(ceil(float(len(recsWithVerifiers)) / nprocs))
