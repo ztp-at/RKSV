@@ -664,6 +664,7 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
 
     # repackage recs and verifiers according to nproc
     pkgs = balanceGroupsWithVerifiers(groupsWithVerifiers, nprocs)
+    npkgs = len(pkgs)
 
     # create start cashreg state for each package
     pkgRStates = [rState]
@@ -676,14 +677,14 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
     del pkgRStates[-1]
 
     # prepare arguments for each worker
-    inargs = zip(pkgs, [key] * nprocs, [prevStart] * nprocs, pkgRStates,
-            [set()] * nprocs)
+    inargs = zip(pkgs, [key] * npkgs, [prevStart] * npkgs, pkgRStates,
+            [set()] * npkgs)
 
     # apply verifyGroup() to each package
     if not pool:
         outresults = map(verifyGroupsWithVerifiersTuple, inargs)
     else:
-        outresults = pool.map(verifyGroupsWithVerifiersTuple, inargs, 1)
+        outresults = pool.map(verifyGroupsWithVerifiersTuple, inargs)
 
     outRStates, outUsedRecIds = zip(*outresults)
 
