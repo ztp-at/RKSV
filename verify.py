@@ -855,11 +855,12 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
     return state
 
-# TODO: UI for multiproc
 def usage():
-    print("Usage: ./verify.py [state [continue|<n>]] keyStore <key store> <dep export file> [<base64 AES key file>]")
-    print("       ./verify.py [state [continue|<n>]] json <json container file> <dep export file>")
-    print("       ./verify.py state")
+    print("Usage: ./verify.py [state [continue|<n>]] [par <n>] keyStore <key store> <dep export file> [<base64 AES key file>]",
+            file=sys.stderr)
+    print("       ./verify.py [state [continue|<n>]] [par <n>] json <json container file> <dep export file>",
+            file=sys.stderr)
+    print("       ./verify.py state", file=sys.stderr)
     sys.exit(0)
 
 if __name__ == "__main__":
@@ -872,7 +873,7 @@ if __name__ == "__main__":
 
     import key_store
 
-    if len(sys.argv) < 2 or len(sys.argv) > 7:
+    if len(sys.argv) < 2 or len(sys.argv) > 9:
         usage()
 
     key = None
@@ -901,6 +902,20 @@ if __name__ == "__main__":
         except ValueError:
             pass
 
+    if len(sys.argv) < 4 or len(sys.argv) > 7:
+        usage()
+
+    nprocs = 1
+    if sys.argv[1] == 'par':
+        del sys.argv[1]
+        try:
+            nprocs = int(sys.argv[1])
+            del sys.argv[1]
+        except ValueError:
+            usage()
+    if nprocs < 1:
+        usage()
+
     if len(sys.argv) < 4 or len(sys.argv) > 5:
         usage()
 
@@ -927,6 +942,11 @@ if __name__ == "__main__":
     else:
         usage()
 
+    pool = None
+    if nprocs > 1:
+        import multiprocessing
+        pool = multiprocessing.Pool(nprocs, maxtasksperchild=1)
+
     dep = None
     with open(sys.argv[3]) as f:
         dep = json.load(f)
@@ -938,7 +958,16 @@ if __name__ == "__main__":
         if continueLast:
             registerIdx = len(state.cashRegisters) - 1
 
-    state = verifyDEP(dep, keyStore, key, state, registerIdx)
+    if nprocs > 1:
+        try:
+            pdep = parseDEPAndGroups(dep)
+            state = verifyParsedDEP(pdep, keyStore, key, state, registerIdx, pool,
+                    nprocs)
+        finally:
+            pool.terminate()
+            pool.join()
+    else:
+        state = verifyDEP(dep, keyStore, key, state, registerIdx)
 
     if statePassthrough:
         print(json.dumps(
