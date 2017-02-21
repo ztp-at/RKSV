@@ -309,8 +309,8 @@ converting them to a different format. The supported input formats are
 
 verify.py
 ---------
-	Usage: ./verify.py [state [continue|<n>]] keyStore <key store> <dep export file> [<base64 AES key file>]
-	       ./verify.py [state [continue|<n>]] json <json container file> <dep export file>
+	Usage: ./verify.py [state [continue|<n>]] [par <n>] keyStore <key store> <dep export file> [<base64 AES key file>]
+	       ./verify.py [state [continue|<n>]] [par <n>] json <json container file> <dep export file>
 	       ./verify.py state
 
 This script, when called with the `keyStore` command, verifies the given DEP
@@ -343,6 +343,10 @@ the last cash register in the read state.
 
 Finally, `state` on its own will append a new cash register and treat the DEP as
 the first DEP for this new cash register.
+
+The `par` keyword will instruct the script to use the following positive
+number as the number of parallel processes to use for verifying the DEP. If
+it is omitted, a single process will be used.
 
 test_verify.py
 --------------
