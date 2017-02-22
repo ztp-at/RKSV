@@ -42,8 +42,12 @@ class DEPException(Exception):
     """
     An exception that is thrown if something is wrong with a DEP.
     """
+    def __init__(self, message):
+        super(DEPException, self).__init__(message)
+        self._initargs = (message,)
 
-    pass
+    def __reduce__(self):
+        return (self.__class__, self._initargs)
 
 class MalformedDEPException(DEPException):
     """
@@ -53,6 +57,7 @@ class MalformedDEPException(DEPException):
     def __init__(self, msg=None):
         super(MalformedDEPException, self).__init__(
                 msg if msg else _("Malformed DEP"))
+        self._initargs = (msg,)
 
 class MalformedCertificateException(DEPException):
     """
@@ -62,6 +67,7 @@ class MalformedCertificateException(DEPException):
     def __init__(self, cert):
         super(MalformedCertificateException, self).__init__(
                 _("Malformed certificate: \"{}\"").format(cert))
+        self._initargs = (cert,)
 
 class DEPElementMissingException(MalformedDEPException):
     """
@@ -71,6 +77,7 @@ class DEPElementMissingException(MalformedDEPException):
     def __init__(self, elem):
         super(DEPElementMissingException, self).__init__(
                 _("Element \"{}\" missing from DEP").format(elem))
+        self._initargs = (elem,)
 
 class ClusterInOpenSystemException(DEPException):
     """
@@ -78,9 +85,10 @@ class ClusterInOpenSystemException(DEPException):
     detected in an open system.
     """
 
-    def __init__(self, dummy = 'THIS IS A BUG'):
+    def __init__(self):
         super(ClusterInOpenSystemException, self).__init__(
                 _("GGS Cluster is not supported in an open system."))
+        self._initargs = ()
 
 class DEPReceiptException(DEPException):
     """
@@ -88,10 +96,11 @@ class DEPReceiptException(DEPException):
     specific receipt.
     """
 
-    def __init__(self, receipt, message = 'THIS IS A BUG'):
+    def __init__(self, receipt, message):
         super(DEPReceiptException, self).__init__(
                 _("At receipt \"{0}\": {1}").format(receipt, message))
         self.receipt = receipt
+        self._initargs = (receipt, message)
 
 class ChainingException(DEPReceiptException):
     """
@@ -102,6 +111,7 @@ class ChainingException(DEPReceiptException):
     def __init__(self, rec, recPrev = 'THIS IS A BUG'):
         super(ChainingException, self).__init__(rec,
                 _("Previous receipt is not \"{0}\".").format(recPrev))
+        self._initargs = (rec, recPrev)
 
 class NoRestoreReceiptAfterSignatureSystemFailureException(DEPReceiptException):
     """
@@ -113,6 +123,7 @@ class NoRestoreReceiptAfterSignatureSystemFailureException(DEPReceiptException):
     def __init__(self, rec):
         super(NoRestoreReceiptAfterSignatureSystemFailureException, self).__init__(rec,
                 _("Receipt after restored signature system must not have any turnover."))
+        self._initargs = (rec,)
 
 class DuplicateReceiptIdException(DEPReceiptException):
     """
@@ -123,6 +134,7 @@ class DuplicateReceiptIdException(DEPReceiptException):
     def __init__(self, rec):
         super(DuplicateReceiptIdException, self).__init__(rec,
                 _("Receipt ID already in use."))
+        self._initargs = (rec,)
 
 class InvalidTurnoverCounterException(DEPReceiptException):
     """
@@ -132,6 +144,7 @@ class InvalidTurnoverCounterException(DEPReceiptException):
     def __init__(self, rec):
         super(InvalidTurnoverCounterException, self).__init__(rec,
                 _("Turnover counter invalid."))
+        self._initargs = (rec,)
 
 class ChangingRegisterIdException(DEPReceiptException):
     """
@@ -141,6 +154,7 @@ class ChangingRegisterIdException(DEPReceiptException):
     def __init__(self, rec):
         super(ChangingRegisterIdException, self).__init__(rec,
                 _("Register ID changed."))
+        self._initargs = (rec,)
 
 class DecreasingDateException(DEPReceiptException):
     """
@@ -151,6 +165,7 @@ class DecreasingDateException(DEPReceiptException):
     def __init__(self, rec):
         super(DecreasingDateException, self).__init__(rec,
                 _("Receipt was created before previous receipt."))
+        self._initargs = (rec,)
 
 class ChangingSystemTypeException(DEPReceiptException):
     """
@@ -161,6 +176,7 @@ class ChangingSystemTypeException(DEPReceiptException):
     def __init__(self, rec):
         super(ChangingSystemTypeException, self).__init__(rec,
                 _("The system type changed."))
+        self._initargs = (rec,)
 
 class ChangingTurnoverCounterSizeException(DEPReceiptException):
     """
@@ -171,6 +187,7 @@ class ChangingTurnoverCounterSizeException(DEPReceiptException):
     def __init__(self, rec):
         super(ChangingTurnoverCounterSizeException, self).__init__(rec,
                 _("The size of the turnover counter changed."))
+        self._initargs = (rec,)
 
 class NoCertificateGivenException(DEPException):
     """
@@ -178,8 +195,9 @@ class NoCertificateGivenException(DEPException):
     specify the used certificate for a group.
     """
 
-    def __init__(self, dummy = 'THIS IS A BUG'):
+    def __init__(self):
         super(NoCertificateGivenException, self).__init__(_("No certificate specified in DEP and multiple groups used."))
+        self._initargs = ()
 
 class UntrustedCertificateException(DEPException):
     """
@@ -191,6 +209,7 @@ class UntrustedCertificateException(DEPException):
     def __init__(self, cert):
         super(UntrustedCertificateException, self).__init__(
                 _("Certificate \"%s\" is not trusted.") % cert)
+        self._initargs = (cert,)
 
 class CertificateChainBrokenException(DEPException):
     """
@@ -199,10 +218,11 @@ class CertificateChainBrokenException(DEPException):
     by the next in the chain).
     """
 
-    def __init__(self, cert, sign = 'THIS IS A BUG'):
+    def __init__(self, cert, sign):
         super(CertificateChainBrokenException, self).__init__(
                 _("Certificate \"{}\" was not signed by \"{}\".").format(
                     cert, sign))
+        self._initargs = (cert, sign)
 
 class CertificateSerialCollisionException(DEPException):
     """
@@ -210,11 +230,11 @@ class CertificateSerialCollisionException(DEPException):
     different fingerprints were detected which could indicate an attempted attack.
     """
 
-    def __init__(self, serial, cert1FP = 'THIS IS A BUG',
-            cert2FP = 'THIS IS A BUG'):
+    def __init__(self, serial, cert1FP, cert2FP):
         super(CertificateSerialCollisionException, self).__init__(
                 _("Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and \"{2}\"). This may be an attempted attack.").format(
                     serial, cert1FP, cert2FP))
+        self._initargs = (serial, cert1FP, cert2FP)
 
 class SignatureSystemFailedOnInitialReceiptException(DEPReceiptException):
     """
@@ -223,6 +243,7 @@ class SignatureSystemFailedOnInitialReceiptException(DEPReceiptException):
     def __init__(self, rec):
         super(SignatureSystemFailedOnInitialReceiptException, self).__init__(rec,
                 _("Initial receipt not signed."))
+        self._initargs = (rec,)
 
 class NonzeroTurnoverOnInitialReceiptException(DEPReceiptException):
     """
@@ -231,6 +252,7 @@ class NonzeroTurnoverOnInitialReceiptException(DEPReceiptException):
     def __init__(self, rec):
         super(NonzeroTurnoverOnInitialReceiptException, self).__init__(
                 rec, _("Initial receipt has nonzero turnover."))
+        self._initargs = (rec,)
 
 class InvalidChainingOnInitialReceiptException(DEPReceiptException):
     """
@@ -241,6 +263,7 @@ class InvalidChainingOnInitialReceiptException(DEPReceiptException):
         super(InvalidChainingOnInitialReceiptException, self).__init__(
                 rec,
                 _("Initial receipt has not been chained to the cash register ID."))
+        self._initargs = (rec,)
 
 class InvalidChainingOnClusterInitialReceiptException(InvalidChainingOnInitialReceiptException):
     """
@@ -251,6 +274,7 @@ class InvalidChainingOnClusterInitialReceiptException(InvalidChainingOnInitialRe
         super(InvalidChainingOnInitialReceiptException, self).__init__(
                 rec,
                 _("Initial receipt in cluster has not been chained to the previous cash register's initial receipt."))
+        self._initargs = (rec,)
 
 class NonstandardTypeOnInitialReceiptException(DEPReceiptException):
     """
@@ -260,6 +284,7 @@ class NonstandardTypeOnInitialReceiptException(DEPReceiptException):
         super(NonstandardTypeOnInitialReceiptException, self).__init__(
                 rec,
                 _("Initial receipt is a dummy or reversal receipt."))
+        self._initargs = (rec,)
 
 def verifyChain(rec, prev, algorithm):
     """

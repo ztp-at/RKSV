@@ -39,9 +39,13 @@ class ReceiptException(Exception):
     the receipt in some string representation (usually JWS).
     """
 
-    def __init__(self, receipt, message = 'THIS IS A BUG'):
+    def __init__(self, receipt, message):
         super(ReceiptException, self).__init__(_("At receipt \"{0}\": {1}").format(receipt, message))
         self.receipt = receipt
+        self._initargs = (receipt, message)
+
+    def __reduce__(self):
+        return (self.__class__, self._initargs)
 
 class ReceiptParseException(ReceiptException):
     """
@@ -49,8 +53,9 @@ class ReceiptParseException(ReceiptException):
     receipt object.
     """
 
-    def __init__(self, receipt, message = 'THIS IS A BUG'):
+    def __init__(self, receipt, message):
         super(ReceiptParseException, self).__init__(receipt, message)
+        self._initargs = (receipt, message)
 
 class MalformedReceiptException(ReceiptParseException):
     """
@@ -60,6 +65,7 @@ class MalformedReceiptException(ReceiptParseException):
 
     def __init__(self, receipt):
         super(MalformedReceiptException, self).__init__(receipt, _("Malformed receipt."))
+        self._initargs = (receipt,)
 
 class UnknownAlgorithmException(ReceiptParseException):
     """
@@ -69,6 +75,7 @@ class UnknownAlgorithmException(ReceiptParseException):
 
     def __init__(self, receipt):
         super(UnknownAlgorithmException, self).__init__(receipt, _("Unknown algorithm."))
+        self._initargs = (receipt,)
 
 class AlgorithmMismatchException(ReceiptParseException):
     """
@@ -77,6 +84,7 @@ class AlgorithmMismatchException(ReceiptParseException):
 
     def __init__(self, receipt):
         super(AlgorithmMismatchException, self).__init__(receipt, _("Algorithm mismatch."))
+        self._initargs = (receipt,)
 
 class InvalidKeyException(ReceiptException):
     """
@@ -85,6 +93,7 @@ class InvalidKeyException(ReceiptException):
 
     def __init__(self, receipt):
         super(InvalidKeyException, self).__init__(receipt, _("Invalid key."))
+        self._initargs = (receipt,)
 
 class Receipt(object):
     """

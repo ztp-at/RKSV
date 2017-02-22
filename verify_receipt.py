@@ -40,6 +40,7 @@ class CertSerialMismatchException(receipt.ReceiptException):
     """
     def __init__(self, rec):
         super(CertSerialMismatchException, self).__init__(rec, _("Certificate serial mismatch."))
+        self._initargs = (rec,)
 
 class CertSerialInvalidException(receipt.ReceiptException):
     """
@@ -47,6 +48,7 @@ class CertSerialInvalidException(receipt.ReceiptException):
     """
     def __init__(self, rec):
         super(CertSerialInvalidException, self).__init__(rec, _("Certificate serial invalid."))
+        self._initargs = (rec,)
 
 class NoPublicKeyException(receipt.ReceiptException):
     """
@@ -55,6 +57,7 @@ class NoPublicKeyException(receipt.ReceiptException):
     """
     def __init__(self, rec):
         super(NoPublicKeyException, self).__init__(rec, _("No public key found."))
+        self._initargs = (rec,)
 
 class InvalidSignatureException(receipt.ReceiptException):
     """
@@ -62,15 +65,17 @@ class InvalidSignatureException(receipt.ReceiptException):
     """
     def __init__(self, rec):
         super(InvalidSignatureException, self).__init__(rec, _("Invalid Signature."))
+        self._initargs = (rec,)
 
 class NonFatalReceiptException(receipt.ReceiptException):
     """
     Indicates an error with the given receipt that may be alright in the
     context of the complete DEP.
     """
-    def __init__(self, rec, msg = 'THIS IS A BUG'):
+    def __init__(self, rec, msg):
         super(NonFatalReceiptException, self).__init__(rec,
                 _("{} This is probably fine.").format(msg))
+        self._initargs = (rec, msg)
 
 class SignatureSystemFailedException(NonFatalReceiptException):
     """
@@ -79,6 +84,7 @@ class SignatureSystemFailedException(NonFatalReceiptException):
     """
     def __init__(self, rec):
         super(SignatureSystemFailedException, self).__init__(rec, _("Signature System failed."))
+        self._initargs = (rec,)
 
 class InvalidURLHashException(receipt.ReceiptException):
     """
@@ -87,6 +93,7 @@ class InvalidURLHashException(receipt.ReceiptException):
     """
     def __init__(self, rec):
         super(InvalidURLHashException, self).__init__(rec, _("Invalid URL hash."))
+        self._initargs = (rec,)
 
 class InvalidCertificateProviderException(receipt.ReceiptException):
     """
@@ -96,6 +103,7 @@ class InvalidCertificateProviderException(receipt.ReceiptException):
     """
     def __init__(self, rec):
         super(InvalidCertificateProviderException, self).__init__(rec, _("Invalid certificate provider."))
+        self._initargs = (rec,)
 
 class UnsignedNullReceiptException(NonFatalReceiptException):
     """
@@ -104,6 +112,7 @@ class UnsignedNullReceiptException(NonFatalReceiptException):
     """
     def __init__(self, rec):
         super(UnsignedNullReceiptException, self).__init__(rec, _("Null receipt not signed."))
+        self._initargs = (rec,)
 
 class ReceiptVerifierI(object):
     """

@@ -32,17 +32,24 @@ import receipt
 import verify
 
 class StateException(Exception):
-    pass
+    def __init__(self, message):
+        super(StateException, self).__init__(message)
+        self._initargs = (message,)
+
+    def __reduce__(self):
+        return (self.__class__, self._initargs)
 
 class InvalidCashRegisterIndexException(StateException):
     def __init__(self, idx):
         super(InvalidCashRegisterIndexException, self).__init__(
                 _("No cash register with index {}.").format(idx))
+        self._initargs = (idx,)
 
 class NoStartReceiptForLastCashRegisterException(StateException):
     def __init__(self):
         super(NoStartReceiptForLastCashRegisterException,
                 self).__init__(_("The last cash register has no registered start receipt."))
+        self._initargs = ()
 
 class CashRegisterState(object):
     """
