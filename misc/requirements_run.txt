@@ -13,6 +13,7 @@ Jinja2==2.8
 Kivy==1.9.1
 Kivy-Garden==0.1.1
 MarkupSafe==0.23
+multiprocessing==2.6.2.1
 Pillow==3.4.2
 pyasn1==0.1.9
 pycparser==2.16
