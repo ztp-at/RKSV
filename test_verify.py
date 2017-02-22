@@ -45,7 +45,7 @@ class TestVerifyResult(enum.Enum):
     FAIL = 2
     ERROR = 3
 
-def _testVerify(spec, pub, priv, closed, parse=False):
+def _testVerify(spec, pub, priv, closed, parse=False, pool = None, nprocs = 1):
     """
     Runs a single test case against verify.verifyDEP() and returns the
     result and potentially an error message. In addition to the elements
@@ -65,6 +65,9 @@ def _testVerify(spec, pub, priv, closed, parse=False):
     an open system (False).
     :param parse: True if the DEP should be parsed with
     verify.parseDEPAndGroups() first, false otherwise.
+    :param pool: A pool of processes to pass along to verifyParsedDEP if
+    parse is True.
+    :param nprocs: The number of processes to expect/use in pool.
     :return: A TestVerifyResult indicating the result of the test and an
     error message. If the result is OK, the message is None.
     """
@@ -107,7 +110,8 @@ def _testVerify(spec, pub, priv, closed, parse=False):
                 prevJWS, crsOld, ids = state.getCashRegisterInfo(registerIdx)
 
                 pdep = verify.parseDEPAndGroups(dep)
-                state = verify.verifyParsedDEP(pdep, ks, key, state, registerIdx)
+                state = verify.verifyParsedDEP(pdep, ks, key, state,
+                        registerIdx, pool, nprocs)
 
                 for recs, cert, chain in pdep:
                     crsOld.updateFromDEPGroup(recs, key)
@@ -149,7 +153,7 @@ def _testVerify(spec, pub, priv, closed, parse=False):
 
     return TestVerifyResult.OK, None
 
-def testVerify(spec, pub, priv, closed):
+def testVerify(spec, pub, priv, closed, pool = None, nprocs = 1):
     """
     Runs a single test case against verify.verifyDEP() and returns the
     result and potentially an error message. In addition to the elements
@@ -167,11 +171,13 @@ def testVerify(spec, pub, priv, closed):
     :param priv: The private key used to sign the generated receipts.
     :param closed: Indicates whether the system is a closed system (True) or
     an open system (False).
+    :param pool: A pool of processes to pass along when using DEP parsing.
+    :param nprocs: The number of processes to expect/use in pool.
     :return: A TestVerifyResult indicating the result of the test and an
     error message. If the result is OK, the message is None.
     """
-    rN, mN = _testVerify(spec, pub, priv, closed, False)
-    rP, mP = _testVerify(spec, pub, priv, closed, True)
+    rN, mN = _testVerify(spec, pub, priv, closed, False, pool, nprocs)
+    rP, mP = _testVerify(spec, pub, priv, closed, True, pool, nprocs)
     if rN == rP and str(mN) == str(mP):
         return rN, mN
 
@@ -182,7 +188,8 @@ def testVerify(spec, pub, priv, closed):
             _('Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<').format(
                     rN.name, mN, rP.name, mP))
 
-def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize):
+def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize,
+        pool = None, nprocs = 1):
     """
     Runs all the given test cases against verify.verifyDEP. In addition to
     the elements understood by TestVerify(), this function also understands
@@ -202,6 +209,8 @@ def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize):
     public key.
     :param tcDefaultSize: The turnover counter size in bytes to use if no
     size is given in the test specification.
+    :param pool: A pool of processes to pass along when using DEP parsing.
+    :param nprocs: The number of processes to expect/use in pool.
     :yield: A tuple containing (in order) the test cases name, the group
     label, a boolean indicating whether the system is a closed (True) or an
     open (False) system, the used turnover counter size in bytes, the
@@ -217,7 +226,7 @@ def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize):
             msg = _('No run label')
         else:
             pc = pub if closed else crt
-            result, msg = testVerify(s, pc, priv, closed)
+            result, msg = testVerify(s, pc, priv, closed, pool, nprocs)
         yield (label, groupLabel, closed, tc_size, result, msg)
 
 def printTestVerifyResult(label, groupLabel, closed, tcSize, result, msg):
@@ -282,6 +291,10 @@ if __name__ == "__main__":
     import gettext
     gettext.install('rktool', './lang', True)
 
+    import multiprocessing
+    # We should always test with multiprocessing to catch pickle issues.
+    DEFAULT_NPROCS = 2
+
     if len(sys.argv) < 5:
         usage()
 
@@ -301,12 +314,19 @@ if __name__ == "__main__":
 
         specs = generate_specs(tcSizes, testCases)
 
-        results = testVerifyMulti(specs, groupLabel, cert, pub, priv, 8)
+        pool = multiprocessing.Pool(DEFAULT_NPROCS)
+        results = testVerifyMulti(specs, groupLabel, cert, pub, priv, 8,
+                pool, DEFAULT_NPROCS)
 
         resultList = list()
-        for r in results:
-            printTestVerifyResult(*r)
-            resultList.append(r)
+        try:
+            for r in results:
+                printTestVerifyResult(*r)
+                resultList.append(r)
+        finally:
+            pool.terminate()
+            pool.join()
+
         printTestVerifySummary(resultList)
 
         if any(r[4] == TestVerifyResult.ERROR for r in resultList):
@@ -332,7 +352,14 @@ if __name__ == "__main__":
     test_name = tcJson['simulationRunLabel']
     tc_size = tcJson.get('turnoverCounterSize', 8)
 
-    result, msg = testVerify(tcJson, pub, priv, closed)
+    pool = multiprocessing.Pool(DEFAULT_NPROCS)
+    try:
+        result, msg = testVerify(tcJson, pub, priv, closed, pool,
+                DEFAULT_NPROCS)
+    finally:
+        pool.terminate()
+        pool.join()
+
     printTestVerifyResult(test_name, 'no Group', closed, tc_size, result, msg)
 
     if result == TestVerifyResult.ERROR:
