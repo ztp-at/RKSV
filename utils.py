@@ -19,6 +19,7 @@
 This module contains several utility functions regarding certificate and
 key handling, as well has hashing, encoding and downloading receipts.
 """
+from __future__ import unicode_literals
 from builtins import int
 from builtins import range
 
@@ -294,3 +295,56 @@ def getReceiptFloat(fstr):
         return float(fstr.replace(',', '.'))
     except:
         return None
+
+def cert_getstate(self):
+    return exportCertToPEM(self)
+
+def cert_setstate(self, cert_str):
+    new_cert = loadCert(addPEMCertHeaders(cert_str))
+    self.__dict__.update(new_cert.__dict__)
+
+def pubkey_getstate(self):
+    return exportKeyToPEM(self)
+
+def pubkey_setstate(self, pubkey_str):
+    new_pubkey = loadPubKey(addPEMPubKeyHeaders(pubkey_str))
+    self.__dict__.update(new_pubkey.__dict__)
+
+def cert_class_override(cert_class):
+    """
+    Overrides some methods or whatever class is passed as parameter. This
+    is intended to allow for pickling/unpickling of certificate objects.
+    """
+    try:
+        if cert_class.__pickle_override__:
+            return
+    except AttributeError:
+        pass
+
+    cert_class.__pickle_override__ = True
+    cert_class.__getstate__ = cert_getstate
+    cert_class.__setstate__ = cert_setstate
+
+def pubkey_class_override(pubkey_class):
+    """
+    Overrides some methods or whatever class is passed as parameter. This
+    is intended to allow for pickling/unpickling of public key objects.
+    """
+    try:
+        if pubkey_class.__pickle_override__:
+            return
+    except AttributeError:
+        pass
+
+    pubkey_class.__pickle_override__ = True
+    pubkey_class.__getstate__ = pubkey_getstate
+    pubkey_class.__setstate__ = pubkey_setstate
+
+# We need to initialize the pickle overrides for multiprocessing to work.
+def init_class_overrides():
+    s, p = makeES256Keypair()
+    init_cert = makeSignedCert(p, 'init cert', 365, makeCertSerial(), s)
+    cert_class_override(init_cert.__class__)
+    pubkey_class_override(init_cert.public_key().__class__)
+
+init_class_overrides()

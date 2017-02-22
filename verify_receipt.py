@@ -247,21 +247,6 @@ class ReceiptVerifier(ReceiptVerifierI):
     A simple implementation of a receipt verifier.
     """
 
-    def __getstate__(self):
-        odict = self.__dict__.copy()
-        if self.cert:
-            odict['cert'] = utils.exportCertToPEM(self.cert)
-        else:
-            odict['cert'] = ''
-        return odict
-
-    def __setstate__(self, rvdict):
-        self.__dict__.update(rvdict)
-        if rvdict['cert']:
-            self.cert = utils.loadCert(utils.addPEMCertHeaders(rvdict['cert']))
-        else:
-            self.cert = None
-
     def __init__(self, keyStore, cert):
         """
         Creates a new receipt verifier. At least one of the two parameters has

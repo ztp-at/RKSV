@@ -135,23 +135,6 @@ class KeyTuple(object):
     The data structure used internally by KeyStore. For internal use only.
     """
 
-    def __getstate__(self):
-        odict = self.__dict__.copy()
-        if self.cert:
-            odict['cert'] = utils.exportCertToPEM(self.cert)
-        else:
-            odict['cert'] = ''
-        odict['key'] = utils.exportKeyToPEM(self.key)
-        return odict
-
-    def __setstate__(self, ksdict):
-        self.__dict__.update(ksdict)
-        if ksdict['cert']:
-            self.cert = utils.loadCert(utils.addPEMCertHeaders(ksdict['cert']))
-        else:
-            self.cert = None
-        self.key = utils.loadPubKey(utils.addPEMPubKeyHeaders(ksdict['key']))
-
     def __init__(self, keyId, key, cert):
         self.keyId = keyId
         self.key = key
