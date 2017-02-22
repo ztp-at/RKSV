@@ -269,7 +269,7 @@ class ViewReceiptWidget(BoxLayout):
                     key = f.read()
 
             App.get_running_app().curSearchPath = path
-        except (IOError, ValueError) as e:
+        except (IOError, UnicodeDecodeError, ValueError) as e:
             displayError(e)
         except KeyError:
             displayError(_("Malformed crypto container"))
@@ -392,7 +392,7 @@ class VerifyReceiptWidget(BoxLayout):
             try:
                 with open(full) as f:
                     self.receiptInput.text = f.read().strip()
-            except IOError as e:
+            except (IOError, UnicodeDecodeError) as e:
                 displayError(e)
 
         self.dismissPopup()
@@ -650,7 +650,8 @@ class VerifyDEPWidget(BoxLayout):
                 self.dep = verify.parseDEPAndGroups(jsonDEP)
 
             App.get_running_app().curSearchPath = path
-        except (IOError, ValueError, verify.DEPException) as e:
+        except (IOError, UnicodeDecodeError, ValueError,
+                verify.DEPException) as e:
             displayError(e)
             self.dismissPopup()
             return
@@ -682,7 +683,7 @@ class VerifyDEPWidget(BoxLayout):
                     self.aesInput.text = f.read()
 
             App.get_running_app().curSearchPath = path
-        except (IOError, ValueError) as e:
+        except (IOError, UnicodeDecodeError, ValueError) as e:
             displayError(e)
         except KeyError:
             displayError(_("Malformed crypto container"))
@@ -763,7 +764,7 @@ class KeyStoreWidget(BoxLayout):
                 self._tmpPubKey = f.read()
 
             App.get_running_app().curSearchPath = path
-        except IOError as e:
+        except (IOError, UnicodeDecodeError) as e:
             displayError(e)
             self.dismissPopup()
             return
@@ -793,7 +794,7 @@ class KeyStoreWidget(BoxLayout):
                 App.get_running_app().keyStore.putPEMCert(f.read())
 
             App.get_running_app().curSearchPath = path
-        except (IOError, ValueError) as e:
+        except (IOError, UnicodeDecodeError, ValueError) as e:
             displayError(e)
 
         self.dismissPopup()
@@ -831,7 +832,8 @@ class KeyStoreWidget(BoxLayout):
                         key_store.KeyStore.readStore(config)
 
             App.get_running_app().curSearchPath = path
-        except (IOError, ValueError, configparser.Error) as e:
+        except (IOError, UnicodeDecodeError, ValueError,
+                configparser.Error) as e:
             displayError(e)
         except KeyError:
             displayError(_("Malformed crypto container"))
