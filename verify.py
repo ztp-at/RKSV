@@ -672,6 +672,69 @@ def balanceGroupsWithVerifiers(groups, nprocs):
 
     return pkgs
 
+def verifyParsedDEP_prepare(dep, keyStore, key, state = None,
+        cashRegisterIdx = None, nprocs = 1):
+    if not state:
+        state = verification_state.ClusterState()
+
+    prevStart, rState, usedRecIds = state.getCashRegisterInfo(
+            cashRegisterIdx)
+
+    groupsWithVerifiers = list()
+
+    if len(dep) == 1:
+        recs, cert, chain = dep[0]
+
+        if not cert:
+            rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+        else:
+            verifyCert(cert, chain, keyStore)
+            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
+
+        groupsWithVerifiers.append((recs, rv))
+    else:
+        for recs, cert, chain in dep:
+            if not cert:
+                raise NoCertificateGivenException()
+
+            verifyCert(cert, chain, keyStore)
+
+            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
+
+            groupsWithVerifiers.append((recs, rv))
+
+    # repackage recs and verifiers according to nproc
+    pkgs = balanceGroupsWithVerifiers(groupsWithVerifiers, nprocs)
+    npkgs = len(pkgs)
+
+    # create start cashreg state for each package
+    pkgRStates = [rState]
+    pkgRState = rState
+    for pkg in pkgs:
+        for group, rv in pkg:
+            pkgRState = verification_state.CashRegisterState.fromDEPGroup(
+                    pkgRState, group, key)
+        pkgRStates.append(pkgRState)
+    del pkgRStates[-1]
+
+    # prepare arguments for each worker
+    return zip(pkgs, [key] * npkgs, [prevStart] * npkgs, pkgRStates,
+            [set()] * npkgs), usedRecIds
+
+def verifyParsedDEP_finalize(outUsedRecIds, usedRecIds):
+    # merge usedRecIds and check for duplicates
+    seen = set()
+    for rids in [usedRecIds] + list(outUsedRecIds):
+        for rid in rids:
+            if rid in seen:
+                raise DuplicateReceiptIdException(rid)
+            else:
+                seen.add(rid)
+
+    mergedUsedRecIds = usedRecIds | set.union(*outUsedRecIds)
+
+    return mergedUsedRecIds
+
 def verifyParsedDEP(dep, keyStore, key, state = None,
         cashRegisterIdx = None, pool = None, nprocs = 1):
     """
@@ -728,68 +791,17 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
     if not state:
         state = verification_state.ClusterState()
 
-    prevStart, rState, usedRecIds = state.getCashRegisterInfo(
-            cashRegisterIdx)
-
-    groupsWithVerifiers = list()
-
-    if len(dep) == 1:
-        recs, cert, chain = dep[0]
-
-        if not cert:
-            rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
-        else:
-            verifyCert(cert, chain, keyStore)
-            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
-
-        groupsWithVerifiers.append((recs, rv))
-    else:
-        for recs, cert, chain in dep:
-            if not cert:
-                raise NoCertificateGivenException()
-
-            verifyCert(cert, chain, keyStore)
-
-            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
-
-            groupsWithVerifiers.append((recs, rv))
-
-    # repackage recs and verifiers according to nproc
-    pkgs = balanceGroupsWithVerifiers(groupsWithVerifiers, nprocs)
-    npkgs = len(pkgs)
-
-    # create start cashreg state for each package
-    pkgRStates = [rState]
-    pkgRState = rState
-    for pkg in pkgs:
-        for group, rv in pkg:
-            pkgRState = verification_state.CashRegisterState.fromDEPGroup(
-                    pkgRState, group, key)
-        pkgRStates.append(pkgRState)
-    del pkgRStates[-1]
-
-    # prepare arguments for each worker
-    inargs = zip(pkgs, [key] * npkgs, [prevStart] * npkgs, pkgRStates,
-            [set()] * npkgs)
+    inargs, usedRecIds = verifyParsedDEP_prepare(dep, keyStore, key, state,
+            cashRegisterIdx, nprocs = 1)
 
     # apply verifyGroup() to each package
     if not pool:
         outresults = map(verifyGroupsWithVerifiersTuple, inargs)
     else:
         outresults = pool.map(verifyGroupsWithVerifiersTuple, inargs)
-
     outRStates, outUsedRecIds = zip(*outresults)
 
-    # merge usedRecIds and check for duplicates
-    seen = set()
-    for rids in [usedRecIds] + list(outUsedRecIds):
-        for rid in rids:
-            if rid in seen:
-                raise DuplicateReceiptIdException(rid)
-            else:
-                seen.add(rid)
-
-    mergedUsedRecIds = usedRecIds | set.union(*outUsedRecIds)
+    mergedUsedRecIds = verifyParsedDEP_finalize(outUsedRecIds, usedRecIds)
 
     # update with latest cashreg state and return
     state.updateCashRegisterInfo(cashRegisterIdx, outRStates[-1],
