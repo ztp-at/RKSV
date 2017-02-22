@@ -25,11 +25,9 @@ kivy.require('1.9.0')
 
 import base64 
 import configparser
-import copy
 import json
+import multiprocessing
 import os
-import threading
-import utils
 
 from requests.exceptions import RequestException
 from PIL import Image
@@ -71,81 +69,10 @@ import algorithms
 import img_decode
 import key_store
 import receipt
+import utils
 import verify_receipt
 import verify
 
-# This code blatantly copied from https://stackoverflow.com/a/325528
-import ctypes
-import inspect
-
-def _async_raise(tid, exctype):
-    '''Raises an exception in the threads with id tid'''
-    if not inspect.isclass(exctype):
-        raise TypeError("Only types can be raised (not instances)")
-    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid,
-            ctypes.py_object(exctype))
-    if res == 0:
-        raise ValueError("invalid thread id")
-    elif res != 1:
-        # "if it returns a number greater than one, you're in trouble,
-        # and you should call it again with exc=NULL to revert the effect"
-        ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
-        raise SystemError("PyThreadState_SetAsyncExc failed")
-
-class ThreadWithExc(threading.Thread):
-    '''A thread class that supports raising exception in the thread from
-       another thread.
-    '''
-    def _get_my_tid(self):
-        """determines this (self's) thread id
-
-        CAREFUL : this function is executed in the context of the caller
-        thread, to get the identity of the thread represented by this
-        instance.
-        """
-        if not self.isAlive():
-            raise threading.ThreadError("the thread is not active")
-
-        # do we have it cached?
-        if hasattr(self, "_thread_id"):
-            return self._thread_id
-
-        # no, look for it in the _active dict
-        for tid, tobj in threading._active.items():
-            if tobj is self:
-                self._thread_id = tid
-                return tid
-
-        # TODO: in python 2.6, there's a simpler way to do : self.ident
-
-        raise AssertionError("could not determine the thread's id")
-
-    def raiseExc(self, exctype):
-        """Raises the given exception type in the context of this thread.
-
-        If the thread is busy in a system call (time.sleep(),
-        socket.accept(), ...), the exception is simply ignored.
-
-        If you are sure that your exception should terminate the thread,
-        one way to ensure that it works is:
-
-            t = ThreadWithExc( ... )
-            ...
-            t.raiseExc( SomeException )
-            while t.isAlive():
-                time.sleep( 0.1 )
-                t.raiseExc( SomeException )
-
-        If the exception is to be caught by the thread, you need a way to
-        check that your thread has caught it.
-
-        CAREFUL : this function is executed in the context of the
-        caller thread, to raise an excpetion in the context of the
-        thread represented by this instance.
-        """
-        _async_raise( self._get_my_tid(), exctype )
-
-# original work starts here, donut steel
 def getModalView():
     return ModalView(size_hint=(1, None), pos_hint={'top': 1},
             height=Window.height - Window.keyboard_height,
@@ -194,6 +121,16 @@ class TreeViewKeyButton(TreeViewButton):
 class ViewReceiptItem(GridLayout, SelectableView):
     item_name = ObjectProperty(None)
     item_value = ObjectProperty(None)
+
+def verifyReceiptTask(rec, prefix, store):
+    try:
+        rv = verify_receipt.ReceiptVerifier.fromKeyStore(store)
+        rv.verify(rec, prefix)
+        return None
+    except receipt.ReceiptException as e:
+        return e
+    except Exception as e:
+        return e
 
 class ViewReceiptWidget(BoxLayout):
     adapter = ObjectProperty(None)
@@ -288,12 +225,9 @@ class ViewReceiptWidget(BoxLayout):
         self.verify_button.text = _('Verifying...')
         self.verify_button.disabled = True
 
-        rec = copy.deepcopy(self._receipt)
-        prefix = copy.deepcopy(self._algorithmPrefix)
-        store = copy.deepcopy(App.get_running_app().keyStore)
-
-        ThreadWithExc(target=self.verifyReceiptTask,
-                args=(rec, prefix, store,)).start()
+        App.get_running_app().pool.apply_async(verifyReceiptTask,
+                (self._receipt, self._algorithmPrefix,
+                    App.get_running_app().keyStore), callback=self.verifyCb)
 
     @mainthread
     def verifyCb(self, result):
@@ -307,14 +241,6 @@ class ViewReceiptWidget(BoxLayout):
             self.verify_button.text = _('Valid Signature')
             self.verify_button.disabled = True
             self.verify_button.background_color = (0, 1, 0, 1)
-
-    def verifyReceiptTask(self, rec, prefix, store):
-        try:
-            rv = verify_receipt.ReceiptVerifier.fromKeyStore(store)
-            rv.verify(rec, prefix)
-            self.verifyCb(None)
-        except receipt.ReceiptException as e:
-            self.verifyCb(e)
 
     def decrypt(self):
         if self.aes_input.text != '':
@@ -512,6 +438,35 @@ class VerifyReceiptWidget(BoxLayout):
         except (receipt.ReceiptException, RequestException) as e:
             displayError(e)
 
+def verifyDEP_prepare_Task(dep, store, key, nprocs):
+    try:
+        inargs, usedRecIds = verify.verifyParsedDEP_prepare(dep, store, key,
+                None, None, nprocs)
+        return None, inargs
+    except (receipt.ReceiptException, verify.DEPException) as e:
+        return e, None
+    except Exception as e:
+        return e, None
+
+def verifyDEP_main_Task(args):
+    try:
+        rState, usedRecIds = verify.verifyGroupsWithVerifiersTuple(args)
+        return None, usedRecIds
+    except (receipt.ReceiptException, verify.DEPException) as e:
+        return e, None
+    except Exception as e:
+        return e, None
+
+def verifyDEP_finalize_Task(outUsedRecIds, usedRecIds):
+    try:
+        mergedUsedRecIds = verify.verifyParsedDEP_finalize(outUsedRecIds,
+                usedRecIds)
+        return None, mergedUsedRecIds
+    except (receipt.ReceiptException, verify.DEPException) as e:
+        return e, None
+    except Exception as e:
+        return e, None
+
 # TODO: add a visual way to determine where an error happened?
 class VerifyDEPWidget(BoxLayout):
     treeView = ObjectProperty(None)
@@ -520,7 +475,6 @@ class VerifyDEPWidget(BoxLayout):
 
     _verifying = False
     _verified = False
-    _verifyThread = None
 
     def addCert(self, btn):
         pubKey = btn.key.public_key()
@@ -580,7 +534,8 @@ class VerifyDEPWidget(BoxLayout):
                         on_press=self.addCert), chainNode)
 
                 receiptIdx = 0
-                for jws in recs:
+                for cr in recs:
+                    jws = verify.expandDEPReceipt(cr)
                     rec, prefix = receipt.Receipt.fromJWSString(jws)
                     tv.add_node(TreeViewReceiptButton(text=rec.receiptId,
                         group_id=groupIdx - 1, receipt_id=receiptIdx,
@@ -598,13 +553,8 @@ class VerifyDEPWidget(BoxLayout):
         return False
 
     def verifyAbort(self):
-        try:
-            if self._verifyThread:
-                self._verifyThread.raiseExc(threading.ThreadError)
-        except (threading.ThreadError, TypeError, ValueError, SystemError):
-            pass
+        App.get_running_app().killBackgroundProcesses()
 
-        self._verifyThread = None
         self._verifying = False
         self._verified = False
         self.verify_button.disabled = False
@@ -629,38 +579,57 @@ class VerifyDEPWidget(BoxLayout):
         self._verifying = True
         self.verify_button.text = _('Verifying...')
 
-        store = copy.deepcopy(App.get_running_app().keyStore)
-
-        self._verifyThread = ThreadWithExc(target=self.verifyDEPTask,
-                args=(self.dep, store, key,))
-        self._verifyThread.start()
+        App.get_running_app().pool.apply_async(verifyDEP_prepare_Task,
+                (self.dep, App.get_running_app().keyStore, key,
+                    App.get_running_app().nprocs),
+                callback = self.verifyDEP_prepare_Cb)
 
     @mainthread
-    def verifyCb(self, result):
+    def verifyDEP_prepare_Cb(self, result):
+        if not self._verifying:
+            return
+
+        if result[0]:
+            self._verifying = False
+            self.verify_button.text = _('Verify')
+            displayError(result[0])
+
+        else:
+            App.get_running_app().pool.map_async(verifyDEP_main_Task,
+                    result[1], callback = self.verifyDEP_main_Cb)
+
+    def verifyDEP_main_Cb(self, result):
+        if not self._verifying:
+            return
+
+        outUsedRecIds = list()
+        for r in result:
+            if r[0]:
+                self._verifying = False
+                self.verify_button.text = _('Verify')
+                displayError(r[0])
+                return
+            outUsedRecIds.append(r[1])
+
+        App.get_running_app().pool.apply_async(verifyDEP_finalize_Task,
+                (outUsedRecIds, set()), callback =
+                self.verifyDEP_finalize_Cb)
+
+    @mainthread
+    def verifyDEP_finalize_Cb(self, result):
         if not self._verifying:
             return
 
         self._verifying = False
-        self._verifyThread = None
-        if result:
+        if result[0]:
             self.verify_button.text = _('Verify')
-
-            displayError(result)
+            displayError(result[0])
 
         else:
             self._verified = True
             self.verify_button.disabled = True
             self.verify_button.text = _('Valid DEP')
             self.verify_button.background_color = (0, 1, 0, 1)
-
-    def verifyDEPTask(self, dep, store, key):
-        try:
-            verify.verifyParsedDEP(dep, store, key)
-            self.verifyCb(None)
-        except (receipt.ReceiptException, verify.DEPException) as e:
-            self.verifyCb(e)
-        except threading.ThreadError:
-            pass
 
     def dismissPopup(self):
         self._popup.dismiss()
@@ -893,16 +862,39 @@ class MainWidget(BoxLayout):
         if platform == 'android':
             self.size_hint_y = None
 
+import signal
+def workerInit():
+    # Restore handler for SIGTERM so we can actually kill the workers.
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+
 class RKToolApp(App):
     keyStore = key_store.KeyStore()
     ksWidget = None
     curSearchPath = Env.getExternalStorageDirectory().getAbsolutePath() if platform == 'android' else os.getcwd()
+
+    def __init__(self, nprocs):
+        super(RKToolApp, self).__init__()
+        self.pool = None
+        self.nprocs = nprocs
+
+    def killBackgroundProcesses(self):
+        self.pool.close()
+        self.pool.terminate()
+        self.pool.join()
+        self.pool = multiprocessing.Pool(self.nprocs, workerInit)
 
     def on_pause(self):
         return True
 
     def on_resume(self):
         pass
+
+    def on_start(self):
+        self.pool = multiprocessing.Pool(self.nprocs, workerInit)
+
+    def on_stop(self):
+        self.pool.terminate()
+        self.pool.join()
 
     def updateKSWidget(self):
         if self.ksWidget:
@@ -920,4 +912,4 @@ if __name__ == '__main__':
     import gettext
     gettext.install('rktool', './lang', True)
 
-    RKToolApp().run()
+    RKToolApp(multiprocessing.cpu_count()).run()
