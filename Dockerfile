@@ -39,6 +39,10 @@ RUN useradd -m rksv && echo 'rksv:rksv' | chpasswd && \
 RUN apt-get install -y sudo && echo 'rksv ALL=(root) NOPASSWD: ALL' > \
 	/etc/sudoers.d/rksv && chmod 440 /etc/sudoers.d/rksv
 
+# download A-SIT Plus demo & verification tool
+RUN cd /home/rksv && wget https://github.com/a-sit-plus/at-registrierkassen-mustercode/releases/download/V1.0.0/regkassen-demo-1.0.0.zip && \
+	unzip regkassen-demo-1.0.0.zip && chown -R rksv:rksv regkassen-demo-1.0.0*
+
 # setup repo
 COPY . /home/rksv/pyreg
 RUN chown -R rksv:rksv /home/rksv/pyreg && \
