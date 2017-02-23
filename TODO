@@ -1,4 +1,3 @@
-move rktool to multiprocessing with callbacks and stuff?
 allow for different algorithms in one DEP?
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
 collect multiple errors? right now we fail on the first one
