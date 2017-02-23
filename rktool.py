@@ -26,7 +26,6 @@ kivy.require('1.9.0')
 import base64 
 import configparser
 import json
-import multiprocessing
 import os
 
 from requests.exceptions import RequestException
@@ -65,6 +64,10 @@ if platform == 'android':
     import os
     os.environ['LANG'] = Locale.getDefault().toString()
 
+    __use_threads = True
+else:
+    __use_threads = False
+
 import algorithms
 import img_decode
 import key_store
@@ -72,6 +75,125 @@ import receipt
 import utils
 import verify_receipt
 import verify
+
+if __use_threads:
+    # This code blatantly copied from https://stackoverflow.com/a/325528
+    import ctypes
+    import inspect
+    import threading
+
+    def _async_raise(tid, exctype):
+        '''Raises an exception in the threads with id tid'''
+        if not inspect.isclass(exctype):
+            raise TypeError("Only types can be raised (not instances)")
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid,
+                ctypes.py_object(exctype))
+        if res == 0:
+            raise ValueError("invalid thread id")
+        elif res != 1:
+            # "if it returns a number greater than one, you're in trouble,
+            # and you should call it again with exc=NULL to revert the effect"
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+            raise SystemError("PyThreadState_SetAsyncExc failed")
+
+    class ThreadWithExc(threading.Thread):
+        '''A thread class that supports raising exception in the thread from
+           another thread.
+        '''
+        def _get_my_tid(self):
+            """determines this (self's) thread id
+            CAREFUL : this function is executed in the context of the caller
+            thread, to get the identity of the thread represented by this
+            instance.
+            """
+            if not self.isAlive():
+                raise threading.ThreadError("the thread is not active")
+
+            # do we have it cached?
+            if hasattr(self, "_thread_id"):
+                return self._thread_id
+
+            # no, look for it in the _active dict
+            for tid, tobj in threading._active.items():
+                if tobj is self:
+                    self._thread_id = tid
+                    return tid
+
+            # TODO: in python 2.6, there's a simpler way to do : self.ident
+
+            raise AssertionError("could not determine the thread's id")
+
+        def raiseExc(self, exctype):
+            """Raises the given exception type in the context of this thread.
+            If the thread is busy in a system call (time.sleep(),
+            socket.accept(), ...), the exception is simply ignored.
+            If you are sure that your exception should terminate the thread,
+            one way to ensure that it works is:
+                t = ThreadWithExc( ... )
+                ...
+                t.raiseExc( SomeException )
+                while t.isAlive():
+                    time.sleep( 0.1 )
+                    t.raiseExc( SomeException )
+            If the exception is to be caught by the thread, you need a way to
+            check that your thread has caught it.
+            CAREFUL : this function is executed in the context of the
+            caller thread, to raise an excpetion in the context of the
+            thread represented by this instance.
+            """
+            _async_raise( self._get_my_tid(), exctype )
+
+    # original work starts here, donut steel
+    import copy
+
+    def __thread_apply__(f, args, callback):
+        try:
+            callback(f(*args))
+        except threading.ThreadError:
+            pass
+
+    def __thread_map__(f, iterable, callback):
+        try:
+            callback(map(f, iterable))
+        except threading.ThreadError:
+            pass
+
+    class ThreadPool(object):
+        def __init__(self, nprocs, init = None, initargs = ()):
+            # Ignore all args, this is not a real pool.
+            self._thread = None
+
+        def terminate(self):
+            try:
+                if self._thread:
+                    self._thread.raiseExc(threading.ThreadError)
+            except (threading.ThreadError, TypeError, ValueError, SystemError):
+                pass
+
+            self._thread = None
+
+        def join(self):
+            pass
+
+        def apply_async(self, f, args, callback):
+            targs = copy.deepcopy(args)
+            self._thread = ThreadWithExc(target = __thread_apply__,
+                    args = (f, targs, callback))
+            self._thread.start()
+
+        def map_async(self, f, iterable, callback):
+            titerable = copy.deepcopy(iterable)
+            self._thread = ThreadWithExc(target = __thread_map__,
+                    args = (f, titerable, callback))
+            self._thread.start()
+
+    PoolClass = ThreadPool
+    Nprocs = 1
+else:
+    import multiprocessing
+
+    PoolClass = multiprocessing.Pool
+    Nprocs = multiprocessing.cpu_count()
 
 def getModalView():
     return ModalView(size_hint=(1, None), pos_hint={'top': 1},
@@ -128,8 +250,6 @@ def verifyReceiptTask(rec, prefix, store):
         rv.verify(rec, prefix)
         return None
     except receipt.ReceiptException as e:
-        return e
-    except Exception as e:
         return e
 
 class ViewReceiptWidget(BoxLayout):
@@ -445,16 +565,12 @@ def verifyDEP_prepare_Task(dep, store, key, nprocs):
         return None, inargs
     except (receipt.ReceiptException, verify.DEPException) as e:
         return e, None
-    except Exception as e:
-        return e, None
 
 def verifyDEP_main_Task(args):
     try:
         rState, usedRecIds = verify.verifyGroupsWithVerifiersTuple(args)
         return None, usedRecIds
     except (receipt.ReceiptException, verify.DEPException) as e:
-        return e, None
-    except Exception as e:
         return e, None
 
 def verifyDEP_finalize_Task(outUsedRecIds, usedRecIds):
@@ -463,8 +579,6 @@ def verifyDEP_finalize_Task(outUsedRecIds, usedRecIds):
                 usedRecIds)
         return None, mergedUsedRecIds
     except (receipt.ReceiptException, verify.DEPException) as e:
-        return e, None
-    except Exception as e:
         return e, None
 
 # TODO: add a visual way to determine where an error happened?
@@ -880,10 +994,9 @@ class RKToolApp(App):
         self.nprocs = nprocs
 
     def killBackgroundProcesses(self):
-        self.pool.close()
         self.pool.terminate()
         self.pool.join()
-        self.pool = multiprocessing.Pool(self.nprocs, workerInit)
+        self.pool = PoolClass(self.nprocs, workerInit)
 
     def on_pause(self):
         return True
@@ -892,7 +1005,7 @@ class RKToolApp(App):
         pass
 
     def on_start(self):
-        self.pool = multiprocessing.Pool(self.nprocs, workerInit)
+        self.pool = PoolClass(self.nprocs, workerInit)
 
     def on_stop(self):
         self.pool.terminate()
@@ -914,4 +1027,4 @@ if __name__ == '__main__':
     import gettext
     gettext.install('rktool', './lang', True)
 
-    RKToolApp(multiprocessing.cpu_count()).run()
+    RKToolApp(Nprocs).run()
