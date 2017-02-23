@@ -22,7 +22,7 @@ source.include_exts = py,png,jpg,kv,atlas,mo
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = bin, builds, misc, .builddata
+source.exclude_dirs = bin, misc, .builddata
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
