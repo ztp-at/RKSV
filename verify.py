@@ -792,7 +792,7 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
         state = verification_state.ClusterState()
 
     inargs, usedRecIds = verifyParsedDEP_prepare(dep, keyStore, key, state,
-            cashRegisterIdx, nprocs = 1)
+            cashRegisterIdx, nprocs)
 
     # apply verifyGroup() to each package
     if not pool:
