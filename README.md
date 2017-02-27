@@ -114,7 +114,7 @@ make test
 ---------
 
 Runs `test_verify.py` for all test cases in `tests` for open and closed systems
-with turnover counters of 5, 8 and 6 bytes with both Python 2 and 3. If no
+with turnover counters of 5, 8 and 16 bytes with both Python 2 and 3. If no
 certificate has been generated yet, it will create one first.
 
 make update-trans
@@ -315,8 +315,8 @@ verify.py
 
 This script, when called with the `keyStore` command, verifies the given DEP
 export file. The used certificates or public keys must be available in the given
-key store. If the DEP is valid the script prints nothing, if it is not then the
-script will print an error message.
+key store. If the DEP is valid the script prints a short success message, if it
+is not then the script will print an error message.
 
 If an AES key file is specified, the script will also check the turnover
 counter in each receipt.
@@ -410,7 +410,7 @@ The CSV contains one receipt per line with `;` serving as the delimiter.
 receipt_host.py
 ---------------
 	Usage: ./receipt_host.py dep
-       	       ./receipt_host.py jws
+	       ./receipt_host.py jws
 
 This script reads receipts from stdin and launches a web server on
 `127.0.0.1:5000` that hosts each receipt under `/<url_hash>`, where `<url_hash>`
