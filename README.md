@@ -14,9 +14,9 @@ Disclaimer
 
 The verification tools available here are not fit to ensure the correct
 functioning of a cash register implementation according to law. The
-correctness of the verification results cannot be guaranteed. Only the
-official tools provided by A-SIT Plus GmbH and the Austrian Federal
-Ministry of Finance are reliable.
+correctness of the verification results cannot be guaranteed. In case
+of uncertanties the official service provided by the Austrian Federal 
+Ministry of Finance should be consulted.
 
 Furthermore, no part of the code in this repository is fit to be used in a
 cash register in productive use.
