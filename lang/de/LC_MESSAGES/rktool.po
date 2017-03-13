@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-02-23 05:44+CET\n"
+"POT-Creation-Date: 2017-03-13 20:41+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -28,11 +28,11 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: cashreg.py:99
+#: cashreg.py:125
 msgid "Invalid turnover counter size."
 msgstr "Umsatzzähler-Länge ungültig."
 
-#: cashreg.py:138 main.py:411 receipt.py:95 rktool.py:411
+#: cashreg.py:165 main.py:411 receipt.py:95 rktool.py:411
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
 
@@ -314,7 +314,7 @@ msgstr ""
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:282 test_verify.py:265
+#: run_test.py:282 test_verify.py:266
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
@@ -322,37 +322,37 @@ msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
 
-#: test_verify.py:74 test_verify.py:77 test_verify.py:82
+#: test_verify.py:72 test_verify.py:75 test_verify.py:80
 msgid "no Exception"
 msgstr "kein Fehler"
 
-#: test_verify.py:121
+#: test_verify.py:116
 msgid "State update without verification failed."
 msgstr "Zustandsupdate ohne Verifikation fehlgeschlagen."
 
-#: test_verify.py:130
+#: test_verify.py:125
 msgid "Expected {} in turnover counter but got {}."
 msgstr "Erwartete {} im Umsatzzähler, aber habe {} bekommen."
 
-#: test_verify.py:143
+#: test_verify.py:138
 msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
 msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
 
-#: test_verify.py:150
+#: test_verify.py:145
 msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
 msgstr ""
 "Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
 "bekommen"
 
-#: test_verify.py:188
+#: test_verify.py:189
 msgid "Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<"
 msgstr "Ergebnisse verschieden: ohne parsing {}:>{}<, mit parsing {}:>{}<"
 
-#: test_verify.py:226
+#: test_verify.py:227
 msgid "No run label"
 msgstr "Kein Simulationsname"
 
-#: test_verify.py:243
+#: test_verify.py:244
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
