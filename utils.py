@@ -286,9 +286,11 @@ def makeSignedCert(cpub, ccn, cvdays, cserial, spriv, scert=None):
     return builder.sign(private_key=spriv, algorithm=hashes.SHA256(),
             backend=default_backend())
 
-receiptFloatRegex = re.compile(r'^-?\d+\,\d\d$')
+receiptFloatRegex = re.compile(r'^-?([1-9]\d+|\d)\,\d\d$')
 def getReceiptFloat(fstr):
     if receiptFloatRegex.match(fstr) is None:
+        return None
+    if fstr == '-0,00':
         return None
 
     try:
