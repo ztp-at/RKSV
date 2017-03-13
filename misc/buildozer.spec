@@ -47,6 +47,7 @@ requirements = android,future,pil,pyjnius,requests,configparser,pyasn1,cryptogra
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
+presplash.filename = %(source.dir)s/misc/splash.png
 
 # (str) Icon of the application
 #icon.filename = %(source.dir)s/data/icon.png

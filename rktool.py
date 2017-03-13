@@ -1021,7 +1021,29 @@ class RKToolApp(App):
 
     def build(self):
         Window.bind(keyboard_height=self.updateHeight)
-        return MainWidget()
+        if platform == 'android':
+            return MainWidget()
+
+        # the dreaded splash screen code
+        from kivy.uix.screenmanager import NoTransition, ScreenManager, Screen
+        from kivy.uix.image import Image
+
+        sm = ScreenManager(transition=NoTransition())
+
+        splashScr = Screen(name='SplashScreen')
+        splashScr.add_widget(Image(source='misc/splash.png'))
+        sm.add_widget(splashScr)
+
+        mainScr = Screen(name='MainScreen')
+        mainScr.add_widget(MainWidget())
+        sm.add_widget(mainScr)
+
+        def switchToMainScr(instance):
+            sm.current = 'MainScreen'
+
+        Clock.schedule_once(switchToMainScr, 3)
+
+        return sm
 
 if __name__ == '__main__':
     import gettext
