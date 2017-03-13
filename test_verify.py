@@ -45,7 +45,7 @@ class TestVerifyResult(enum.Enum):
     FAIL = 2
     ERROR = 3
 
-def _testVerify(spec, pub, priv, closed, parse=False, pool = None, nprocs = 1):
+def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
     """
     Runs a single test case against verify.verifyDEP() and returns the
     result and potentially an error message. In addition to the elements
@@ -58,11 +58,9 @@ def _testVerify(spec, pub, priv, closed, parse=False, pool = None, nprocs = 1):
     "expectedException" is omitted, verifyDEP() must not throw any
     exception.
     :param spec: The test case specification as a dict structure.
-    :param pub: The public key or certificate. For a closed system a public
-    key must be used, for an open system a certificate must be used.
-    :param priv: The private key used to sign the generated receipts.
-    :param closed: Indicates whether the system is a closed system (True) or
-    an open system (False).
+    :param deps: A list of DEPs to verify.
+    :param cc: The cryptographic material container containing the key
+    material to verify the DEPs.
     :param parse: True if the DEP should be parsed with
     verify.parseDEPAndGroups() first, false otherwise.
     :param pool: A pool of processes to pass along to verifyParsedDEP if
@@ -82,10 +80,7 @@ def _testVerify(spec, pub, priv, closed, parse=False, pool = None, nprocs = 1):
                 _('no Exception'))
         expected_exception_receipt = spec.get('exceptionReceipt')
 
-        keymat = [(pub, priv)] * spec['numberOfSignatureDevices']
         key = base64.b64decode(spec['base64AesKey'])
-
-        deps, cc = run_test.runTest(spec, keymat, closed)
         ks = key_store.KeyStore.readStoreFromJson(cc)
 
         state = verification_state.ClusterState()
@@ -176,8 +171,14 @@ def testVerify(spec, pub, priv, closed, pool = None, nprocs = 1):
     :return: A TestVerifyResult indicating the result of the test and an
     error message. If the result is OK, the message is None.
     """
-    rN, mN = _testVerify(spec, pub, priv, closed, False, pool, nprocs)
-    rP, mP = _testVerify(spec, pub, priv, closed, True, pool, nprocs)
+    try:
+        keymat = [(pub, priv)] * spec['numberOfSignatureDevices']
+        deps, cc = run_test.runTest(spec, keymat, closed)
+    except Exception as e:
+        return TestVerifyResult.ERROR, e
+
+    rN, mN = _testVerify(spec, deps, cc, False, pool, nprocs)
+    rP, mP = _testVerify(spec, deps, cc, True, pool, nprocs)
     if rN == rP and str(mN) == str(mP):
         return rN, mN
 
