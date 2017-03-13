@@ -77,6 +77,32 @@ class CashRegisterI(object):
         """
         raise NotImplementedError("Please implement this yourself.")
 
+class MangledReceipt(receipt.Receipt):
+    def __init__(self, rec, override):
+        self.__dict__.update(rec.__dict__)
+        self.override = override
+
+    def rewriteFields(self, regular):
+        segs = regular.split('_')
+        segs[4] = self.override.get('dateTime', segs[4])
+        segs[5] = self.override.get('sumA', segs[5])
+        segs[6] = self.override.get('sumB', segs[6])
+        segs[7] = self.override.get('sumC', segs[7])
+        segs[8] = self.override.get('sumD', segs[8])
+        segs[9] = self.override.get('sumE', segs[9])
+
+        return '_'.join(segs)
+
+    def toPayloadString(self, algorithmPrefix):
+        regular = super(MangledReceipt, self).toPayloadString(algorithmPrefix)
+
+        return self.rewriteFields(regular)
+
+    def toOCRCode(self, algorithmPrefix):
+        regular = super(MangledReceipt, self).toOCRCode(algorithmPrefix)
+
+        return self.rewriteFields(regular)
+
 class CashRegister(CashRegisterI):
     """
     A concrete implementation of a simple cash register.
@@ -112,8 +138,9 @@ class CashRegister(CashRegisterI):
 
         registerId = override.get('registerId', self.registerId)
 
-        rec = receipt.Receipt(zda, registerId, receiptId, dateTime,
+        regularRec = receipt.Receipt(zda, registerId, receiptId, dateTime,
             sumA, sumB, sumC, sumD, sumE, '', certSerial, '')
+        rec = MangledReceipt(regularRec, override)
 
         if 'turnoverCounterSize' in override:
             self.turnoverCounterSize = override['turnoverCounterSize']
