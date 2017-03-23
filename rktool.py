@@ -1031,7 +1031,7 @@ class RKToolApp(App):
         sm = ScreenManager(transition=NoTransition())
 
         splashScr = Screen(name='SplashScreen')
-        splashScr.add_widget(Image(source='misc/splash.png'))
+        splashScr.add_widget(Image(source='misc/splash-desktop.png'))
         sm.add_widget(splashScr)
 
         mainScr = Screen(name='MainScreen')
@@ -1048,5 +1048,10 @@ class RKToolApp(App):
 if __name__ == '__main__':
     import gettext
     gettext.install('rktool', './lang', True)
+
+    if platform != 'android':
+        from kivy.config import Config
+        Config.set('graphics', 'width', '800')
+        Config.set('graphics', 'height', '600')
 
     RKToolApp(Nprocs).run()
