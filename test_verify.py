@@ -119,7 +119,7 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
 
             if expectedTurnover:
                 prevJWS, cashRegState, ids = state.getCashRegisterInfo(registerIdx)
-                expectedTurnoverCounter = int(expectedTurnover * 100)
+                expectedTurnoverCounter = int(round(expectedTurnover * 100))
                 if expectedTurnoverCounter != cashRegState.lastTurnoverCounter:
                     return TestVerifyResult.FAIL, Exception(
                             _('Expected {} in turnover counter but got {}.').format(
