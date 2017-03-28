@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-03-13 20:41+CET\n"
+"POT-Creation-Date: 2017-03-29 00:14+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -28,11 +28,11 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: cashreg.py:125
+#: cashreg.py:113
 msgid "Invalid turnover counter size."
 msgstr "Umsatzzähler-Länge ungültig."
 
-#: cashreg.py:165 main.py:411 receipt.py:95 rktool.py:411
+#: cashreg.py:156 main.py:411 receipt.py:96 rktool.py:411
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
 
@@ -192,43 +192,43 @@ msgstr "Schlüsselspeicher laden"
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
 
-#: receipt.py:43 verify.py:101
+#: receipt.py:44 verify.py:101
 msgid "At receipt \"{0}\": {1}"
 msgstr "Bei Rechnung \"{0}\": {1}"
 
-#: receipt.py:67
+#: receipt.py:68
 msgid "Malformed receipt."
 msgstr "Ungültige Rechnung."
 
-#: receipt.py:77
+#: receipt.py:78
 msgid "Unknown algorithm."
 msgstr "Unbekannter Algorithmus."
 
-#: receipt.py:86
+#: receipt.py:87
 msgid "Algorithm mismatch."
 msgstr "Inkompatible Algorithmen."
 
-#: receipt.py:125
+#: receipt.py:131
 msgid "Unknown Receipt"
 msgstr "Unbekannte Rechnung."
 
-#: receipt.py:254 receipt.py:368 receipt.py:423 receipt.py:519
+#: receipt.py:285 receipt.py:389 receipt.py:444 receipt.py:539
 msgid "You need to sign the receipt first."
 msgstr "Die Rechnung muss zuerst signiert werden."
 
-#: receipt.py:559
+#: receipt.py:579
 msgid "Can't decrypt turnover counter, this is a dummy receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Trainingsbeleg."
 
-#: receipt.py:561
+#: receipt.py:581
 msgid "Can't decrypt turnover counter, this is a reversal receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Stornobeleg."
 
-#: receipt.py:597 verify_receipt.py:413
+#: receipt.py:617 verify_receipt.py:413
 msgid "Input format must be one of %s."
 msgstr "Eingabeformat muss eines aus %s sein."
 
-#: receipt.py:601
+#: receipt.py:621
 msgid "Output format must be one of %s."
 msgstr "Ausgabeformat muss eines aus %s sein."
 
