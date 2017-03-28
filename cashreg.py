@@ -78,30 +78,18 @@ class CashRegisterI(object):
         raise NotImplementedError("Please implement this yourself.")
 
 class MangledReceipt(receipt.Receipt):
+    # FIXME: Possible code exec from the testcases by overriding method.
+    # This part should only ever be called from tests!
     def __init__(self, rec, override):
         self.__dict__.update(rec.__dict__)
-        self.override = override
-
-    def rewriteFields(self, regular):
-        segs = regular.split('_')
-        segs[4] = self.override.get('dateTime', segs[4])
-        segs[5] = self.override.get('sumA', segs[5])
-        segs[6] = self.override.get('sumB', segs[6])
-        segs[7] = self.override.get('sumC', segs[7])
-        segs[8] = self.override.get('sumD', segs[8])
-        segs[9] = self.override.get('sumE', segs[9])
-
-        return '_'.join(segs)
-
-    def toPayloadString(self, algorithmPrefix):
-        regular = super(MangledReceipt, self).toPayloadString(algorithmPrefix)
-
-        return self.rewriteFields(regular)
-
-    def toOCRCode(self, algorithmPrefix):
-        regular = super(MangledReceipt, self).toOCRCode(algorithmPrefix)
-
-        return self.rewriteFields(regular)
+        attrOverride = dict(override)
+        attrOverride['dateTimeStr'] = attrOverride.pop('dateTime', self.dateTimeStr)
+        attrOverride['sumAStr'] = attrOverride.pop('sumA', self.sumAStr)
+        attrOverride['sumBStr'] = attrOverride.pop('sumB', self.sumBStr)
+        attrOverride['sumCStr'] = attrOverride.pop('sumC', self.sumCStr)
+        attrOverride['sumDStr'] = attrOverride.pop('sumD', self.sumDStr)
+        attrOverride['sumEStr'] = attrOverride.pop('sumE', self.sumEStr)
+        self.__dict__.update(attrOverride)
 
 class CashRegister(CashRegisterI):
     """
@@ -133,13 +121,16 @@ class CashRegister(CashRegisterI):
     def receipt(self, prefix, receiptId, dateTime, sumA, sumB, sumC, sumD, sumE, sigSystem, dummy=False, reversal=False, override=dict()):
         algorithm = algorithms.ALGORITHMS[prefix]
 
-        certSerial = override.get('certSerial', sigSystem.serial)
-        zda = override.get('zda', sigSystem.zda)
-
-        registerId = override.get('registerId', self.registerId)
-
-        regularRec = receipt.Receipt(zda, registerId, receiptId, dateTime,
-            sumA, sumB, sumC, sumD, sumE, '', certSerial, '')
+        dateTimeStr = dateTime.strftime("%Y-%m-%dT%H:%M:%S")
+        # replacing '.' with ',' because reference does it too, still weird
+        sumAStr = ("%.2f" % sumA).replace('.',',')
+        sumBStr = ("%.2f" % sumB).replace('.',',')
+        sumCStr = ("%.2f" % sumC).replace('.',',')
+        sumDStr = ("%.2f" % sumD).replace('.',',')
+        sumEStr = ("%.2f" % sumE).replace('.',',')
+        regularRec = receipt.Receipt(sigSystem.zda, self.registerId,
+                receiptId, dateTimeStr, sumAStr, sumBStr, sumCStr, sumDStr,
+                sumEStr, '', sigSystem.serial, '')
         rec = MangledReceipt(regularRec, override)
 
         if 'turnoverCounterSize' in override:

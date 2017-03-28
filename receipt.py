@@ -27,6 +27,7 @@ from builtins import range
 import base64
 import binascii
 import datetime
+import re
 
 from six import string_types
 
@@ -95,6 +96,8 @@ class InvalidKeyException(ReceiptException):
         super(InvalidKeyException, self).__init__(receipt, _("Invalid key."))
         self._initargs = (receipt,)
 
+algRegex = re.compile(r'^R[1-9]\d*$')
+zdaRegex = re.compile(r'^([A-Z][A-Z][1-9]\d*|AT0)$')
 class Receipt(object):
     """
     The basic receipt class. Contains methods to convert a receipt to and from
@@ -105,16 +108,19 @@ class Receipt(object):
             sumA, sumB, sumC, sumD, sumE, encTurnoverCounter,
             certSerial, previousChain):
         """
-        Creates a new receipt object.
+        Creates a new receipt object. The dateTime and sum[A-E] attributes
+        are stored as datetime and float objects respectively but their
+        string representations are retained for the various to*() methods
+        to ensure signatures remain valid after conversion.
         :param zda: The ZDA ID as a string.
         :param registerId: The ID of the register as a string.
         :param receiptId: The ID of the receipt as a string.
-        :param dateTime: The receipt's timestamp as a datetime object.
-        :param sumA: The first sum as a float.
-        :param sumB: The second sum as a float.
-        :param sumC: The third sum as a float.
-        :param sumD: The fourth sum as a float.
-        :param sumE: The fifth sum as a float.
+        :param dateTime: The receipt's timestamp as a string.
+        :param sumA: The first sum as a string.
+        :param sumB: The second sum as a string.
+        :param sumC: The third sum as a string.
+        :param sumD: The fourth sum as a string.
+        :param sumE: The fifth sum as a string.
         :param encTurnoverCounter: The encrypted turnover counter as a base64
         encoded string.
         :param certSerial: The certificate's serial or a key ID as a string.
@@ -123,15 +129,41 @@ class Receipt(object):
         """
         if not isinstance(receiptId, string_types) or not receiptId:
             raise MalformedReceiptException(_("Unknown Receipt"))
-        if not isinstance(zda, string_types) or not isinstance(registerId, string_types) \
-                or not zda or not registerId:
+        if '_' in receiptId:
             raise MalformedReceiptException(receiptId)
-        if not isinstance(dateTime, datetime.datetime):
+
+        if not isinstance(zda, string_types) or not zda \
+                or zdaRegex.match(zda) is None:
             raise MalformedReceiptException(receiptId)
-        if not isinstance(sumA, float) or not isinstance(sumB, float) \
-                or not isinstance(sumC, float) or not isinstance(sumD, float) \
-                or not isinstance(sumE, float):
+
+        if not isinstance(registerId, string_types) or not registerId \
+                or '_' in registerId:
             raise MalformedReceiptException(receiptId)
+
+        if not isinstance(dateTime, string_types) or not dateTime:
+            raise MalformedReceiptException(receiptId)
+        dateTimeDT = datetime.datetime.strptime(dateTime, "%Y-%m-%dT%H:%M:%S")
+        if not dateTimeDT:
+            raise MalformedReceiptException(receiptId)
+
+        if not isinstance(sumA, string_types) or not sumA \
+                or not isinstance(sumB, string_types) or not sumB \
+                or not isinstance(sumC, string_types) or not sumC \
+                or not isinstance(sumD, string_types) or not sumD \
+                or not isinstance(sumE, string_types) or not sumE:
+            raise MalformedReceiptException(receiptId)
+        sumAF = utils.getReceiptFloat(sumA)
+        sumBF = utils.getReceiptFloat(sumB)
+        sumCF = utils.getReceiptFloat(sumC)
+        sumDF = utils.getReceiptFloat(sumD)
+        sumEF = utils.getReceiptFloat(sumE)
+        if (sumAF is None
+                or sumBF is None
+                or sumCF is None
+                or sumDF is None
+                or sumEF is None):
+            raise MalformedReceiptException(receiptId)
+
         # Due to how algorithm works encTurnoverCounter and previousChain
         # can both be the empty string when the receipt is created and not
         # parsed from a string.
@@ -146,16 +178,24 @@ class Receipt(object):
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(receiptId)
 
+        # TODO: check certSerial
+
         self.zda = zda
         self.header = None
         self.registerId = registerId
         self.receiptId = receiptId
-        self.dateTime = dateTime
-        self.sumA = sumA
-        self.sumB = sumB
-        self.sumC = sumC
-        self.sumD = sumD
-        self.sumE = sumE
+        self.dateTime = dateTimeDT
+        self.dateTimeStr = dateTime
+        self.sumA = sumAF
+        self.sumAStr = sumA
+        self.sumB = sumBF
+        self.sumBStr = sumB
+        self.sumC = sumCF
+        self.sumCStr = sumC
+        self.sumD = sumDF
+        self.sumDStr = sumD
+        self.sumE = sumEF
+        self.sumEStr = sumE
         self.encTurnoverCounter = encTurnoverCounter
         self.certSerial = certSerial
         self.previousChain = previousChain
@@ -200,6 +240,8 @@ class Receipt(object):
         algorithmPrefix = algorithmPrefixAndZda[0]
         zda = algorithmPrefixAndZda[1]
 
+        if algRegex.match(algorithmPrefix) is None:
+            raise MalformedReceiptException(jwsString)
         if algorithmPrefix not in algorithms.ALGORITHMS:
             raise UnknownAlgorithmException(jwsString)
         if algorithms.ALGORITHMS[algorithmPrefix].jwsHeader() != header:
@@ -207,23 +249,12 @@ class Receipt(object):
 
         registerId = segments[2]
         receiptId = segments[3]
-
-        dateTime = datetime.datetime.strptime(segments[4], "%Y-%m-%dT%H:%M:%S")
-        if not dateTime:
-            raise MalformedReceiptException(jwsString)
-
-        sumA = utils.getReceiptFloat(segments[5])
-        sumB = utils.getReceiptFloat(segments[6])
-        sumC = utils.getReceiptFloat(segments[7])
-        sumD = utils.getReceiptFloat(segments[8])
-        sumE = utils.getReceiptFloat(segments[9])
-        if (sumA is None
-                or sumB is None
-                or sumC is None
-                or sumD is None
-                or sumE is None):
-            raise MalformedReceiptException(jwsString)
-
+        dateTime = segments[4]
+        sumA = segments[5]
+        sumB = segments[6]
+        sumC = segments[7]
+        sumD = segments[8]
+        sumE = segments[9]
         turnoverCounter = segments[10]
         certSerial = segments[11]
         previousChain = segments[12]
@@ -274,13 +305,12 @@ class Receipt(object):
         segments = [b'_' + algorithmPrefix.encode("utf-8") + b'-' + self.zda.encode("utf-8")]
         segments.append(self.registerId.encode("utf-8"))
         segments.append(self.receiptId.encode("utf-8"))
-        segments.append(self.dateTime.strftime("%Y-%m-%dT%H:%M:%S").encode("utf-8"))
-        # replacing '.' with ',' because reference does it too, still weird
-        segments.append(("%.2f" % self.sumA).replace('.',',').encode("utf-8"))
-        segments.append(("%.2f" % self.sumB).replace('.',',').encode("utf-8"))
-        segments.append(("%.2f" % self.sumC).replace('.',',').encode("utf-8"))
-        segments.append(("%.2f" % self.sumD).replace('.',',').encode("utf-8"))
-        segments.append(("%.2f" % self.sumE).replace('.',',').encode("utf-8"))
+        segments.append(self.dateTimeStr.encode("utf-8"))
+        segments.append(self.sumAStr.encode("utf-8"))
+        segments.append(self.sumBStr.encode("utf-8"))
+        segments.append(self.sumCStr.encode("utf-8"))
+        segments.append(self.sumDStr.encode("utf-8"))
+        segments.append(self.sumEStr.encode("utf-8"))
         segments.append(self.encTurnoverCounter.encode("utf-8"))
         segments.append(self.certSerial.encode("utf-8"))
         segments.append(self.previousChain.encode("utf-8"))
@@ -309,29 +339,20 @@ class Receipt(object):
         algorithmPrefix = algorithmPrefixAndZda[0]
         zda = algorithmPrefixAndZda[1]
 
+        if algRegex.match(algorithmPrefix) is None:
+            raise MalformedReceiptException(basicCode)
         if algorithmPrefix not in algorithms.ALGORITHMS:
             raise UnknownAlgorithmException(basicCode)
         header = algorithms.ALGORITHMS[algorithmPrefix].jwsHeader()
 
         registerId = segments[2]
         receiptId = segments[3]
-
-        dateTime = datetime.datetime.strptime(segments[4], "%Y-%m-%dT%H:%M:%S")
-        if not dateTime:
-            raise MalformedReceiptException(basicCode)
-
-        sumA = utils.getReceiptFloat(segments[5])
-        sumB = utils.getReceiptFloat(segments[6])
-        sumC = utils.getReceiptFloat(segments[7])
-        sumD = utils.getReceiptFloat(segments[8])
-        sumE = utils.getReceiptFloat(segments[9])
-        if (sumA is None
-                or sumB is None
-                or sumC is None
-                or sumD is None
-                or sumE is None):
-            raise MalformedReceiptException(basicCode)
-
+        dateTime = segments[4]
+        sumA = segments[5]
+        sumB = segments[6]
+        sumC = segments[7]
+        sumD = segments[8]
+        sumE = segments[9]
         turnoverCounter = segments[10]
         certSerial = segments[11]
         previousChain = segments[12]
@@ -425,13 +446,12 @@ class Receipt(object):
         segments = [b'_' + algorithmPrefix.encode("utf-8") + b'-' + self.zda.encode("utf-8")]
         segments.append(self.registerId.encode("utf-8"))
         segments.append(self.receiptId.encode("utf-8"))
-        segments.append(self.dateTime.strftime("%Y-%m-%dT%H:%M:%S").encode("utf-8"))
-        # replacing '.' with ',' because reference does it too, still weird
-        segments.append(("%.2f" % self.sumA).replace('.',',').encode("utf-8"))
-        segments.append(("%.2f" % self.sumB).replace('.',',').encode("utf-8"))
-        segments.append(("%.2f" % self.sumC).replace('.',',').encode("utf-8"))
-        segments.append(("%.2f" % self.sumD).replace('.',',').encode("utf-8"))
-        segments.append(("%.2f" % self.sumE).replace('.',',').encode("utf-8"))
+        segments.append(self.dateTimeStr.encode("utf-8"))
+        segments.append(self.sumAStr.encode("utf-8"))
+        segments.append(self.sumBStr.encode("utf-8"))
+        segments.append(self.sumCStr.encode("utf-8"))
+        segments.append(self.sumDStr.encode("utf-8"))
+        segments.append(self.sumEStr.encode("utf-8"))
 
         encTurnoverCounter = self.encTurnoverCounter.encode("utf-8")
         encTurnoverCounter = base64.b64decode(encTurnoverCounter)
