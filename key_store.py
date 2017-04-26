@@ -118,8 +118,7 @@ def strSerialToKeyIds(serial):
     validKeyIds = list()
 
     try:
-        int(serial, 16)
-        validKeyIds.append(serial.lower())
+        validKeyIds.append('%x' % int(serial, 16))
     except ValueError as e:
         pass
 
