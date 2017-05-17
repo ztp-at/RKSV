@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-03-29 12:24+CEST\n"
+"POT-Creation-Date: 2017-05-17 20:25+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -32,7 +32,7 @@ msgstr ""
 msgid "Invalid turnover counter size."
 msgstr "Umsatzzähler-Länge ungültig."
 
-#: cashreg.py:156 main.py:411 receipt.py:96 rktool.py:411
+#: cashreg.py:156 main.py:411 receipt.py:97 rktool.py:411
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
 
@@ -192,43 +192,51 @@ msgstr "Schlüsselspeicher laden"
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
 
-#: receipt.py:44 verify.py:101
+#: receipt.py:45 verify.py:101
 msgid "At receipt \"{0}\": {1}"
 msgstr "Bei Rechnung \"{0}\": {1}"
 
-#: receipt.py:68
+#: receipt.py:69
 msgid "Malformed receipt."
 msgstr "Ungültige Rechnung."
 
-#: receipt.py:78
+#: receipt.py:79
 msgid "Unknown algorithm."
 msgstr "Unbekannter Algorithmus."
 
-#: receipt.py:87
+#: receipt.py:88
 msgid "Algorithm mismatch."
 msgstr "Inkompatible Algorithmen."
 
-#: receipt.py:131
+#: receipt.py:105
+msgid "Certificate serial invalid."
+msgstr "Zertifikat-Seriennummer ungültig."
+
+#: receipt.py:115
+msgid "Invalid certificate provider."
+msgstr "Ungültiger Zertifizierungsdiensteanbieter."
+
+#: receipt.py:199
 msgid "Unknown Receipt"
 msgstr "Unbekannte Rechnung."
 
-#: receipt.py:285 receipt.py:389 receipt.py:444 receipt.py:539
+#: receipt.py:362 receipt.py:466 receipt.py:521 receipt.py:616
 msgid "You need to sign the receipt first."
 msgstr "Die Rechnung muss zuerst signiert werden."
 
-#: receipt.py:579
+#: receipt.py:656
 msgid "Can't decrypt turnover counter, this is a dummy receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Trainingsbeleg."
 
-#: receipt.py:581
+#: receipt.py:658
 msgid "Can't decrypt turnover counter, this is a reversal receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Stornobeleg."
 
-#: receipt.py:617 verify_receipt.py:413
+#: receipt.py:694 verify_receipt.py:335
 msgid "Input format must be one of %s."
 msgstr "Eingabeformat muss eines aus %s sein."
 
-#: receipt.py:621
+#: receipt.py:698
 msgid "Output format must be one of %s."
 msgstr "Ausgabeformat muss eines aus %s sein."
 
@@ -486,46 +494,38 @@ msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
-#: verify_receipt.py:42
+#: verify_receipt.py:41
 msgid "Certificate serial mismatch."
 msgstr "Zertifikat-Seriennummern stimmen nicht überein."
 
 #: verify_receipt.py:50
-msgid "Certificate serial invalid."
-msgstr "Zertifikat-Seriennummer ungültig."
-
-#: verify_receipt.py:59
 msgid "No public key found."
 msgstr "Kein öffentlicher Schlüssel gefunden."
 
-#: verify_receipt.py:67
+#: verify_receipt.py:58
 msgid "Invalid Signature."
 msgstr "Ungültige Signatur."
 
-#: verify_receipt.py:77
+#: verify_receipt.py:68
 msgid "{} This is probably fine."
 msgstr "{} Das ist wahrscheinlich in Ordnung."
 
-#: verify_receipt.py:86
+#: verify_receipt.py:77
 msgid "Signature System failed."
 msgstr "Sicherheitseinrichtung ausgefallen."
 
-#: verify_receipt.py:95
+#: verify_receipt.py:86
 msgid "Invalid URL hash."
 msgstr "Ungültige URL Prüfsumme."
 
-#: verify_receipt.py:105
-msgid "Invalid certificate provider."
-msgstr "Ungültiger Zertifizierungsdiensteanbieter."
-
-#: verify_receipt.py:114
+#: verify_receipt.py:95
 msgid "Null receipt not signed."
 msgstr "Nullbeleg nicht signiert."
 
-#: verify_receipt.py:435
+#: verify_receipt.py:357
 msgid "Line {: >3}: {}"
 msgstr "Zeile {: >3}: {}"
 
-#: verify_receipt.py:438
+#: verify_receipt.py:360
 msgid "{} of {} receipts verified successfully."
 msgstr "{} von {} Rechnungen wurden erfolgreich überprüft."
