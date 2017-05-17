@@ -24,7 +24,6 @@ from builtins import int
 from builtins import range
 
 import base64
-import enum
 
 from six import string_types
 
@@ -40,14 +39,6 @@ class CertSerialMismatchException(receipt.ReceiptException):
     """
     def __init__(self, rec):
         super(CertSerialMismatchException, self).__init__(rec, _("Certificate serial mismatch."))
-        self._initargs = (rec,)
-
-class CertSerialInvalidException(receipt.ReceiptException):
-    """
-    Indicates that the certificate serial in the receipt is malformed.
-    """
-    def __init__(self, rec):
-        super(CertSerialInvalidException, self).__init__(rec, _("Certificate serial invalid."))
         self._initargs = (rec,)
 
 class NoPublicKeyException(receipt.ReceiptException):
@@ -93,16 +84,6 @@ class InvalidURLHashException(receipt.ReceiptException):
     """
     def __init__(self, rec):
         super(InvalidURLHashException, self).__init__(rec, _("Invalid URL hash."))
-        self._initargs = (rec,)
-
-class InvalidCertificateProviderException(receipt.ReceiptException):
-    """
-    Indicates that the given certificate provider (ZDA) is invalid.
-    This usually means that AT0 was used in an open system or not used
-    in a closed system.
-    """
-    def __init__(self, rec):
-        super(InvalidCertificateProviderException, self).__init__(rec, _("Invalid certificate provider."))
         self._initargs = (rec,)
 
 class UnsignedNullReceiptException(NonFatalReceiptException):
@@ -202,55 +183,6 @@ class ReceiptVerifierI(object):
         """
         raise NotImplementedError("Please implement this yourself.")
 
-class CertSerialType(enum.Enum):
-    """
-    An enum for all the different types of certificate serials
-    """
-    SERIAL = 0
-    TAX = 1
-    UID = 2
-    GLN = 3
-    INVALID = 4
-
-    @staticmethod
-    def getCertSerialType(certSerial):
-        """
-        Parses the given serial to determine its type.
-        :param certSerial: The serial from a receipt as string.
-        :return: The type of the serial or INVALID if the serial is malformed.
-        """
-        if len(certSerial) <= 0:
-            return CertSerialType.INVALID
-
-        # for some reason the ref impl has a negative serial on some certs
-        if certSerial[0] == '-' and '-' not in certSerial[1:]:
-            certSerial = certSerial[1:]
-
-        parts = certSerial.split('-')
-        certSerial = parts[0]
-        if len(parts) > 2:
-            return CertSerialType.INVALID
-        elif len(parts) == 2:
-            if not parts[1].isalnum():
-                return CertSerialType.INVALID
-
-        if len(certSerial) == 11 and certSerial[0:2] == 'S:' and certSerial[2:].isdigit():
-            return CertSerialType.TAX
-        elif len(certSerial) >= 3 and len(certSerial) <= 16 and certSerial[0:2] == 'U:'  and certSerial[2:].isalnum() and certSerial[2:] == certSerial[2:].upper():
-            return CertSerialType.UID
-        elif len(certSerial) == 15 and certSerial[0:2] == 'G:' and certSerial[2:].isdigit():
-            return CertSerialType.GLN
-        else:
-            try:
-                int(certSerial, 16)
-                return CertSerialType.SERIAL
-            except ValueError as e:
-                try:
-                    int(certSerial, 10)
-                    return CertSerialType.SERIAL
-                except ValueError as f:
-                    return CertSerialType.INVALID
-
 class ReceiptVerifier(ReceiptVerifierI):
     """
     A simple implementation of a receipt verifier.
@@ -291,15 +223,13 @@ class ReceiptVerifier(ReceiptVerifierI):
             raise receipt.UnknownAlgorithmException(rec.receiptId)
         algorithm = algorithms.ALGORITHMS[algorithmPrefix]
 
-        certSerialType = CertSerialType.getCertSerialType(rec.certSerial)
-        if certSerialType == CertSerialType.INVALID:
-            raise CertSerialInvalidException(rec.receiptId)
-
         pubKey = None
-        if certSerialType == CertSerialType.SERIAL:
-            if rec.zda == 'AT0':
-                raise InvalidCertificateProviderException(rec.receiptId)
-
+        if rec.zda == 'AT0':
+            if self.cert:
+                pubKey = self.cert.public_key()
+            else:
+                pubKey = self.keyStore.getKey(rec.certSerial)
+        else:
             serials = key_store.strSerialToKeyIds(rec.certSerial)
             if self.cert:
                 certSerial = key_store.numSerialToKeyId(self.cert.serial)
@@ -311,14 +241,6 @@ class ReceiptVerifier(ReceiptVerifierI):
                     pubKey = self.keyStore.getKey(serial)
                     if pubKey:
                         break
-        else:
-            if rec.zda != 'AT0':
-                raise InvalidCertificateProviderException(rec.receiptId)
-
-            if self.cert:
-                pubKey = self.cert.public_key()
-            else:
-                pubKey = self.keyStore.getKey(rec.certSerial)
 
         if rec.isSignedBroken():
             if not rec.isDummy() and not rec.isReversal() and rec.isNull():

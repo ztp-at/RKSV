@@ -27,6 +27,7 @@ from builtins import range
 import base64
 import binascii
 import datetime
+import enum
 import re
 
 from six import string_types
@@ -95,6 +96,73 @@ class InvalidKeyException(ReceiptException):
     def __init__(self, receipt):
         super(InvalidKeyException, self).__init__(receipt, _("Invalid key."))
         self._initargs = (receipt,)
+
+class CertSerialInvalidException(ReceiptException):
+    """
+    Indicates that the certificate serial in the receipt is malformed.
+    """
+    def __init__(self, rec):
+        super(CertSerialInvalidException, self).__init__(rec, _("Certificate serial invalid."))
+        self._initargs = (rec,)
+
+class InvalidCertificateProviderException(ReceiptException):
+    """
+    Indicates that the given certificate provider (ZDA) is invalid.
+    This usually means that AT0 was used in an open system or not used
+    in a closed system.
+    """
+    def __init__(self, rec):
+        super(InvalidCertificateProviderException, self).__init__(rec, _("Invalid certificate provider."))
+        self._initargs = (rec,)
+
+class CertSerialType(enum.Enum):
+    """
+    An enum for all the different types of certificate serials
+    """
+    SERIAL = 0
+    TAX = 1
+    UID = 2
+    GLN = 3
+    INVALID = 4
+
+    @staticmethod
+    def getCertSerialType(certSerial):
+        """
+        Parses the given serial to determine its type.
+        :param certSerial: The serial from a receipt as string.
+        :return: The type of the serial or INVALID if the serial is malformed.
+        """
+        if len(certSerial) <= 0:
+            return CertSerialType.INVALID
+
+        # for some reason the ref impl has a negative serial on some certs
+        if certSerial[0] == '-' and '-' not in certSerial[1:]:
+            certSerial = certSerial[1:]
+
+        parts = certSerial.split('-')
+        certSerial = parts[0]
+        if len(parts) > 2:
+            return CertSerialType.INVALID
+        elif len(parts) == 2:
+            if not parts[1].isalnum():
+                return CertSerialType.INVALID
+
+        if len(certSerial) == 11 and certSerial[0:2] == 'S:' and certSerial[2:].isdigit():
+            return CertSerialType.TAX
+        elif len(certSerial) >= 3 and len(certSerial) <= 16 and certSerial[0:2] == 'U:'  and certSerial[2:].isalnum() and certSerial[2:] == certSerial[2:].upper():
+            return CertSerialType.UID
+        elif len(certSerial) == 15 and certSerial[0:2] == 'G:' and certSerial[2:].isdigit():
+            return CertSerialType.GLN
+        else:
+            try:
+                int(certSerial, 16)
+                return CertSerialType.SERIAL
+            except ValueError as e:
+                try:
+                    int(certSerial, 10)
+                    return CertSerialType.SERIAL
+                except ValueError as f:
+                    return CertSerialType.INVALID
 
 algRegex = re.compile(r'^R[1-9]\d*$')
 zdaRegex = re.compile(r'^([A-Z][A-Z][1-9]\d*|AT0)$')
@@ -168,9 +236,7 @@ class Receipt(object):
         # can both be the empty string when the receipt is created and not
         # parsed from a string.
         if not isinstance(encTurnoverCounter, string_types) \
-                or not isinstance(certSerial, string_types) \
-                or not isinstance(previousChain, string_types) \
-                or not certSerial:
+                or not isinstance(previousChain, string_types):
             raise MalformedReceiptException(receiptId)
         try:
             base64.b64decode(encTurnoverCounter.encode('utf-8'))
@@ -178,7 +244,18 @@ class Receipt(object):
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(receiptId)
 
-        # TODO: check certSerial
+        if not isinstance(certSerial, string_types) \
+                or not certSerial:
+            raise MalformedReceiptException(receiptId)
+        certSerialType = CertSerialType.getCertSerialType(certSerial)
+        if certSerialType == CertSerialType.INVALID:
+            raise CertSerialInvalidException(receiptId)
+        if certSerialType == CertSerialType.SERIAL:
+            if zda == 'AT0':
+                raise InvalidCertificateProviderException(receiptId)
+        else:
+            if zda != 'AT0':
+                raise InvalidCertificateProviderException(receiptId)
 
         self.zda = zda
         self.header = None
