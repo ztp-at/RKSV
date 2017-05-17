@@ -80,11 +80,11 @@ endif
 	cp misc/pygettext.py .pyenv/bin
 	chmod +x .pyenv/bin/pygettext.py
 
-apk: buildozer.spec .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python .builddata/bin/cython compile-trans
+apk: buildozer.spec .builddata/pyvirt .builddata/libs .builddata/p4a .builddata/bin/python .builddata/bin/cython .builddata/bin/pip compile-trans
 	$(DISABLE_VENV) ; \
 	export PYTHONPATH="$(CURDIR)/.builddata/pyvirt/lib/python2.7/site-packages:$${PYTHONPATH}" && \
 	export PATH="$(CURDIR)/.builddata/bin:$${PATH}" && \
-	.builddata/pyvirt/bin/buildozer -v android_new debug
+	python .builddata/pyvirt/bin/buildozer -v android debug
 
 buildozer.spec: misc/buildozer.spec
 	cp misc/buildozer.spec buildozer.spec
@@ -98,6 +98,13 @@ buildozer.spec: misc/buildozer.spec
 	mkdir -p .builddata/bin
 	$(DISABLE_VENV) ; \
 	ln -s ../pyvirt/bin/cython .builddata/bin/cython
+
+.builddata/bin/pip: .builddata/pyvirt/bin/pip
+	mkdir -p .builddata/bin
+	$(DISABLE_VENV) ; \
+	echo "#!/bin/sh" > .builddata/bin/pip
+	echo '$(CURDIR)/.builddata/pyvirt/bin/pip $$(echo $$@ | sed -e "s/--user//")' >> .builddata/bin/pip
+	chmod +x .builddata/bin/pip
 
 .builddata/p4a: misc/python-for-android-fix.patch
 	mkdir -p .builddata
@@ -116,7 +123,7 @@ buildozer.spec: misc/buildozer.spec
 	mkdir -p .builddata
 	wget https://sourceforge.net/projects/zbar/files/AndroidSDK/ZBarAndroidSDK-0.2.zip/download -O .builddata/zbar-android.zip
 
-.builddata/pyvirt .builddata/pyvirt/bin/cython: misc/requirements_build.txt
+.builddata/pyvirt .builddata/pyvirt/bin/cython .builddata/pyvirt/bin/pip: misc/requirements_build.txt
 	mkdir -p .builddata
 	rm -rf .builddata/pyvirt
 	$(DISABLE_VENV) ; \
