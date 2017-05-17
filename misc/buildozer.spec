@@ -103,10 +103,10 @@ android.ndk = 10e
 #android.ant_path =
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-android.p4a_dir = .builddata/p4a
+p4a.source_dir = .builddata/p4a
 
 # (list) python-for-android whitelist
-android.p4a_whitelist = lib-dynload/future_builtins.so
+android.whitelist = lib-dynload/future_builtins.so
 
 p4a.local_recipes =
 
@@ -116,7 +116,7 @@ p4a.local_recipes =
 # android.skip_update = False
 
 # (str) Bootstrap to use for android builds (android_new only)
-android.bootstrap = sdl2
+p4a.bootstrap = sdl2
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
