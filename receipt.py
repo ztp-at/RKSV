@@ -295,6 +295,10 @@ class Receipt(object):
         jwsSegs = jwsString.split('.')
         if len(jwsSegs) != 3:
             raise MalformedReceiptException(jwsString)
+        if jwsSegs[0].endswith('=') or jwsSegs[1].endswith('=') \
+                or jwsSegs[2].endswith('='):
+            raise MalformedReceiptException(jwsString)
+
         header = None
         payload = None
         try:
