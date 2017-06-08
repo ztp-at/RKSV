@@ -29,6 +29,7 @@ import copy
 
 import algorithms
 import receipt
+import utils
 import verify
 
 class StateException(Exception):
@@ -266,7 +267,7 @@ if __name__ == "__main__":
 
     def load_state(filename):
         with open(filename, 'r') as f:
-            stateJson = json.load(f)
+            stateJson = utils.readJsonStream(f)
             return ClusterState.readStateFromJson(stateJson)
 
     def arg_str_or_none(arg):
@@ -378,7 +379,7 @@ if __name__ == "__main__":
             usage()
 
         with open(sys.argv[4]) as f:
-            dep = verify.parseDEPAndGroups(json.load(f))
+            dep = verify.parseDEPAndGroups(utils.readJsonStream(f))
 
         key = None
         if len(sys.argv) == 6:

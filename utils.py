@@ -24,7 +24,9 @@ from builtins import int
 from builtins import range
 
 import base64
+import codecs
 import datetime
+import json
 import requests
 import re
 import uuid
@@ -295,6 +297,20 @@ def getReceiptFloat(fstr):
         return float(fstr.replace(',', '.'))
     except:
         return None
+
+def readJsonStream(stream):
+    """
+    Removes the BOM from UTF-8 files so that we can live in peace.
+    """
+    try:
+        pos = stream.tell()
+    except IOError:
+        return json.load(stream)
+
+    fst = stream.read(len(codecs.BOM_UTF8))
+    if fst != codecs.BOM_UTF8:
+        stream.seek(pos)
+    return json.load(stream)
 
 def cert_getstate(self):
     return exportCertToPEM(self)

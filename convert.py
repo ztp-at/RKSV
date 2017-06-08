@@ -20,11 +20,11 @@
 from builtins import int
 from builtins import range
 
-import json
 import sys
 
 import depexport
 import receipt
+import utils
 import verify
 
 def usage():
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     recs = list()
     if sys.argv[1] == 'json2csv':
-        dep = json.loads(sys.stdin.read())
+        dep = utils.readJsonStream(sys.stdin)
         exporter = depexport.CSVExporter()
         groups = verify.parseDEPAndGroups(dep)
         for recs, cert, cert_list in groups:

@@ -362,7 +362,7 @@ if __name__ == "__main__":
 
         keyStore = None
         with open(sys.argv[3]) as f:
-            keyStore = KeyStore.readStoreFromJson(json.loads(f.read()))
+            keyStore = KeyStore.readStoreFromJson(utils.readJsonStream(f))
 
     elif sys.argv[2] == 'add':
         if len(sys.argv) < 4:

@@ -20,7 +20,6 @@
 from builtins import int
 from builtins import range
 
-import json
 import os
 import sys
 
@@ -44,7 +43,7 @@ if __name__ == "__main__":
         os.mkdir(outDir)
     os.chdir(outDir)
 
-    dep = json.loads(sys.stdin.read())
+    dep = utils.readJsonStream(sys.stdin)
     groups = verify.parseDEPAndGroups(dep)
     for recs, cert, cert_list in groups:
         groupCerts = list(cert_list)

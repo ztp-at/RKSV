@@ -971,7 +971,7 @@ if __name__ == "__main__":
             usage()
 
         with open(sys.argv[2]) as f:
-            jsonStore = json.load(f)
+            jsonStore = utils.readJsonStream(f)
 
             key = utils.loadKeyFromJson(jsonStore)
             keyStore = key_store.KeyStore.readStoreFromJson(jsonStore)
@@ -986,12 +986,12 @@ if __name__ == "__main__":
 
     dep = None
     with open(sys.argv[3]) as f:
-        dep = json.load(f)
+        dep = utils.readJsonStream(f)
 
     state = None
     if statePassthrough:
         state = verification_state.ClusterState.readStateFromJson(
-                json.load(sys.stdin))
+                utils.readJsonStream(sys.stdin))
         if continueLast:
             registerIdx = len(state.cashRegisters) - 1
 

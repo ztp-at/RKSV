@@ -20,12 +20,12 @@
 from builtins import int
 from builtins import range
 
-import json
 import sys
 
 from flask import Flask, abort, jsonify, make_response
 
 import receipt
+import utils
 import verify
 
 receipt_store = None
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     receipts = dict()
     if sys.argv[1] == 'dep':
-        dep = json.loads(sys.stdin.read())
+        dep = utils.readJsonStream(sys.stdin)
         groups = verify.parseDEPAndGroups(dep)
         for recs, cert, cert_list in groups:
             for cr in recs:

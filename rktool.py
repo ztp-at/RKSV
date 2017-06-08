@@ -25,7 +25,6 @@ kivy.require('1.9.0')
 
 import base64 
 import configparser
-import json
 import os
 
 from requests.exceptions import RequestException
@@ -383,7 +382,7 @@ class ViewReceiptWidget(BoxLayout):
             full = os.path.join(path, filename[0])
             with open(full) as f:
                 if full.endswith(".json"):
-                    jsonAES = json.loads(f.read())
+                    jsonAES = utils.readJsonStream(f)
                     key = jsonAES["base64AESKey"]
                 else:
                     key = f.read()
@@ -760,7 +759,7 @@ class VerifyDEPWidget(BoxLayout):
 
         try:
             with open(os.path.join(path, filename[0])) as f:
-                jsonDEP = json.loads(f.read())
+                jsonDEP = utils.readJsonStream(f)
                 self.dep = verify.parseDEPAndGroups(jsonDEP)
 
             App.get_running_app().curSearchPath = path
@@ -791,7 +790,7 @@ class VerifyDEPWidget(BoxLayout):
             full = os.path.join(path, filename[0])
             with open(full) as f:
                 if full.endswith(".json"):
-                    jsonAES = json.loads(f.read())
+                    jsonAES = utils.readJsonStream(f)
                     self.aesInput.text = jsonAES["base64AESKey"]
                 else:
                     self.aesInput.text = f.read()
@@ -934,7 +933,7 @@ class KeyStoreWidget(BoxLayout):
             full = os.path.join(path, filename[0])
             if full.endswith(".json"):
                 with open(full) as f:
-                    jsonKS = json.loads(f.read())
+                    jsonKS = utils.readJsonStream(f)
                     App.get_running_app().keyStore = \
                             key_store.KeyStore.readStoreFromJson(jsonKS)
             else:
