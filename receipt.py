@@ -65,9 +65,13 @@ class MalformedReceiptException(ReceiptParseException):
     because the string did not contain a valid receipt.
     """
 
-    def __init__(self, receipt):
-        super(MalformedReceiptException, self).__init__(receipt, _("Malformed receipt."))
-        self._initargs = (receipt,)
+    def __init__(self, receipt, reason = None):
+        if reason:
+            msg = '{0} -- {1}'.format(_("Malformed receipt"), reason)
+        else:
+            msg = _("Malformed receipt.")
+        super(MalformedReceiptException, self).__init__(receipt, msg)
+        self._initargs = (receipt, reason)
 
 class UnknownAlgorithmException(ReceiptParseException):
     """
@@ -166,6 +170,31 @@ class CertSerialType(enum.Enum):
 
 algRegex = re.compile(r'^R[1-9]\d*$')
 zdaRegex = re.compile(r'^([A-Z][A-Z][1-9]\d*|AT0)$')
+
+def _getSum(s, receiptId, reason):
+    if not isinstance(s, string_types) or not s:
+        raise MalformedReceiptException(receiptId, reason)
+    sF = utils.getReceiptFloat(s)
+    if sF is None:
+        raise MalformedReceiptException(receiptId, reason)
+    return sF
+
+def _getTimestamp(dateTime, receiptId, reason):
+    if not isinstance(dateTime, string_types) or not dateTime:
+        raise MalformedReceiptException(receiptId, reason)
+    dateTimeDT = datetime.datetime.strptime(dateTime, "%Y-%m-%dT%H:%M:%S")
+    if not dateTimeDT:
+        raise MalformedReceiptException(receiptId, reason)
+    return dateTimeDT
+
+def _getEmptyOrB64(b, receiptId, reason):
+    if not isinstance(b, string_types):
+        raise MalformedReceiptException(receiptId, reason)
+    try:
+        return base64.b64decode(b.encode('utf-8'))
+    except (TypeError, binascii.Error):
+        raise MalformedReceiptException(receiptId, reason)
+
 class Receipt(object):
     """
     The basic receipt class. Contains methods to convert a receipt to and from
@@ -196,57 +225,50 @@ class Receipt(object):
         base64 encoded string.
         """
         if not isinstance(receiptId, string_types) or not receiptId:
-            raise MalformedReceiptException(_("Unknown Receipt"))
+            raise MalformedReceiptException(_("Unknown Receipt"),
+                    _("Receipt ID \"{}\" invalid.").format(receiptId))
         if '_' in receiptId:
-            raise MalformedReceiptException(receiptId)
+            raise MalformedReceiptException(receiptId,
+                    _("Receipt ID \"{}\" invalid.").format(receiptId))
 
         if not isinstance(zda, string_types) or not zda \
                 or zdaRegex.match(zda) is None:
-            raise MalformedReceiptException(receiptId)
+            raise MalformedReceiptException(receiptId,
+                    _("ZDA \"{}\" invalid.").format(zda))
 
         if not isinstance(registerId, string_types) or not registerId \
                 or '_' in registerId:
-            raise MalformedReceiptException(receiptId)
+            raise MalformedReceiptException(receiptId,
+                    _("Register ID \"{}\" invalid.").format(registerId))
 
-        if not isinstance(dateTime, string_types) or not dateTime:
-            raise MalformedReceiptException(receiptId)
-        dateTimeDT = datetime.datetime.strptime(dateTime, "%Y-%m-%dT%H:%M:%S")
-        if not dateTimeDT:
-            raise MalformedReceiptException(receiptId)
+        dateTimeDT = _getTimestamp(dateTime, receiptId,
+                    _("Timestamp \"{}\" invalid.").format(dateTime))
 
-        if not isinstance(sumA, string_types) or not sumA \
-                or not isinstance(sumB, string_types) or not sumB \
-                or not isinstance(sumC, string_types) or not sumC \
-                or not isinstance(sumD, string_types) or not sumD \
-                or not isinstance(sumE, string_types) or not sumE:
-            raise MalformedReceiptException(receiptId)
-        sumAF = utils.getReceiptFloat(sumA)
-        sumBF = utils.getReceiptFloat(sumB)
-        sumCF = utils.getReceiptFloat(sumC)
-        sumDF = utils.getReceiptFloat(sumD)
-        sumEF = utils.getReceiptFloat(sumE)
-        if (sumAF is None
-                or sumBF is None
-                or sumCF is None
-                or sumDF is None
-                or sumEF is None):
-            raise MalformedReceiptException(receiptId)
+        sumAF = _getSum(sumA, receiptId,
+                _('Sum tax normal \"{}\" invalid.').format(sumA))
+        sumBF = _getSum(sumB, receiptId,
+                _('Sum tax reduced 1 \"{}\" invalid.').format(sumB))
+        sumCF = _getSum(sumC, receiptId,
+                _('Sum tax reduced 2 \"{}\" invalid.').format(sumC))
+        sumDF = _getSum(sumD, receiptId,
+                _('Sum tax zero \"{}\" invalid.').format(sumD))
+        sumEF = _getSum(sumE, receiptId,
+                _('Sum tax special \"{}\" invalid.').format(sumE))
 
         # Due to how algorithm works encTurnoverCounter and previousChain
         # can both be the empty string when the receipt is created and not
         # parsed from a string.
-        if not isinstance(encTurnoverCounter, string_types) \
-                or not isinstance(previousChain, string_types):
-            raise MalformedReceiptException(receiptId)
-        try:
-            base64.b64decode(encTurnoverCounter.encode('utf-8'))
-            base64.b64decode(previousChain.encode('utf-8'))
-        except (TypeError, binascii.Error):
-            raise MalformedReceiptException(receiptId)
+        _getEmptyOrB64(encTurnoverCounter, receiptId,
+                _('Encrypted turnover counter \"{}\" invalid.').format(
+                    encTurnoverCounter))
+        _getEmptyOrB64(previousChain, receiptId,
+                _('Chaining value \"{}\" invalid.').format(previousChain))
 
         if not isinstance(certSerial, string_types) \
                 or not certSerial:
-            raise MalformedReceiptException(receiptId)
+            raise MalformedReceiptException(receiptId,
+                    _('Certificate serial/Key ID \"{}\" invalid.').format(
+                        certSerial))
         certSerialType = CertSerialType.getCertSerialType(certSerial)
         if certSerialType == CertSerialType.INVALID:
             raise CertSerialInvalidException(receiptId)
@@ -290,39 +312,50 @@ class Receipt(object):
         :throws: AlgorithmMismatchException
         """
         if not isinstance(jwsString, string_types):
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(jwsString, _('Invalid JWS.'))
 
         jwsSegs = jwsString.split('.')
         if len(jwsSegs) != 3:
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(jwsString,
+                    _('JWS does not contain exactly three segments.'))
         if jwsSegs[0].endswith('=') or jwsSegs[1].endswith('=') \
                 or jwsSegs[2].endswith('='):
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(jwsString,
+                    _('Base 64 padding was used in JWS.'))
 
         header = None
-        payload = None
         try:
             header = base64.urlsafe_b64decode(utils.restoreb64padding(
                 jwsSegs[0]).encode("utf-8")).decode("utf-8")
+        except (TypeError, binascii.Error, UnicodeDecodeError):
+            raise MalformedReceiptException(jwsString,
+                    _('Invalid JWS header.'))
+
+        payload = None
+        try:
             payload = base64.urlsafe_b64decode(utils.restoreb64padding(
                 jwsSegs[1]).encode("utf-8")).decode("utf-8")
         except (TypeError, binascii.Error, UnicodeDecodeError):
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(jwsString,
+                    _('Invalid JWS payload.'))
 
         signature = jwsSegs[2]
 
         segments = payload.split('_')
         if len(segments) != 13 or len(segments[0]) != 0:
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(jwsString,
+                    _('JWS payload does not contain 12 elements.'))
 
         algorithmPrefixAndZda = segments[1].split('-')
         if len(algorithmPrefixAndZda) != 2:
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(jwsString,
+                    _('Payload does not contain algorithm and ZDA IDs.'))
         algorithmPrefix = algorithmPrefixAndZda[0]
         zda = algorithmPrefixAndZda[1]
 
         if algRegex.match(algorithmPrefix) is None:
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(jwsString,
+                    _('Algorithm ID \"{}\" invalid.').format(algorithmPrefix))
         if algorithmPrefix not in algorithms.ALGORITHMS:
             raise UnknownAlgorithmException(jwsString)
         if algorithms.ALGORITHMS[algorithmPrefix].jwsHeader() != header:
@@ -342,10 +375,14 @@ class Receipt(object):
 
         # __init__ does not perform the latter two checks
         if not isinstance(turnoverCounter, string_types) \
-                or not isinstance(previousChain, string_types) \
-                or not turnoverCounter.replace('=', '') \
+                or not turnoverCounter.replace('=', ''):
+            raise MalformedReceiptException(jwsString,
+                    _('Encrypted turnover counter \"{}\" invalid.').format(
+                        turnoverCounter))
+        if not isinstance(previousChain, string_types) \
                 or not previousChain.replace('=', ''):
-            raise MalformedReceiptException(jwsString)
+            raise MalformedReceiptException(jwsString,
+                    _('Chaining value \"{}\" invalid.').format(previousChain))
 
         receipt = Receipt(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
@@ -369,8 +406,8 @@ class Receipt(object):
         payload = base64.urlsafe_b64encode(payload)
         payload = payload.replace(b'=', b'').decode("utf-8")
 
-        jwsSegs = [base64.urlsafe_b64encode(self.header.encode("utf-8")).replace(b'=', b'')
-                .decode("utf-8")]
+        jwsSegs = [base64.urlsafe_b64encode(self.header.encode("utf-8")
+            ).replace(b'=', b'').decode("utf-8")]
         jwsSegs.append(payload)
         jwsSegs.append(self.signature)
 
@@ -383,7 +420,8 @@ class Receipt(object):
         :param algorithmPrefix: The ID of the algorithm class used as a string.
         :return The receipt as a payload string.
         """
-        segments = [b'_' + algorithmPrefix.encode("utf-8") + b'-' + self.zda.encode("utf-8")]
+        segments = [b'_' + algorithmPrefix.encode("utf-8"
+            ) + b'-' + self.zda.encode("utf-8")]
         segments.append(self.registerId.encode("utf-8"))
         segments.append(self.receiptId.encode("utf-8"))
         segments.append(self.dateTimeStr.encode("utf-8"))
@@ -408,20 +446,24 @@ class Receipt(object):
         :throws: UnknownAlgorithmException
         """
         if not isinstance(basicCode, string_types):
-            raise MalformedReceiptException(basicCode)
+            raise MalformedReceiptException(basicCode,
+                    _('Invalid machine-readable code.'))
 
         segments = basicCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:
-            raise MalformedReceiptException(basicCode)
+            raise MalformedReceiptException(basicCode,
+                    _('Machine-readable code does not contain 13 elements.'))
 
         algorithmPrefixAndZda = segments[1].split('-')
         if len(algorithmPrefixAndZda) != 2:
-            raise MalformedReceiptException(basicCode)
+            raise MalformedReceiptException(basicCode,
+                    _('Machine-readable code does not contain algorithm and ZDA IDs.'))
         algorithmPrefix = algorithmPrefixAndZda[0]
         zda = algorithmPrefixAndZda[1]
 
         if algRegex.match(algorithmPrefix) is None:
-            raise MalformedReceiptException(basicCode)
+            raise MalformedReceiptException(basicCode,
+                    _('Algorithm ID \"{}\" invalid.').format(algorithmPrefix))
         if algorithmPrefix not in algorithms.ALGORITHMS:
             raise UnknownAlgorithmException(basicCode)
         header = algorithms.ALGORITHMS[algorithmPrefix].jwsHeader()
@@ -442,16 +484,21 @@ class Receipt(object):
         try:
             signature = base64.b64decode(segments[13].encode("utf-8"))
         except (TypeError, binascii.Error):
-            raise MalformedReceiptException(basicCode)
+            raise MalformedReceiptException(basicCode,
+                    _('Signature \"{}\" not Base 64 encoded.').format(segments[13]))
         signature = base64.urlsafe_b64encode(signature).replace(b'=', b'')
         signature = signature.decode("utf-8")
 
         # __init__ does not perform the latter two checks
         if not isinstance(turnoverCounter, string_types) \
-                or not isinstance(previousChain, string_types) \
-                or not turnoverCounter.replace('=', '') \
+                or not turnoverCounter.replace('=', ''):
+            raise MalformedReceiptException(basicCode,
+                    _('Encrypted turnover counter \"{}\" invalid.').format(
+                        turnoverCounter))
+        if not isinstance(previousChain, string_types) \
                 or not previousChain.replace('=', ''):
-            raise MalformedReceiptException(basicCode)
+            raise MalformedReceiptException(basicCode,
+                    _('Chaining value \"{}\" invalid.').format(previousChain))
 
         receipt = Receipt(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
@@ -488,21 +535,37 @@ class Receipt(object):
         :throws: UnknownAlgorithmException
         """
         if not isinstance(ocrCode, string_types):
-            raise MalformedReceiptException(ocrCode)
+            raise MalformedReceiptException(ocrCode,
+                    _('Invalid OCR code.'))
 
         segments = ocrCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:
-            raise MalformedReceiptException(ocrCode)
+            raise MalformedReceiptException(ocrCode,
+                    _('OCR code does not contain 13 elements.'))
 
         encTurnoverCounter = None
-        previousChain = None
-        signature = None
         try:
             encTurnoverCounter = base64.b32decode(segments[10])
+        except (TypeError, binascii.Error):
+            raise MalformedReceiptException(ocrCode,
+                    _('Encrypted turnover counter \"{}\" not Base 32 encoded.'
+                        ).format(segments[10]))
+
+        previousChain = None
+        try:
             previousChain = base64.b32decode(segments[12])
+        except (TypeError, binascii.Error):
+            raise MalformedReceiptException(ocrCode,
+                    _('Chaining value \"{}\" not Base 32 encoded.'
+                        ).format(segments[12]))
+
+        signature = None
+        try:
             signature = base64.b32decode(segments[13])
         except (TypeError, binascii.Error):
-            raise MalformedReceiptException(ocrCode)
+            raise MalformedReceiptException(ocrCode,
+                    _('Signature \"{}\" not Base 32 encoded.'
+                        ).format(segments[13]))
 
         encTurnoverCounter = base64.b64encode(encTurnoverCounter)
         segments[10] = encTurnoverCounter.decode('utf-8')
@@ -577,7 +640,8 @@ class Receipt(object):
         :throws: UnknownAlgorithmException
         """
         if not isinstance(csv, string_types):
-            raise MalformedReceiptException(csv)
+            raise MalformedReceiptException(csv,
+                    _('Invalid CSV.'))
 
         segs = [ s.strip() for s in csv.split(';') ]
         return Receipt.fromBasicCode('_' + ('_'.join(segs)))
@@ -594,17 +658,25 @@ class Receipt(object):
         """
         Signs the receipt with the given signature and JWS header.
         :param header: The JWS header as a string.
-        :param signature: The signature as a base64 encoded string.
+        :param signature: The signature as an urlsafe base64 encoded string
+        without padding.
         """
         if not isinstance(header, string_types):
-            raise MalformedReceiptException(self.receiptId)
+            raise MalformedReceiptException(self.receiptId,
+                    _('JWS header \"{}\" invalid.').format(header))
+
         if not isinstance(signature, string_types):
-            raise MalformedReceiptException(self.receiptId)
+            raise MalformedReceiptException(self.receiptId,
+                    _('Signature \"{}\" invalid.').format(signature))
+        if signature.endswith('='):
+            raise MalformedReceiptException(self.receiptId,
+                    _('Signature \"{}\" used padding.').format(signature))
         try:
             base64.urlsafe_b64decode(utils.restoreb64padding(
                 signature).encode("utf-8"))
         except (TypeError, binascii.Error):
-            raise MalformedReceiptException(self.receiptId)
+            raise MalformedReceiptException(self.receiptId,
+                    _('Signature \"{}\" not Base 64 URL encoded.').format(signature))
 
         self.header = header
         self.signature = signature
