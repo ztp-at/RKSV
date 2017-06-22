@@ -91,6 +91,11 @@ class MangledReceipt(receipt.Receipt):
         attrOverride['sumEStr'] = attrOverride.pop('sumE', self.sumEStr)
         self.__dict__.update(attrOverride)
 
+    def toJWSString(self, algorithmPrefix):
+        if 'jwsOverride' in self.__dict__:
+            return self.jwsOverride
+        return super(MangledReceipt, self).toJWSString(algorithmPrefix)
+
 class CashRegister(CashRegisterI):
     """
     A concrete implementation of a simple cash register.
