@@ -1,0 +1,33 @@
+{
+  "cashBoxId": "CASHBOX-DEMO-1",
+  "base64AesKey": "WQRtiiya3hYh/Uz44Bv3x8ETl1nrH6nCdErn69g5/lU=",
+  "companyID": "U:ATU12345678",
+  "simulationRunLabel": "test_header_pad",
+  "numberOfSignatureDevices": 1,
+  "cashBoxInstructionList": [
+    {
+      "signatureDeviceDamaged": false,
+      "receiptIdentifier": "CASHBOX-DEMO-1-Receipt-ID-1",
+      "dateToUse": "2016-03-11T03:57:08",
+      "usedSignatureDevice": 0,
+      "simplifiedReceipt": {
+        "taxSetNormal": 0.0,
+        "taxSetErmaessigt1": 0.0,
+        "taxSetErmaessigt2": 0.0,
+        "taxSetNull": 0.0,
+        "taxSetBesonders": 0.0
+      },
+      "typeOfReceipt": "START_BELEG",
+      "override": {
+	      "jwsOverride": "ab==.X1IxLUFUMF9DQVNIQk9YLURFTU8tMV9DQVNIQk9YLURFTU8tMS1SZWNlaXB0LUlELTFfMjAxNi0wMy0xMVQwMzo1NzowOF8wLDAwXzAsMDBfMCwwMF8wLDAwXzAsMDBfNHIxaUlkWkdlQVNyZHc2OHFTRjRCQT09X1U6QVRVMTIzNDU2NzgtSzBfY2c4aE5VNWlodG89.ofMwtqqC6B9AfCPhiiJaE098CpqtPpXwHY21gtDcknNH-RrctGz4-RnS2zwiHRPafoh0GHKtbCq9PTQ0xez6RA"
+      }
+    }
+  ],
+  "expectedException": "MalformedReceiptException",
+  "exceptionMsgRegex": "^At receipt \"ab==\\.[.a-zA-Z0-9_-]+\": Malformed receipt -- Base 64 padding was used in JWS.$",
+  "unused": {
+	  "comment": "TODO: We can't determine the exact receipt in the from*() functions.",
+	  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-1",
+	  "exceptionMsg": "At receipt \"CASHBOX-DEMO-1-Receipt-ID-1\": Malformed receipt -- Base 64 padding was used in JWS."
+  }
+}

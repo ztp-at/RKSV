@@ -1,0 +1,33 @@
+{
+  "cashBoxId": "CASHBOX-DEMO-1",
+  "base64AesKey": "WQRtiiya3hYh/Uz44Bv3x8ETl1nrH6nCdErn69g5/lU=",
+  "companyID": "U:ATU12345678",
+  "simulationRunLabel": "test_payload_too_long",
+  "numberOfSignatureDevices": 1,
+  "cashBoxInstructionList": [
+    {
+      "signatureDeviceDamaged": false,
+      "receiptIdentifier": "CASHBOX-DEMO-1-Receipt-ID-1",
+      "dateToUse": "2016-03-11T03:57:08",
+      "usedSignatureDevice": 0,
+      "simplifiedReceipt": {
+        "taxSetNormal": 0.0,
+        "taxSetErmaessigt1": 0.0,
+        "taxSetErmaessigt2": 0.0,
+        "taxSetNull": 0.0,
+        "taxSetBesonders": 0.0
+      },
+      "typeOfReceipt": "START_BELEG",
+      "override": {
+	      "registerId": "CASHBOX-DEMO-1_TEST"
+      }
+    }
+  ],
+  "expectedException": "MalformedReceiptException",
+  "exceptionMsgRegex": "^At receipt \"[.a-zA-Z0-9_-]+\": Malformed receipt -- JWS payload does not contain 12 elements.$",
+  "unused": {
+	  "comment": "TODO: We can't determine the exact receipt in the from*() functions.",
+	  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-1",
+	  "exceptionMsg": "At receipt \"CASHBOX-DEMO-1-Receipt-ID-1\": Malformed receipt -- JWS payload does not contain 12 elements."
+  }
+}
