@@ -194,7 +194,7 @@ def _getEmptyOrB64(b, receiptId, reason):
     if not isinstance(b, string_types):
         raise MalformedReceiptException(receiptId, reason)
     try:
-        return base64.b64decode(b.encode('utf-8'))
+        return utils.b64decode(b.encode('utf-8'))
     except (TypeError, binascii.Error):
         raise MalformedReceiptException(receiptId, reason)
 
@@ -328,7 +328,7 @@ class Receipt(object):
 
         header = None
         try:
-            header = base64.urlsafe_b64decode(utils.restoreb64padding(
+            header = utils.urlsafe_b64decode(utils.restoreb64padding(
                 jwsSegs[0]).encode("utf-8")).decode("utf-8")
         except (TypeError, binascii.Error, UnicodeDecodeError):
             raise MalformedReceiptException(jwsString,
@@ -336,7 +336,7 @@ class Receipt(object):
 
         payload = None
         try:
-            payload = base64.urlsafe_b64decode(utils.restoreb64padding(
+            payload = utils.urlsafe_b64decode(utils.restoreb64padding(
                 jwsSegs[1]).encode("utf-8")).decode("utf-8")
         except (TypeError, binascii.Error, UnicodeDecodeError):
             raise MalformedReceiptException(jwsString,
@@ -485,7 +485,7 @@ class Receipt(object):
 
         signature = None
         try:
-            signature = base64.b64decode(segments[13].encode("utf-8"))
+            signature = utils.b64decode(segments[13].encode("utf-8"))
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(basicCode,
                     _('Signature \"{}\" not Base 64 encoded.').format(segments[13]))
@@ -523,7 +523,7 @@ class Receipt(object):
 
         signature = utils.restoreb64padding(
                 self.signature).encode("utf-8")
-        signature = base64.urlsafe_b64decode(signature)
+        signature = utils.urlsafe_b64decode(signature)
         signature = base64.b64encode(signature).decode("utf-8")
 
         return payload + '_' + signature
@@ -548,7 +548,7 @@ class Receipt(object):
 
         encTurnoverCounter = None
         try:
-            encTurnoverCounter = base64.b32decode(segments[10])
+            encTurnoverCounter = utils.b32decode(segments[10])
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(ocrCode,
                     _('Encrypted turnover counter \"{}\" not Base 32 encoded.'
@@ -556,7 +556,7 @@ class Receipt(object):
 
         previousChain = None
         try:
-            previousChain = base64.b32decode(segments[12])
+            previousChain = utils.b32decode(segments[12])
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(ocrCode,
                     _('Chaining value \"{}\" not Base 32 encoded.'
@@ -564,7 +564,7 @@ class Receipt(object):
 
         signature = None
         try:
-            signature = base64.b32decode(segments[13])
+            signature = utils.b32decode(segments[13])
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(ocrCode,
                     _('Signature \"{}\" not Base 32 encoded.'
@@ -601,18 +601,18 @@ class Receipt(object):
         segments.append(self.sumEStr.encode("utf-8"))
 
         encTurnoverCounter = self.encTurnoverCounter.encode("utf-8")
-        encTurnoverCounter = base64.b64decode(encTurnoverCounter)
+        encTurnoverCounter = utils.b64decode(encTurnoverCounter)
         segments.append(base64.b32encode(encTurnoverCounter))
 
         segments.append(self.certSerial.encode("utf-8"))
 
         previousChain = self.previousChain.encode("utf-8")
-        previousChain = base64.b64decode(previousChain)
+        previousChain = utils.b64decode(previousChain)
         segments.append(base64.b32encode(previousChain))
 
         signature = utils.restoreb64padding(
                 self.signature).encode("utf-8")
-        signature = base64.urlsafe_b64decode(signature)
+        signature = utils.urlsafe_b64decode(signature)
         segments.append(base64.b32encode(signature))
 
         return b'_'.join(segments).decode("utf-8")
@@ -675,7 +675,7 @@ class Receipt(object):
             raise MalformedReceiptException(self.receiptId,
                     _('Signature \"{}\" uses padding.').format(signature))
         try:
-            base64.urlsafe_b64decode(utils.restoreb64padding(
+            utils.urlsafe_b64decode(utils.restoreb64padding(
                 signature).encode("utf-8"))
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(self.receiptId,
@@ -703,7 +703,7 @@ class Receipt(object):
         Determines if this receipt is a dummy receipt.
         :return: True if the receipt is a dummy receipt, False otherwise.
         """
-        decCtr = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
+        decCtr = utils.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return decCtr == b'TRA'
 
     def isReversal(self):
@@ -711,7 +711,7 @@ class Receipt(object):
         Determines if this receipt is a reversal.
         :return: True if the receipt is a reversal, False otherwise.
         """
-        decCtr = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
+        decCtr = utils.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return decCtr == b'STO'
 
     def isNull(self):
@@ -739,7 +739,7 @@ class Receipt(object):
         if not algorithm.verifyKey(key):
             raise InvalidKeyException(self.receiptId)
 
-        ct = base64.b64decode(self.encTurnoverCounter.encode("utf-8"))
+        ct = utils.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return algorithm.decryptTurnoverCounter(self, ct, key)
 
 INPUT_FORMATS = {

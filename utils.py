@@ -196,9 +196,28 @@ def restoreb64padding(data):
     :return: The base64 encoded string with padding.
     """
     needed = 4 - len(data) % 4
-    if needed:
+    if needed < 4:
         data += '=' * needed
     return data
+
+
+urlsafe_b64Regex = re.compile(r'^[a-zA-Z0-9_-]*={0,3}$')
+def urlsafe_b64decode(data):
+    if not urlsafe_b64Regex.match(data.decode('utf-8')):
+        raise TypeError
+    return base64.urlsafe_b64decode(data)
+
+b64Regex = re.compile(r'^[a-zA-Z0-9/+]*={0,3}$')
+def b64decode(data):
+    if not b64Regex.match(data.decode('utf-8')):
+        raise TypeError
+    return base64.b64decode(data)
+
+b32Regex = re.compile(r'^[A-Z2-7/+]*={0,7}$')
+def b32decode(data):
+    if not b32Regex.match(data.decode('utf-8')):
+        raise TypeError
+    return base64.b32decode(data)
 
 def getBasicCodeFromURL(url):
     """
