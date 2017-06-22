@@ -175,11 +175,11 @@ class CashRegister(CashRegisterI):
         header = base64.urlsafe_b64decode(
                 utils.restoreb64padding(header).encode('utf-8')
                 ).decode('utf-8')
-        if 'header' in override:
-            header = override['header']
-        if 'signature' in override:
-            signature = override['signature']
-
         rec.sign(header, signature)
+
+        if 'header' in override:
+            rec.header = override['header']
+        if 'signature' in override:
+            rec.signature = override['signature']
 
         return rec
