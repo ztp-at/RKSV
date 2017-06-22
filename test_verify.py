@@ -29,6 +29,7 @@ from builtins import str
 
 import base64
 import enum
+import re
 
 import key_store
 import receipt
@@ -78,6 +79,7 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
     expected_exception_type = _('no Exception')
     expected_exception_receipt = None
     expected_exception_msg = None
+    expected_exception_msg_regex = None
 
     actual_exception_type = _('no Exception')
     actual_exception = None
@@ -90,6 +92,10 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                 _('no Exception'))
         expected_exception_receipt = spec.get('exceptionReceipt')
         expected_exception_msg = spec.get('exceptionMsg')
+        expected_exception_msg_regex = spec.get('exceptionMsgRegex')
+        if expected_exception_msg_regex is not None:
+            expected_exception_msg_regex = re.compile(expected_exception_msg_regex)
+
 
         key = base64.b64decode(spec['base64AesKey'])
         ks = key_store.KeyStore.readStoreFromJson(cc)
@@ -161,19 +167,27 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                     expected_exception_type, actual_exception_type,
                     actual_exception))
 
-    if actual_exception and expected_exception_receipt:
-        if actual_exception.receipt != expected_exception_receipt:
+    if actual_exception:
+        if expected_exception_receipt and \
+                actual_exception.receipt != expected_exception_receipt:
             return TestVerifyResult.FAIL, Exception(
                     _('Expected "{}" at receipt "{}" but it occured at "{}" instead').format(
                         expected_exception_type, expected_exception_receipt,
                         actual_exception.receipt))
 
-    if actual_exception and expected_exception_msg is not None:
         actual_exception_msg = '{}'.format(actual_exception)
-        if actual_exception_msg != expected_exception_msg:
+        if expected_exception_msg is not None and \
+                actual_exception_msg != expected_exception_msg:
             return TestVerifyResult.FAIL, Exception(
                     _('Expected message "{}" but got "{}" instead').format(
                         expected_exception_msg, actual_exception_msg))
+
+        if expected_exception_msg_regex and \
+                not expected_exception_msg_regex.match(actual_exception_msg):
+            return TestVerifyResult.FAIL, Exception(
+                    _('Expected message matching "{}" but got "{}" instead'
+                        ).format(expected_exception_msg_regex.pattern,
+                            actual_exception_msg))
 
     return TestVerifyResult.OK, None
 
