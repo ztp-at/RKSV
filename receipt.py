@@ -182,7 +182,10 @@ def _getSum(s, receiptId, reason):
 def _getTimestamp(dateTime, receiptId, reason):
     if not isinstance(dateTime, string_types) or not dateTime:
         raise MalformedReceiptException(receiptId, reason)
-    dateTimeDT = datetime.datetime.strptime(dateTime, "%Y-%m-%dT%H:%M:%S")
+    try:
+        dateTimeDT = datetime.datetime.strptime(dateTime, "%Y-%m-%dT%H:%M:%S")
+    except ValueError:
+        raise MalformedReceiptException(receiptId, reason)
     if not dateTimeDT:
         raise MalformedReceiptException(receiptId, reason)
     return dateTimeDT
@@ -670,7 +673,7 @@ class Receipt(object):
                     _('Signature \"{}\" invalid.').format(signature))
         if signature.endswith('='):
             raise MalformedReceiptException(self.receiptId,
-                    _('Signature \"{}\" used padding.').format(signature))
+                    _('Signature \"{}\" uses padding.').format(signature))
         try:
             base64.urlsafe_b64decode(utils.restoreb64padding(
                 signature).encode("utf-8"))
