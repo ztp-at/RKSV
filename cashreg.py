@@ -159,12 +159,12 @@ class CashRegister(CashRegisterI):
                         self.turnoverCounterSize)
         encTurnoverCounter = base64.b64encode(encTurnoverCounter)
         encTurnoverCounter = encTurnoverCounter.decode("utf-8")
-        rec.encTurnoverCounter = encTurnoverCounter
+        if 'encTurnoverCounter' not in override:
+            rec.encTurnoverCounter = encTurnoverCounter
 
         previousChain = algorithm.chain(rec, self.lastReceiptSig)
-        rec.previousChain = base64.b64encode(previousChain).decode("utf-8")
-        if 'previousChain' in override:
-            rec.previousChain = override['previousChain']
+        if 'previousChain' not in override:
+            rec.previousChain = base64.b64encode(previousChain).decode("utf-8")
 
         prefix = override.get('algorithmPrefix', prefix)
         jwsString = sigSystem.sign(rec.toPayloadString(prefix),
