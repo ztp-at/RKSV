@@ -45,6 +45,12 @@ class TestVerifyResult(enum.Enum):
     FAIL = 2
     ERROR = 3
 
+from sys import version_info
+if version_info[0] < 3:
+    import __builtin__
+else:
+    import builtins as __builtin__
+
 def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
     """
     Runs a single test case against verify.verifyDEP() and returns the
@@ -71,14 +77,19 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
     """
     expected_exception_type = _('no Exception')
     expected_exception_receipt = None
+    expected_exception_msg = None
 
     actual_exception_type = _('no Exception')
     actual_exception = None
+
+    # Save the _() function.
+    trans = __builtin__._ 
 
     try:
         expected_exception_type = spec.get('expectedException',
                 _('no Exception'))
         expected_exception_receipt = spec.get('exceptionReceipt')
+        expected_exception_msg = spec.get('exceptionMsg')
 
         key = base64.b64decode(spec['base64AesKey'])
         ks = key_store.KeyStore.readStoreFromJson(cc)
@@ -104,9 +115,13 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
             if parse:
                 prevJWS, crsOld, ids = state.getCashRegisterInfo(registerIdx)
 
+                # Temporarily disable translations to make sure error
+                # messages match.
+                __builtin__._ = lambda x: x
                 pdep = verify.parseDEPAndGroups(dep)
                 state = verify.verifyParsedDEP(pdep, ks, key, state,
                         registerIdx, pool, nprocs)
+                __builtin__._ = trans
 
                 for recs, cert, chain in pdep:
                     crsOld.updateFromDEPGroup(recs, key)
@@ -115,7 +130,11 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                     return TestVerifyResult.FAIL, Exception(
                             _('State update without verification failed.'))
             else:
+                # Temporarily disable translations to make sure error
+                # messages match.
+                __builtin__._ = lambda x: x
                 state = verify.verifyDEP(dep, ks, key, state, registerIdx)
+                __builtin__._ = trans
 
             if expectedTurnover:
                 prevJWS, cashRegState, ids = state.getCashRegisterInfo(registerIdx)
@@ -129,6 +148,9 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
         actual_exception = e
     except Exception as e:
         return TestVerifyResult.ERROR, e
+    finally:
+        # Restore the _() function.
+        __builtin__._ = trans
 
     if actual_exception:
         actual_exception_type = type(actual_exception).__name__
@@ -145,6 +167,13 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                     _('Expected "{}" at receipt "{}" but it occured at "{}" instead').format(
                         expected_exception_type, expected_exception_receipt,
                         actual_exception.receipt))
+
+    if actual_exception and expected_exception_msg is not None:
+        actual_exception_msg = '{}'.format(actual_exception)
+        if actual_exception_msg != expected_exception_msg:
+            return TestVerifyResult.FAIL, Exception(
+                    _('Expected message "{}" but got "{}" instead').format(
+                        expected_exception_msg, actual_exception_msg))
 
     return TestVerifyResult.OK, None
 
