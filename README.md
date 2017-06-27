@@ -29,49 +29,49 @@ All scripts and source files are licensed under the AGPLv3.
 Dependencies
 ------------
 To run `make env`:
-* >=gnu-make-4.1
-* >=libffi-3.2.1 + development headers
-* >=libgl1-mesa-11.2.0 + development headers
-* >=mesa-common-11.2.0 + development headers
-* >=openssl-1.0.2g + development headers
-* >=python-2.7.10
-* >=libpython-2.7.10 + development headers
-* >=python-virtualenv-13.1.2
-* >=zbar-0.10 + development headers
+* gnu-make >=4.1
+* libffi >=3.2.1 + development headers
+* libgl1-mesa >=11.2.0 + development headers
+* mesa-common >=11.2.0 + development headers
+* openssl >=1.0.2g + development headers
+* python >=2.7.10
+* libpython >=2.7.10 + development headers
+* python-virtualenv >=13.1.2
+* zbar >=0.10 + development headers
 * a working compiler toolchain
 
 To use on Linux:
-* >=Kivy-1.9.1
-* >=dev-python/configparser-3.3.0.2
-* >=dev-python/cryptography-1.2
-* >=dev-python/cython-0.24.1
-* >=dev-python/enum34-1.0.4
-* >=dev-python/flask-0.10.1-r1
-* >=dev-python/future-0.15.2
-* >=dev-python/pillow-3.1.1
-* >=dev-python/pygame-1.9.2
-* >=dev-python/pyjwt-1.3
-* >=dev-python/requests-2.8.1
-* >=dev-python/six-1.10.0
+* Kivy >=1.9.1
+* dev-python/configparser >=3.3.0.2
+* dev-python/cryptography >=1.2
+* dev-python/cython >=0.24.1
+* dev-python/enum34 >=1.0.4
+* dev-python/flask >=0.10.1
+* dev-python/future >=0.15.2
+* dev-python/pillow >=3.1.1
+* dev-python/pygame >=1.9.2
+* dev-python/pyjwt >=1.3
+* dev-python/requests >=2.8.1
+* dev-python/six >=1.10.0
 * zbar Python bindings
 
 Additionally needed to compile the translations:
 * pygettext.py in PATH
-* >=gnu-gettext-0.19.7
+* gnu-gettext >=0.19.7
 
 Additionally needed to build the APK:
-* >=autoconf-2.69
-* >=dev-python/appdirs-1.4.0
-* >=dev-python/colorama-0.33
-* >=dev-python/jinja-2.8
-* >=dev-python/sh-1.11
-* >=git-2.7.3
-* >=libncurses5:i386-6.0 (for x86_64 systems)
-* >=libstdc++6:i386-5.4.0 (for x86_64 systems)
-* >=openjdk-8
-* >=unzip-6.0
-* >=wget-1.17.1
-* >=zlib1g:i386-1.2.8 (for x86_64 systems)
+* autoconf >=2.69
+* dev-python/appdirs >=1.4.0
+* dev-python/colorama >=0.33
+* dev-python/jinja >=2.8
+* dev-python/sh >=1.11
+* git >=2.7.3
+* libncurses5:i386 >=6.0 (for x86_64 systems)
+* libstdc++6:i386 >=5.4.0 (for x86_64 systems)
+* openjdk >=8
+* unzip >=6.0
+* wget >=1.17.1
+* zlib1g:i386 >=1.2.8 (for x86_64 systems)
 
 On Ubuntu 16.04 you can install all requirements to create the Python virtual
 environment to run all scripts with `apt-get install python-virtualenv
