@@ -1,3 +1,4 @@
+allow randomness for chunksizes in test_verify (use random.randint)
 allow for different algorithms in one DEP?
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
 collect multiple errors? right now we fail on the first one
