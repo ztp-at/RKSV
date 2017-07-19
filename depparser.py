@@ -16,11 +16,17 @@
 ###########################################################################
 
 from builtins import int
+from builtins import range
 
 import copy
 import ijson
 
+from math import ceil
 from six import string_types
+
+import os
+def depParserChunkSize():
+    return os.environ.get('RKSV_DEP_CHUNKSIZE', 100000)
 
 import utils
 import verify
@@ -30,6 +36,62 @@ class DEPParseException(verify.DEPException):
         super(DEPParseException, self).__init__(msg)
         self._initargs = (msg,)
 
+class MalformedDEPException(DEPParseException):
+    """
+    Indicates that the DEP is not properly formed.
+    """
+
+    def __init__(self, msg=None, groupidx=None):
+        if msg is None:
+            super(MalformedDEPException, self).__init__(_("Malformed DEP"))
+        else:
+            if groupidx is None:
+                super(MalformedDEPException, self).__init__(
+                        _('{}.').format(msg))
+            else:
+                super(MalformedDEPException, self).__init__(
+                        _("In group {}: {}.").format(groupidx, msg))
+        self._initargs = (msg, groupidx)
+
+class MissingDEPElementException(MalformedDEPException):
+    """
+    Indicates that an element in the DEP is missing.
+    """
+
+    def __init__(self, elem, groupidx=None):
+        super(MissingDEPElementException, self).__init__(
+                _("Element \"{}\" missing").format(elem),
+                groupidx)
+        self._initargs = (elem, groupidx)
+
+class MalformedDEPElementException(MalformedDEPException):
+    """
+    Indicates that an element in the DEP is malformed.
+    """
+
+    def __init__(self, elem, detail=None, groupidx=None):
+        if detail is None:
+            super(MalformedDEPElementException, self).__init__(
+                    _("Element \"{}\" malformed").format(elem),
+                    groupidx)
+        else:
+            super(MalformedDEPElementException, self).__init__(
+                    _("Element \"{}\" malformed: {}").format(elem, detail),
+                    groupidx)
+        self._initargs = (elem, detail, groupidx)
+
+
+class DuplicateDEPElementException(MalformedDEPException):
+    """
+    Indicates that an element in the DEP is redundant.
+    """
+
+    def __init__(self, elem, groupidx=None):
+        super(DuplicateDEPElementException, self).__init__(
+                _("Duplicate element \"{}\"").format(elem),
+                groupidx)
+        self._initargs = (elem, groupidx)
+
 class MalformedCertificateException(DEPParseException):
     """
     Indicates that a certificate in the DEP is not properly formed.
@@ -37,7 +99,7 @@ class MalformedCertificateException(DEPParseException):
 
     def __init__(self, cert):
         super(MalformedCertificateException, self).__init__(
-                _("Malformed certificate: \"{}\"").format(cert))
+                _("Certificate \"{}\" malformed.").format(cert))
         self._initargs = (cert,)
 
 class DEPState(object):
@@ -78,6 +140,9 @@ class DEPStateWithData(DEPState):
         return self.currentChunksize() >= self.chunksize
 
     def getChunk(self):
+        if self.currentChunksize() <= 0:
+            return []
+
         # Note that we only copy the groups (of which there are hopefully few)
         # FIXME: but still...
         ret = copy.copy(self.chunk)
@@ -131,12 +196,12 @@ class DEPStateRoot(DEPStateWithData):
     def parse(self, prefix, event, value):
         if prefix == '' and event == 'start_map' and value == None:
             if self.root_seen:
-                raise DEPParseException(_('Duplicate DEP root.'))
+                raise MalformedDEPException(_('Duplicate DEP root.'))
 
             self.root_seen = True
             return DEPStateRootMap(self.chunksize, self)
 
-        raise DEPParseException(_('Malformed DEP root.'))
+        raise MalformedDEPException(_('Malformed DEP root.'))
 
 class DEPStateRootMap(DEPStateWithData):
     def __init__(self, chunksize, upper):
@@ -145,13 +210,15 @@ class DEPStateRootMap(DEPStateWithData):
 
     def parse(self, prefix, event, value):
         if prefix == '' and event == 'end_map':
+            if not self.groups_seen:
+                raise MissingDEPElementException('Belege-Gruppe')
             return self.upper
 
         if prefix == 'Belege-Gruppe':
             if event != 'start_array':
-                raise DEPParseException(_('Malformed DEP root.'))
+                raise MalformedDEPException(_('Malformed DEP root.'))
             if self.groups_seen:
-                raise DEPParseException(_('Duplicate DEP root.'))
+                raise MalformedDEPException(_('Duplicate DEP root.'))
             self.groups_seen = True
             return DEPStateBGList(self.chunksize, self)
 
@@ -172,7 +239,7 @@ class DEPStateBGList(DEPStateWithData):
             self.curIdx += 1
             return nextState
 
-        raise DEPParseException(_('Malformed DEP element: \"Belege-Gruppe\".'))
+        raise MalformedDEPElementException('Belege-Gruppe')
 
 class DEPStateGroup(DEPStateWithIncompleteData):
     def __init__(self, chunksize, upper, idx):
@@ -184,44 +251,38 @@ class DEPStateGroup(DEPStateWithIncompleteData):
     def parse(self, prefix, event, value):
         if prefix == 'Belege-Gruppe.item' and event == 'end_map':
             if not self.cert_seen:
-                raise DEPParseException(
-                        _('Malformed DEP element: Certificate in Group {} is missing.').format(self.idx))
+                raise MissingDEPElementException('Signaturzertifikat', self.idx)
             if not self.cert_list_seen:
-                raise DEPParseException(
-                        _('Malformed DEP element: Certificate chain in Group {} is missing.').format(self.idx))
+                raise MissingDEPElementException('Zertifizierungsstellen', self.idx)
             if not self.recs_seen:
-                raise DEPParseException(
-                        _('Malformed DEP element: Receipts in Group {} are missing.').format(self.idx))
+                raise MissingDEPElementException('Belege-kompakt', self.idx)
             self.mergeIntoChunk()
             return self.upper
 
         if prefix == 'Belege-Gruppe.item.Signaturzertifikat':
-            if event != 'string':
-                raise DEPParseException(
-                        _('Malformed DEP element: Certificate in Group {} is not a string.').format(self.idx))
             if self.cert_seen:
-                raise DEPParseException(
-                        _('Malformed DEP element: Duplicate certificate element in Group {}.').format(self.idx))
+                raise DuplicateDEPElementException('Signaturzertifikat', self.idx)
+            if event != 'string':
+                raise MalformedDEPElementException('Signaturzertifikat',
+                        'not a string', self.idx)
             self.cert_seen = True
             self.wip.cert = parseDEPCert(value) if value != '' else None
 
         elif prefix == 'Belege-Gruppe.item.Zertifizierungsstellen':
-            if event != 'start_array':
-                raise DEPParseException(
-                        _('Malformed DEP element: Certificate chain in Group {} is not a list.').format(self.idx))
             if self.cert_list_seen:
-                raise DEPParseException(
-                        _('Malformed DEP element: Duplicate certificate chain element in Group {}.').format(self.idx))
+                raise DuplicateDEPElementException('Zertifizierungsstellen', self.idx)
+            if event != 'start_array':
+                raise MalformedDEPElementException('Zertifizierungsstellen',
+                        'not a list', self.idx)
             self.cert_list_seen = True
             return DEPStateCertList(self.chunksize, self, self.idx)
 
         elif prefix == 'Belege-Gruppe.item.Belege-kompakt':
-            if event != 'start_array':
-                raise DEPParseException(
-                        _('Malformed DEP element: Receipts in Group {} is not a list.').format(self.idx))
             if self.recs_seen:
-                raise DEPParseException(
-                        _('Malformed DEP element: Duplicate receipts element in Group {}.').format(self.idx))
+                raise DuplicateDEPElementException('Belege-kompakt', self.idx)
+            if event != 'start_array':
+                raise MalformedDEPElementException('Belege-kompakt',
+                        'not a list', self.idx)
             self.recs_seen = True
             return DEPStateReceiptList(self.chunksize, self, self.idx)
 
@@ -238,8 +299,7 @@ class DEPStateCertList(DEPStateWithIncompleteData):
             self.wip.cert_chain.append(parseDEPCert(value))
             return self
 
-        raise DEPParseException(
-                _('Malformed DEP element in Group {}: \"Zertifizierungsstellen\".').format(self.idx))
+        raise MalformedDEPElementException('Zertifizierungsstellen', self.idx)
 
 class DEPStateReceiptList(DEPStateWithIncompleteData):
     def parse(self, prefix, event, value):
@@ -248,11 +308,28 @@ class DEPStateReceiptList(DEPStateWithIncompleteData):
 
         if prefix == 'Belege-Gruppe.item.Belege-kompakt.item' \
                 and event == 'string':
-            self.wip.recs.append(value.encode('utf-8'))
+            self.wip.recs.append(shrinkDEPReceipt(value))
             return self
 
-        raise DEPParseException(
-                _('Malformed DEP element in Group {}: \"Belege-kompakt\".').format(self.idx))
+        raise MalformedDEPElementException('Belege-kompakt', self.idx)
+
+def shrinkDEPReceipt(rec, idx = None):
+    try:
+        return rec.encode('utf-8')
+    except TypeError:
+        if idx is None:
+            raise MalformedDEPElementException('Receipt \"{}\"'.format(rec))
+        else:
+            raise MalformedDEPElementException('Receipt \"{}\"'.format(rec), idx)
+
+def expandDEPReceipt(rec, idx = None):
+    try:
+        return rec.decode('utf-8')
+    except UnicodeDecodeError:
+        if idx is None:
+            raise MalformedDEPElementException('Receipt \"{}\"'.format(rec))
+        else:
+            raise MalformedDEPElementException('Receipt \"{}\"'.format(rec), idx)
 
 def parseDEPCert(cert_str):
     """
@@ -270,56 +347,193 @@ def parseDEPCert(cert_str):
     except ValueError:
         raise MalformedCertificateException(cert_str)
 
-def getItems(fd, chunksize, prefix, cache):
-    if prefix in cache:
-        return cache[prefix]
+class DEPParserI(object):
+    def parse(self, chunksize = 0):
+        raise NotImplementedError("Please implement this yourself.")
 
-    # cache miss, gotta parse the JSON again
-    ofs = fd.tell()
-    fd.seek(0)
-    items = list(ijson.items(fd, prefix))
-    fd.seek(ofs)
+class IncrementalDEPParser(DEPParserI):
+    def __init__(self, fd):
+        self.fd = fd
 
-    if chunksize == 0 or len(items) <= chunksize:
-        cache[prefix] = items
+    def _needCerts(self, state, chunksize, groupidx):
+        raise NotImplementedError("Please implement this yourself.")
 
-    return items
+    def parse(self, chunksize = 0):
+        parser = ijson.parse(self.fd)
+        state = DEPStateRoot(chunksize)
+        got_something = False
 
-# TODO: handle empty DEPs
-def parseDEP(fd, chunksize = 0):
-    parser = ijson.parse(fd)
-    state = DEPStateRoot(chunksize)
-    cache = dict()
+        try:
+            for prefix, event, value in parser:
+                nextState = state.parse(prefix, event, value)
 
-    try:
-        for prefix, event, value in parser:
-            #print('{}, {}, {}'.format(prefix, event, value))
-            nextState = state.parse(prefix, event, value)
+                if state.ready():
+                    needed = state.needCrt()
+                    if needed is not None:
+                        self._needCerts(state, chunksize, needed)
 
-            if state.ready():
-                needed = state.needCrt()
-                if needed is not None:
-                    cert_str = getItems(fd, chunksize,
-                            'Belege-Gruppe.item.Signaturzertifikat',
-                            cache)[needed]
-                    cert_str_list = getItems(fd, chunksize,
-                            'Belege-Gruppe.item.Zertifizierungsstellen',
-                            cache)[needed]
-                    cert = parseDEPCert(cert_str) if cert_str != '' else None
-                    cert_list = [ parseDEPCert(cs) for cs in cert_str_list ]
-                    state.setCrt(cert, cert_list)
+                    yield state.getChunk()
+                    got_something = True
 
-                yield state.getChunk()
+                state = nextState
 
-            state = nextState
+            # The entire DEP is parsed, get the rest.
+            # We should have found any certs here, so no check needed.
+            last = state.getChunk()
+            if len(last) > 0:
+                yield last
+            elif not got_something:
+                raise MalformedDEPException(_('No receipts found'))
+        except ijson.JSONError as e:
+            raise DEPParseException(_('Malformed JSON: {}.').format(e))
 
-        # The entire DEP is parsed, get the rest.
-        # We should have found any certs here, so no check needed.
-        last = state.getChunk()
-        if len(last) > 0:
-            yield last
-    except ijson.JSONError as e:
-        raise DEPParseException(_('Malformed JSON.'))
+
+class StreamDEPParser(IncrementalDEPParser):
+    def __init__(self, stream):
+        super(StreamDEPParser, self).__init__(stream)
+
+    def _needCerts(self, state, chunksize, groupidx):
+        raise MalformedDEPException(
+                _("Element \"Signaturzertifikat\" or \"Zertifizierungsstellen\" missing"),
+                groupidx)
+
+    def parse(self, chunksize = 0):
+        for chunk in super(StreamDEPParser, self).parse(chunksize):
+            yield chunk
+
+class CertlessStreamDEPParser(StreamDEPParser):
+    def _needCerts(self, state, chunksize, groupidx):
+        # Do nothing, we don't really care about certs.
+        # The parser will still fail if they are outright missing, but we are ok
+        # with returning chunks without certs even though the DEP contains some.
+        pass
+
+class FileDEPParser(IncrementalDEPParser):
+    def __init__(self, fd):
+        super(FileDEPParser, self).__init__(fd)
+
+    def __getItems(self, prefix, chunksize):
+        if prefix in self.cache:
+            return self.cache[prefix]
+
+        # cache miss, gotta parse the JSON again
+        ofs = self.fd.tell()
+        self.fd.seek(0)
+        items = list(ijson.items(self.fd, prefix))
+        self.fd.seek(ofs)
+
+        if chunksize == 0 or len(items) <= chunksize:
+            self.cache[prefix] = items
+
+        return items
+
+    def _needCerts(self, state, chunksize, groupidx):
+        cert_str = self.__getItems(
+                'Belege-Gruppe.item.Signaturzertifikat', chunksize)[groupidx]
+        cert_str_list = self.__getItems(
+                'Belege-Gruppe.item.Zertifizierungsstellen', chunksize)[groupidx]
+        cert = parseDEPCert(cert_str) if cert_str != '' else None
+        cert_list = [ parseDEPCert(cs) for cs in cert_str_list ]
+        state.setCrt(cert, cert_list)
+
+    def parse(self, chunksize = 0):
+        self.fd.seek(0)
+        self.cache = dict()
+        for chunk in super(FileDEPParser, self).parse(chunksize):
+            yield chunk
+
+class DictDEPParser(DEPParserI):
+    def __init__(self, dep, nparts = 1):
+        self.dep = dep
+        self.nparts = nparts
+        pass
+
+    def _parseDEPGroup(self, group, idx):
+        if not isinstance(group, dict):
+            raise MalformedDEPElementException('Belege-Gruppe', idx)
+
+        if 'Belege-kompakt' not in group:
+            raise MissingDEPElementException('Belege-kompakt', idx)
+
+        if 'Signaturzertifikat' not in group:
+            raise MissingDEPElementException('Signaturzertifikat', idx)
+
+        if 'Zertifizierungsstellen' not in group:
+            raise MissingDEPElementException('Zertifizierungsstellen', idx)
+
+        cert_str = group['Signaturzertifikat']
+        cert_str_list = group['Zertifizierungsstellen']
+        receipts = list(map(shrinkDEPReceipt, group['Belege-kompakt']))
+
+        if not isinstance(cert_str, string_types):
+            raise MalformedDEPElementException('Signaturzertifikat',
+                    'not a string', self.idx)
+        if not isinstance(cert_str_list, list):
+            raise MalformedDEPElementException('Zertifizierungsstellen',
+                    'not a list', self.idx)
+        if not isinstance(receipts, list):
+            raise MalformedDEPElementException('Belege-kompakt',
+                    'not a list', self.idx)
+
+        cert = parseDEPCert(cert_str) if cert_str != '' else None
+        cert_list = [ parseDEPCert(cs) for cs in cert_str_list ]
+
+        return receipts, cert, cert_list
+
+    def _groupChunkGen(self, chunksize, groups):
+        if chunksize == 0:
+            for groupidx in range(0, len(groups)):
+                recs, cert, certs = self._parseDEPGroup(groups[groupidx], groupidx)
+                if len(recs) > 0:
+                    yield [(recs, cert, certs)]
+            return
+
+        chunk = list()
+        chunklen = 0
+        for groupidx in range(0, len(groups)):
+            recs, cert, cert_list = self._parseDEPGroup(groups[groupidx], groupidx)
+            while len(recs) > 0:
+                recs_needed = chunksize - chunklen
+                nextrecs = recs[0:recs_needed]
+                chunk.append((nextrecs, cert, cert_list))
+                chunklen += len(nextrecs)
+                recs = recs[recs_needed:]
+
+                if chunklen >= chunksize:
+                    yield chunk
+                    chunk = list()
+                    chunklen = 0
+
+        if chunklen > 0:
+            yield chunk
+
+    def parse(self, chunksize = 0):
+        if not isinstance(self.dep, dict):
+            raise MalformedDEPException(_('Malformed DEP root.'))
+        if 'Belege-Gruppe' not in self.dep:
+            raise MissingDEPElementException('Belege-Gruppe')
+
+        bg = self.dep['Belege-Gruppe']
+        if not isinstance(bg, list) or len(bg) <= 0:
+            raise MalformedDEPElementException('Belege-Gruppe')
+
+        if self.nparts > 1 and not chunksize:
+            def _nrecs(group):
+                try:
+                    return len(group['Belege-kompakt'])
+                except (TypeError, KeyError):
+                    return 0
+
+            nrecs = sum(_nrecs(g) for g in bg)
+            chunksize = int(ceil(float(nrecs) / self.nparts))
+
+        got_something = False
+        for chunk in self._groupChunkGen(chunksize, bg):
+            yield chunk
+            got_something = True
+
+        if not got_something:
+            raise MalformedDEPException(_('No receipts found'))
 
 if __name__ == "__main__":
     import gettext
@@ -331,6 +545,7 @@ if __name__ == "__main__":
     import key_store
     import verification_state
     import verify_receipt
+    import json
 
     def packageChunk(chunk, keyStore):
         groupsWithVerifiers = list()
@@ -371,6 +586,8 @@ if __name__ == "__main__":
     if nprocs > 1:
         import multiprocessing
         pool = multiprocessing.Pool(nprocs)
+    else:
+        nprocs = 1
 
     with open(sys.argv[1]) as f:
         jsonStore = utils.readJsonStream(f)
@@ -378,10 +595,12 @@ if __name__ == "__main__":
         ks = key_store.KeyStore.readStoreFromJson(jsonStore)
 
     with open(sys.argv[2]) as f:
+        parser = DictDEPParser(utils.readJsonStream(f), nprocs)
+        #parser = FileDEPParser(f)
         vstate = verification_state.ClusterState()
         prevStart, rState, usedRecIds = vstate.getCashRegisterInfo(0)
         res = None
-        for chunks in batchParse(parseDEP(f, int(sys.argv[4])), nprocs):
+        for chunks in batchParse(parser.parse(int(sys.argv[4])), nprocs):
             pkgs = [ packageChunk(chunk, ks) for chunk in chunks ]
             npkgs = len(pkgs)
 
