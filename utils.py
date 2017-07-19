@@ -26,6 +26,7 @@ from builtins import range
 import base64
 import codecs
 import datetime
+import io
 import json
 import requests
 import re
@@ -317,18 +318,33 @@ def getReceiptFloat(fstr):
     except:
         return None
 
-def readJsonStream(stream):
+def skipBOM(fd):
     """
     Removes the BOM from UTF-8 files so that we can live in peace.
+    :param fd: The file descriptor that may or may not have a BOM at the start.
+    :return: The position after the BOM as reported by fd.tell().
     """
     try:
-        pos = stream.tell()
+        pos = fd.tell()
     except IOError:
-        return json.load(stream)
+        return 0
 
-    fst = stream.read(len(codecs.BOM_UTF8))
-    if fst != codecs.BOM_UTF8:
-        stream.seek(pos)
+    if isinstance(fd, io.TextIOBase):
+        fst = fd.read(len(codecs.BOM_UTF8.decode('utf-8')))
+        if fst.encode('utf-8') != codecs.BOM_UTF8:
+            fd.seek(pos)
+    else:
+        fst = fd.read(len(codecs.BOM_UTF8))
+        if fst != codecs.BOM_UTF8:
+            fd.seek(pos)
+
+    return fd.tell()
+
+def readJsonStream(stream):
+    """
+    Read a JSON file that may or may not have a BOM.
+    """
+    skipBOM(stream)
     return json.load(stream)
 
 def cert_getstate(self):

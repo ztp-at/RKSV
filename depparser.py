@@ -353,6 +353,8 @@ class DEPParserI(object):
 
 class IncrementalDEPParser(DEPParserI):
     def __init__(self, fd):
+        # skipBOM checks if we can seek, so no harm in doing it to a non-file
+        self.startpos = utils.skipBOM(fd)
         self.fd = fd
 
     def _needCerts(self, state, chunksize, groupidx):
@@ -418,7 +420,7 @@ class FileDEPParser(IncrementalDEPParser):
 
         # cache miss, gotta parse the JSON again
         ofs = self.fd.tell()
-        self.fd.seek(0)
+        self.fd.seek(self.startpos)
         items = list(ijson.items(self.fd, prefix))
         self.fd.seek(ofs)
 
@@ -437,7 +439,7 @@ class FileDEPParser(IncrementalDEPParser):
         state.setCrt(cert, cert_list)
 
     def parse(self, chunksize = 0):
-        self.fd.seek(0)
+        self.fd.seek(self.startpos)
         self.cache = dict()
         for chunk in super(FileDEPParser, self).parse(chunksize):
             yield chunk
