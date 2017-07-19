@@ -68,10 +68,12 @@ else:
     __use_threads = False
 
 import algorithms
+import depparser
 import img_decode
 import key_store
 import receipt
 import utils
+import verification_state
 import verify_receipt
 import verify
 
@@ -559,8 +561,10 @@ class VerifyReceiptWidget(BoxLayout):
 
 def verifyDEP_prepare_Task(dep, store, key, nprocs):
     try:
-        inargs, usedRecIds = verify.verifyParsedDEP_prepare(dep, store, key,
-                None, None, nprocs)
+        groupsWithVerifiers = verify.packageChunkWithVerifiers(dep, store)
+        pkgs = verify.balanceGroupsWithVerifiers(groupsWithVerifiers, nprocs)
+        rState = verification_state.CashRegisterState()
+        inargs = verify.prepareVerificationTuples(pkgs, key, None, rState)
         return None, inargs
     except (receipt.ReceiptException, verify.DEPException) as e:
         return e, None
@@ -648,7 +652,7 @@ class VerifyDEPWidget(BoxLayout):
 
                 receiptIdx = 0
                 for cr in recs:
-                    jws = verify.expandDEPReceipt(cr)
+                    jws = depparser.expandDEPReceipt(cr)
                     rec, prefix = receipt.Receipt.fromJWSString(jws)
                     tv.add_node(TreeViewReceiptButton(text=rec.receiptId,
                         group_id=groupIdx - 1, receipt_id=receiptIdx,
@@ -760,7 +764,10 @@ class VerifyDEPWidget(BoxLayout):
         try:
             with open(os.path.join(path, filename[0])) as f:
                 jsonDEP = utils.readJsonStream(f)
-                self.dep = verify.parseDEPAndGroups(jsonDEP)
+                # We expect the DictDEPParser to return each group separately
+                # with these parameters.
+                parser = depparser.DictDEPParser(jsonDEP)
+                self.dep = [ chunk[0] for chunk in parser.parse(0) ]
 
             App.get_running_app().curSearchPath = path
         except (IOError, UnicodeDecodeError, ValueError,

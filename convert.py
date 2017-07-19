@@ -23,9 +23,9 @@ from builtins import range
 import sys
 
 import depexport
+import depparser
 import receipt
 import utils
-import verify
 
 def usage():
     print("Usage: ./convert.py json2csv")
@@ -41,12 +41,12 @@ if __name__ == "__main__":
 
     recs = list()
     if sys.argv[1] == 'json2csv':
-        dep = utils.readJsonStream(sys.stdin)
         exporter = depexport.CSVExporter()
-        groups = verify.parseDEPAndGroups(dep)
-        for recs, cert, cert_list in groups:
-            exporter.addGroup([ receipt.Receipt.fromJWSString(
-                verify.expandDEPReceipt(r)) for r in recs ], cert, cert_list)
+        parser = depparser.CertlessStreamDEPParser(sys.stdin)
+        for chunk in parser.parse(depparser.depParserChunkSize()):
+            for recs, cert, cert_list in chunk:
+                exporter.addGroup([ receipt.Receipt.fromJWSString(
+                    depparser.expandDEPReceipt(r)) for r in recs ], cert, cert_list)
     elif sys.argv[1] == 'csv2json':
         next(sys.stdin)
         for row in sys.stdin:

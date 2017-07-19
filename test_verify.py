@@ -31,6 +31,7 @@ import base64
 import enum
 import re
 
+import depparser
 import key_store
 import receipt
 import verification_state
@@ -69,7 +70,7 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
     :param cc: The cryptographic material container containing the key
     material to verify the DEPs.
     :param parse: True if the DEP should be parsed with
-    verify.parseDEPAndGroups() first, false otherwise.
+    depparser.dictDEPParser first, false otherwise.
     :param pool: A pool of processes to pass along to verifyParsedDEP if
     parse is True.
     :param nprocs: The number of processes to expect/use in pool.
@@ -124,13 +125,22 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                 # Temporarily disable translations to make sure error
                 # messages match.
                 __builtin__._ = lambda x: x
-                pdep = verify.parseDEPAndGroups(dep)
-                state = verify.verifyParsedDEP(pdep, ks, key, state,
-                        registerIdx, pool, nprocs)
+                parser = depparser.DictDEPParser(dep, nprocs)
+                state = verify.verifyParsedDEP(parser, ks, key, state,
+                        registerIdx, pool, nprocs, 2)
+                for chunk in parser.parse(0):
+                    for recs, cert, chain in chunk:
+                        crsOld.updateFromDEPGroup(recs, key)
+
+                """
+                for pdep in depparser.DictDEPParser(dep).parse(2):
+                    state = verify.verifyParsedDEP(pdep, ks, key, state,
+                            registerIdx, pool, nprocs)
+                    for recs, cert, chain in pdep:
+                        crsOld.updateFromDEPGroup(recs, key)
+                """
                 __builtin__._ = trans
 
-                for recs, cert, chain in pdep:
-                    crsOld.updateFromDEPGroup(recs, key)
                 prevJWS, crsNew, ids = state.getCashRegisterInfo(registerIdx)
                 if crsOld != crsNew:
                     return TestVerifyResult.FAIL, Exception(

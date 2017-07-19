@@ -28,9 +28,9 @@ import base64
 import copy
 
 import algorithms
+import depparser
 import receipt
 import utils
-import verify
 
 class StateException(Exception):
     def __init__(self, message):
@@ -77,13 +77,13 @@ class CashRegisterState(object):
         if len(group) == 1:
             secondToLastReceiptJWS = self.lastReceiptJWS
         else:
-            secondToLastReceiptJWS = verify.expandDEPReceipt(group[-2])
+            secondToLastReceiptJWS = depparser.expandDEPReceipt(group[-2])
 
         stl = None
         if secondToLastReceiptJWS:
             stl, prefix = receipt.Receipt.fromJWSString(secondToLastReceiptJWS)
         last, prefix = receipt.Receipt.fromJWSString(
-                verify.expandDEPReceipt(group[-1]))
+                depparser.expandDEPReceipt(group[-1]))
 
         if not last.isSignedBroken() and stl and (not last.isNull() or
                 last.isDummy() or last.isReversal()) and stl.isSignedBroken():
@@ -92,9 +92,9 @@ class CashRegisterState(object):
             self.needRestoreReceipt = False
 
         if not self.startReceiptJWS:
-            self.startReceiptJWS = verify.expandDEPReceipt(group[0])
+            self.startReceiptJWS = depparser.expandDEPReceipt(group[0])
 
-        self.lastReceiptJWS = verify.expandDEPReceipt(group[-1])
+        self.lastReceiptJWS = depparser.expandDEPReceipt(group[-1])
 
         if not key:
             return
@@ -102,7 +102,7 @@ class CashRegisterState(object):
         reversals = list()
         for i in range(len(group) - 1, -1, -1):
             ro, prefix = receipt.Receipt.fromJWSString(
-                verify.expandDEPReceipt(group[i]))
+                depparser.expandDEPReceipt(group[i]))
             if (not ro.isDummy()) and (not ro.isReversal()):
                 alg = algorithms.ALGORITHMS[prefix]
                 self.lastTurnoverCounter = ro.decryptTurnoverCounter(key, alg)
@@ -263,8 +263,6 @@ if __name__ == "__main__":
     import json
     import sys
 
-    import verify
-
     def load_state(filename):
         with open(filename, 'r') as f:
             stateJson = utils.readJsonStream(f)
@@ -379,7 +377,7 @@ if __name__ == "__main__":
             usage()
 
         with open(sys.argv[4]) as f:
-            dep = verify.parseDEPAndGroups(utils.readJsonStream(f))
+            parser = depparser.CertlessStreamDEPParser(f)
 
         key = None
         if len(sys.argv) == 6:
@@ -388,8 +386,9 @@ if __name__ == "__main__":
 
         state = load_state(filename)
 
-        for recs, cert, chain in dep:
-            state.cashRegisters[int(sys.argv[3])].updateFromDEPGroup(recs, key)
+        for chunk in parser.parse(depparser.depParserChunkSize()):
+            for recs, cert, chain in chunk:
+                state.cashRegisters[int(sys.argv[3])].updateFromDEPGroup(recs, key)
 
     else:
         usage()

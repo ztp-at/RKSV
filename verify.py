@@ -30,6 +30,7 @@ import base64
 from itertools import groupby
 from math import ceil
 from six import string_types
+from types import MethodType
 
 import algorithms
 import key_store
@@ -49,35 +50,7 @@ class DEPException(Exception):
     def __reduce__(self):
         return (self.__class__, self._initargs)
 
-class MalformedDEPException(DEPException):
-    """
-    Indicates that the DEP is not properly formed.
-    """
-
-    def __init__(self, msg=None):
-        super(MalformedDEPException, self).__init__(
-                msg if msg else _("Malformed DEP"))
-        self._initargs = (msg,)
-
-class MalformedCertificateException(DEPException):
-    """
-    Indicates that the DEP is not properly formed.
-    """
-
-    def __init__(self, cert):
-        super(MalformedCertificateException, self).__init__(
-                _("Malformed certificate: \"{}\"").format(cert))
-        self._initargs = (cert,)
-
-class DEPElementMissingException(MalformedDEPException):
-    """
-    Indicates that the DEP is not properly formed.
-    """
-
-    def __init__(self, elem):
-        super(DEPElementMissingException, self).__init__(
-                _("Element \"{}\" missing from DEP").format(elem))
-        self._initargs = (elem,)
+import depparser
 
 class ClusterInOpenSystemException(DEPException):
     """
@@ -352,7 +325,7 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
     receipts with zero turnover are present as required. If a key is
     specified it also verifies the turnover counter.
     :param group: The receipts in the group as a list of compressed JWS strings
-    as returned by parseDEPGroup().
+    as returned by a parser conforming to depparser.DEPParserI.
     :param rv: The receipt verifier object used to verify single receipts.
     :param key: The key used to decrypt the turnover counter as a byte list
     or None.
@@ -400,7 +373,7 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
     if prev:
         prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
     for cr in group:
-        r = expandDEPReceipt(cr)
+        r = depparser.expandDEPReceipt(cr)
         ro = None
         algorithm = None
         try:
@@ -485,101 +458,6 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
     cashRegisterState.lastReceiptJWS = prev
     return cashRegisterState, usedReceiptIds
 
-def parseDEPCert(cert_str):
-    """
-    Turns a certificate string as used in a DEP into a certificate object.
-    :param cert_str: A certificate in PEM format without header and footer
-    and on a single line.
-    :return: A cryptography certificate object.
-    :throws: MalformedCertificateException
-    """
-    if not isinstance(cert_str, string_types):
-        raise MalformedCertificateException(cert_str)
-
-    try:
-        return utils.loadCert(utils.addPEMCertHeaders(cert_str))
-    except ValueError:
-        raise MalformedCertificateException(cert_str)
-
-def shrinkDEPReceipt(rec):
-    try:
-        return rec.encode('utf-8')
-    except TypeError:
-        raise MalformedDEPException()
-
-def expandDEPReceipt(rec):
-    try:
-        return rec.decode('utf-8')
-    except UnicodeDecodeError:
-        raise MalformedDEPException()
-
-def parseDEPGroup(group):
-    """
-    Parses a single group from a DEP and return a tuple with its contents.
-    :param group: The group as a JSON object.
-    :return: A list of receipts as compressed (i.e. stored as encoded byte
-    array) JWS strings (these are _not_ checked), a certificate object
-    containing the certificate used to sign the receipts in this group (or None)
-    and a list of certificate objects containing the certificates used to sign
-    the group certificate.
-    :throws: MalformedCertificateException
-    :throws: MalformedDEPException
-    :throws: DEPElementMissingException
-    """
-    if not isinstance(group, dict):
-        raise MalformedDEPException()
-
-    if 'Belege-kompakt' not in group:
-        raise DEPElementMissingException('Belege-kompakt')
-
-    cert_str = group.get('Signaturzertifikat', '')
-    cert_str_list = group.get('Zertifizierungsstellen', [])
-    # TODO: see if there is a smarter way to do this/do it during JSON parsing
-    receipts = list(map(shrinkDEPReceipt, group['Belege-kompakt']))
-
-    if (not isinstance(cert_str, string_types) or
-            not isinstance(cert_str_list, list) or
-            not isinstance(receipts, list)):
-        raise MalformedDEPException()
-
-    cert = parseDEPCert(cert_str) if cert_str != '' else None
-    cert_list = [ parseDEPCert(cs) for cs in cert_str_list ]
-
-    return receipts, cert, cert_list
-
-def parseDEP(dep):
-    """
-    Retrieves the list of group elements from a JSON DEP. The group
-    elements themselves are _not_ parsed.
-    :param dep: The DEP as a JSON object.
-    :return: A list containing the groups as JSON objects.
-    :throws: MalformedDEPException
-    :throws: DEPElementMissingException
-    """
-    if not isinstance(dep, dict):
-        raise MalformedDEPException()
-    if 'Belege-Gruppe' not in dep:
-        raise DEPElementMissingException('Belege-Gruppe')
-
-    bg = dep['Belege-Gruppe']
-    if not isinstance(bg, list) or len(bg) <= 0:
-        raise MalformedDEPException()
-
-    return bg
-
-def parseDEPAndGroups(dep):
-    """
-    Retrieves the list of groups from a JSON DEP and parses each group
-    with parseDEPGroup().
-    :param dep: The DEP as a JSON object.
-    :return: A list containing a tuple as returned by parseDEPGroup() for
-    each group.
-    :throws: MalformedCertificateException
-    :throws: MalformedDEPException
-    :throws: DEPElementMissingException
-    """
-    return [parseDEPGroup(g) for g in parseDEP(dep)]
-
 def verifyGroupsWithVerifiers(groups, key, prevStart = None,
         rState = None, usedRecIds = None):
     """
@@ -588,8 +466,9 @@ def verifyGroupsWithVerifiers(groups, key, prevStart = None,
     those tuples passing the register state and used receipt IDs along for
     each call.
     :param groups: The list of tuples. The first element of each tuple is a
-    list of receipts as returned by parseDEPGroup(), the second element is
-    a ReceiptVerifier object intented to verify all receipts in the list.
+    list of receipts as returned by a parser conforming to
+    depparser.DEPParserI, the second element is a ReceiptVerifier object
+    intented to verify all receipts in the list.
     :param key: The key used to decrypt the turnover counter as a byte list
     or None.
     :param prevStart: The start receipt (in JWS format) of the previous
@@ -650,8 +529,9 @@ def balanceGroupsWithVerifiers(groups, nprocs):
     DEP into nprocs packages of equal size which can then be assigned to
     multiple worker processes.
     :param groups: The list of tuples. The first element of each tuple is a
-    list of receipts as returned by parseDEPGroup(), the second element is
-    a ReceiptVerifier object intented to verify all receipts in the list.
+    list of receipts as returned by a parser conforming to
+    depparser.DEPParserI, the second element is a ReceiptVerifier object
+    intented to verify all receipts in the list.
     :param nprocs: The maximum number of packages to create.
     :return: The list of packages. Each package in turn contains a list
     structured like the groups parameter.
@@ -672,55 +552,6 @@ def balanceGroupsWithVerifiers(groups, nprocs):
 
     return pkgs
 
-def verifyParsedDEP_prepare(dep, keyStore, key, state = None,
-        cashRegisterIdx = None, nprocs = 1):
-    if not state:
-        state = verification_state.ClusterState()
-
-    prevStart, rState, usedRecIds = state.getCashRegisterInfo(
-            cashRegisterIdx)
-
-    groupsWithVerifiers = list()
-
-    if len(dep) == 1:
-        recs, cert, chain = dep[0]
-
-        if not cert:
-            rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
-        else:
-            verifyCert(cert, chain, keyStore)
-            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
-
-        groupsWithVerifiers.append((recs, rv))
-    else:
-        for recs, cert, chain in dep:
-            if not cert:
-                raise NoCertificateGivenException()
-
-            verifyCert(cert, chain, keyStore)
-
-            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
-
-            groupsWithVerifiers.append((recs, rv))
-
-    # repackage recs and verifiers according to nproc
-    pkgs = balanceGroupsWithVerifiers(groupsWithVerifiers, nprocs)
-    npkgs = len(pkgs)
-
-    # create start cashreg state for each package
-    pkgRStates = [rState]
-    pkgRState = rState
-    for pkg in pkgs:
-        for group, rv in pkg:
-            pkgRState = verification_state.CashRegisterState.fromDEPGroup(
-                    pkgRState, group, key)
-        pkgRStates.append(pkgRState)
-    del pkgRStates[-1]
-
-    # prepare arguments for each worker
-    return zip(pkgs, [key] * npkgs, [prevStart] * npkgs, pkgRStates,
-            [set()] * npkgs), usedRecIds
-
 def verifyParsedDEP_finalize(outUsedRecIds, usedRecIds):
     # merge usedRecIds and check for duplicates
     seen = set()
@@ -735,8 +566,55 @@ def verifyParsedDEP_finalize(outUsedRecIds, usedRecIds):
 
     return mergedUsedRecIds
 
-def verifyParsedDEP(dep, keyStore, key, state = None,
-        cashRegisterIdx = None, pool = None, nprocs = 1):
+def packageChunkWithVerifiers(chunk, keyStore):
+    groupsWithVerifiers = list()
+    if len(chunk) == 1:
+        recs, cert, chain = chunk[0]
+        if not cert:
+            rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+        else:
+            verifyCert(cert, chain, keyStore)
+            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
+
+        groupsWithVerifiers.append((recs, rv))
+    else:
+        for recs, cert, chain in chunk:
+            if not cert:
+                raise NoCertificateGivenException()
+            verifyCert(cert, chain, keyStore)
+            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
+            groupsWithVerifiers.append((recs, rv))
+    return groupsWithVerifiers
+
+def getChunksForProcs(allChunks, nprocs):
+    ret = list()
+    for chunk in allChunks:
+        ret.append(chunk)
+        if len(ret) >= nprocs:
+            yield ret
+            ret = list()
+
+    if len(ret) > 0:
+        yield ret
+
+def prepareVerificationTuples(chunksWithVerifiers, key, prevStartJWS, cashregState):
+    # create start cashreg state for each package
+    npkgs = len(chunksWithVerifiers)
+    pkgRStates = [cashregState]
+    pkgRState = cashregState
+    for pkg in chunksWithVerifiers:
+        for group, rv in pkg:
+            pkgRState = verification_state.CashRegisterState.fromDEPGroup(
+                    pkgRState, group, key)
+        pkgRStates.append(pkgRState)
+    del pkgRStates[-1]
+
+    return zip(chunksWithVerifiers, [key] * npkgs, [prevStartJWS] * npkgs,
+            pkgRStates, [set()] * npkgs)
+
+def verifyParsedDEP(parser, keyStore, key, state = None,
+        cashRegisterIdx = None, pool = None, nprocs = 1,
+        chunksize = depparser.depParserChunkSize()):
     """
     Verifies a previously parsed DEP. It checks if the signature of each
     receipt is valid, if the receipts are properly chained, if receipts
@@ -744,7 +622,7 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
     to sign the receipts are valid. If a key is specified it also verifies
     the turnover counter. It does not check for errors that should already
     be detected while parsing the DEP.
-    :param dep: The DEP as returned by parseDEPAndGroups().
+    :param parser: A parser object confirming to depparser.DEPParserI.
     :param keyStore: The key store object containing the used public keys and
     certificates.
     :param key: The key used to decrypt the turnover counter as a byte list or
@@ -756,8 +634,8 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
     DEP among. The pool must support the map() function. If no pool is
     specified, the current process will perform all the work itself.
     :param nprocs: The number of processes to expect/use in pool. This
-    function will create at most nprocs work packages and either pass them
-    to a pool or (if no pool is given) process them itself. How the
+    function will create at most nprocs work packages at a time and either pass
+    them to a pool or (if no pool is given) process them itself. How the
     packages are distributed among the pool's processes is up to the pool.
     :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
@@ -779,34 +657,42 @@ def verifyParsedDEP(dep, keyStore, key, state = None,
     :throws: InvalidChainingOnInitialReceiptException
     :throws: NonstandardTypeOnInitialReceiptException
     :throws: ChangingRegisterIdException
-    :throws: DecreasingDateException
     :throws: ChangingSystemTypeException
-    :throws: ChangingTurnoverCounterSizeException
     :throws: CertificateChainBrokenException
     :throws: DuplicateReceiptIdException
     :throws: ClusterInOpenSystemException
     :throws: InvalidCashRegisterIndexException
     :throws: NoStartReceiptForLastCashRegisterException
+    :throws: depparser.DEPParseException
     """
     if not state:
         state = verification_state.ClusterState()
 
-    inargs, usedRecIds = verifyParsedDEP_prepare(dep, keyStore, key, state,
-            cashRegisterIdx, nprocs)
+    prevStart, rState, usedRecIds = state.getCashRegisterInfo(cashRegisterIdx)
+    res = None
+    for chunks in getChunksForProcs(parser.parse(chunksize), nprocs):
+        pkgs = [ packageChunkWithVerifiers(chunk, keyStore) for chunk in chunks ]
 
-    # apply verifyGroup() to each package
-    if not pool:
-        outresults = map(verifyGroupsWithVerifiersTuple, inargs)
-    else:
-        outresults = pool.map(verifyGroupsWithVerifiersTuple, inargs)
-    outRStates, outUsedRecIds = zip(*outresults)
+        if res is not None:
+            outRStates, outUsedRecIds = zip(*res.get())
+            usedRecIds = verifyParsedDEP_finalize(outUsedRecIds, usedRecIds)
+            rState = outRStates[-1]
 
-    mergedUsedRecIds = verifyParsedDEP_finalize(outUsedRecIds, usedRecIds)
+        wargs = prepareVerificationTuples(pkgs, key, prevStart, rState)
 
-    # update with latest cashreg state and return
-    state.updateCashRegisterInfo(cashRegisterIdx, outRStates[-1],
-            mergedUsedRecIds)
+        # apply verifyGroup() to each package
+        if not pool:
+            outresults = map(verifyGroupsWithVerifiersTuple, wargs)
+            res = type('DummyAsyncResult', (object,), {"data": outresults})
+            res.get = MethodType(lambda self: self.data, res)
+        else:
+            res = pool.map_async(verifyGroupsWithVerifiersTuple, wargs)
 
+    outRStates, outUsedRecIds = zip(*res.get())
+    usedRecIds = verifyParsedDEP_finalize(outUsedRecIds, usedRecIds)
+    rState = outRStates[-1]
+
+    state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
     return state
 
 def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
@@ -844,17 +730,13 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
     :throws: InvalidChainingOnInitialReceiptException
     :throws: NonstandardTypeOnInitialReceiptException
     :throws: ChangingRegisterIdException
-    :throws: DecreasingDateException
     :throws: ChangingSystemTypeException
-    :throws: ChangingTurnoverCounterSizeException
     :throws: CertificateChainBrokenException
     :throws: DuplicateReceiptIdException
-    :throws: MalformedCertificateException
-    :throws: MalformedDEPException
-    :throws: DEPElementMissingException
     :throws: ClusterInOpenSystemException
     :throws: InvalidCashRegisterIndexException
     :throws: NoStartReceiptForLastCashRegisterException
+    :throws: depparser.DEPParseException
     """
     if not state:
         state = verification_state.ClusterState()
@@ -862,40 +744,39 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
     prevStart, rState, usedRecIds = state.getCashRegisterInfo(
             cashRegisterIdx)
 
-    bg = parseDEP(dep)
+    # FIXME: ewww...
+    one_group = None
+    for chunk in depparser.DictDEPParser(dep).parse(0):
+        if len(chunk) < 1:
+            raise Exception(_('THIS IS A BUG'))
 
-    if len(bg) == 1:
-        recs, cert, chain = parseDEPGroup(bg[0])
-        if not cert:
-            rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+        for recs, cert, chain in chunk:
+            if one_group:
+                raise NoCertificateGivenException()
+
+            if one_group:
+                raise NoCertificateGivenException()
+
+            if not cert:
+                if one_group == False:
+                    raise NoCertificateGivenException()
+                rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+                one_group = True
+            else:
+                verifyCert(cert, chain, keyStore)
+                rv = verify_receipt.ReceiptVerifier.fromCert(cert)
+                one_group = False
 
             rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
                     rState, usedRecIds)
-
-            state.updateCashRegisterInfo(cashRegisterIdx, rState,
-                    usedRecIds)
-            return state
-
-    for group in bg:
-        recs, cert, chain = parseDEPGroup(group)
-
-        if not cert:
-            raise NoCertificateGivenException()
-
-        verifyCert(cert, chain, keyStore)
-
-        rv = verify_receipt.ReceiptVerifier.fromCert(cert)
-    
-        rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
-                rState, usedRecIds)
 
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
     return state
 
 def usage():
-    print("Usage: ./verify.py [state [continue|<n>]] [par <n>] keyStore <key store> <dep export file> [<base64 AES key file>]",
+    print("Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] keyStore <key store> <dep export file> [<base64 AES key file>]",
             file=sys.stderr)
-    print("       ./verify.py [state [continue|<n>]] [par <n>] json <json container file> <dep export file>",
+    print("       ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] json <json container file> <dep export file>",
             file=sys.stderr)
     print("       ./verify.py state", file=sys.stderr)
     sys.exit(0)
@@ -910,7 +791,7 @@ if __name__ == "__main__":
 
     import key_store
 
-    if len(sys.argv) < 2 or len(sys.argv) > 9:
+    if len(sys.argv) < 2 or len(sys.argv) > 11:
         usage()
 
     key = None
@@ -939,7 +820,7 @@ if __name__ == "__main__":
         except ValueError:
             pass
 
-    if len(sys.argv) < 4 or len(sys.argv) > 7:
+    if len(sys.argv) < 4 or len(sys.argv) > 9:
         usage()
 
     nprocs = 1
@@ -951,6 +832,20 @@ if __name__ == "__main__":
         except ValueError:
             usage()
     if nprocs < 1:
+        usage()
+
+    if len(sys.argv) < 4 or len(sys.argv) > 7:
+        usage()
+
+    chunksize = 0
+    if sys.argv[1] == 'chunksize':
+        del sys.argv[1]
+        try:
+            chunksize = int(sys.argv[1])
+            del sys.argv[1]
+        except ValueError:
+            usage()
+    if chunksize < 0:
         usage()
 
     if len(sys.argv) < 4 or len(sys.argv) > 5:
@@ -979,15 +874,6 @@ if __name__ == "__main__":
     else:
         usage()
 
-    pool = None
-    if nprocs > 1:
-        import multiprocessing
-        pool = multiprocessing.Pool(nprocs)
-
-    dep = None
-    with open(sys.argv[3]) as f:
-        dep = utils.readJsonStream(f)
-
     state = None
     if statePassthrough:
         state = verification_state.ClusterState.readStateFromJson(
@@ -996,15 +882,31 @@ if __name__ == "__main__":
             registerIdx = len(state.cashRegisters) - 1
 
     if nprocs > 1:
+        import multiprocessing
+        pool = multiprocessing.Pool(nprocs)
+
         try:
-            pdep = parseDEPAndGroups(dep)
-            state = verifyParsedDEP(pdep, keyStore, key, state, registerIdx, pool,
-                    nprocs)
+            with open(sys.argv[3]) as f:
+                if chunksize == 0:
+                    dep = utils.readJsonStream(f)
+                    parser = depparser.DictDEPParser(dep, nprocs)
+                else:
+                    parser = depparser.FileDEPParser(f)
+
+                state = verifyParsedDEP(parser, keyStore, key, state, registerIdx,
+                        pool, nprocs, chunksize)
         finally:
             pool.terminate()
             pool.join()
     else:
-        state = verifyDEP(dep, keyStore, key, state, registerIdx)
+        with open(sys.argv[3]) as f:
+            if chunksize == 0:
+                dep = utils.readJsonStream(f)
+                state = verifyDEP(dep, keyStore, key, state, registerIdx)
+            else:
+                parser = depparser.FileDEPParser(f)
+                state = verifyParsedDEP(parser, keyStore, key, state, registerIdx,
+                        None, nprocs, chunksize)
 
     if statePassthrough:
         print(json.dumps(

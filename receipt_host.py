@@ -24,9 +24,9 @@ import sys
 
 from flask import Flask, abort, jsonify, make_response
 
+import depparser
 import receipt
 import utils
-import verify
 
 receipt_store = None
 
@@ -59,13 +59,13 @@ if __name__ == "__main__":
 
     receipts = dict()
     if sys.argv[1] == 'dep':
-        dep = utils.readJsonStream(sys.stdin)
-        groups = verify.parseDEPAndGroups(dep)
-        for recs, cert, cert_list in groups:
-            for cr in recs:
-                r = verify.expandDEPReceipt(cr)
-                rec, pre = receipt.Receipt.fromJWSString(r)
-                receipts[rec.toURLHash(pre)] = rec.toBasicCode(pre)
+        parser = depparser.CertlessStreamDEPParser(sys.stdin)
+        for chunk in parser.parse(depparser.depParserChunkSize()):
+            for recs, cert, cert_list in chunk:
+                for cr in recs:
+                    r = depparser.expandDEPReceipt(cr)
+                    rec, pre = receipt.Receipt.fromJWSString(r)
+                    receipts[rec.toURLHash(pre)] = rec.toBasicCode(pre)
     elif sys.argv[1] == 'jws':
         for l in sys.stdin:
             rec, pre = receipt.Receipt.fromJWSString(l.strip())

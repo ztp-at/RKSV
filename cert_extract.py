@@ -23,9 +23,9 @@ from builtins import range
 import os
 import sys
 
+import depparser
 import key_store
 import utils
-import verify
 
 def usage():
     print("Usage: ./cert_extract.py <output dir>")
@@ -43,15 +43,15 @@ if __name__ == "__main__":
         os.mkdir(outDir)
     os.chdir(outDir)
 
-    dep = utils.readJsonStream(sys.stdin)
-    groups = verify.parseDEPAndGroups(dep)
-    for recs, cert, cert_list in groups:
-        groupCerts = list(cert_list)
-        if cert:
-            groupCerts.append(cert)
+    parser = depparser.CertlessStreamDEPParser(sys.stdin)
+    for chunk in parser.parse(depparser.depParserChunkSize()):
+        for recs, cert, cert_list in chunk:
+            groupCerts = list(cert_list)
+            if cert:
+                groupCerts.append(cert)
 
-        for co in groupCerts:
-            cs = key_store.numSerialToKeyId(co.serial)
-            with open('{}.crt'.format(cs), 'w') as f:
-                f.write(utils.addPEMCertHeaders(
-                    utils.exportCertToPEM(co)))
+            for co in groupCerts:
+                cs = key_store.numSerialToKeyId(co.serial)
+                with open('{}.crt'.format(cs), 'w') as f:
+                    f.write(utils.addPEMCertHeaders(
+                        utils.exportCertToPEM(co)))
