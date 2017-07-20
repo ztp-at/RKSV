@@ -26,7 +26,7 @@ from six import string_types
 
 import os
 def depParserChunkSize():
-    return os.environ.get('RKSV_DEP_CHUNKSIZE', 100000)
+    return int(os.environ.get('RKSV_DEP_CHUNKSIZE', 100000))
 
 import utils
 import verify
@@ -391,9 +391,6 @@ class IncrementalDEPParser(DEPParserI):
 
 
 class StreamDEPParser(IncrementalDEPParser):
-    def __init__(self, stream):
-        super(StreamDEPParser, self).__init__(stream)
-
     def _needCerts(self, state, chunksize, groupidx):
         raise MalformedDEPException(
                 _("Element \"Signaturzertifikat\" or \"Zertifizierungsstellen\" missing"),
