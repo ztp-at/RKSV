@@ -125,6 +125,7 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                 # Temporarily disable translations to make sure error
                 # messages match.
                 __builtin__._ = lambda x: x
+
                 parser = depparser.DictDEPParser(dep, nprocs)
                 state = verify.verifyParsedDEP(parser, ks, key, state,
                         registerIdx, pool, nprocs, 2)
@@ -132,13 +133,6 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                     for recs, cert, chain in chunk:
                         crsOld.updateFromDEPGroup(recs, key)
 
-                """
-                for pdep in depparser.DictDEPParser(dep).parse(2):
-                    state = verify.verifyParsedDEP(pdep, ks, key, state,
-                            registerIdx, pool, nprocs)
-                    for recs, cert, chain in pdep:
-                        crsOld.updateFromDEPGroup(recs, key)
-                """
                 __builtin__._ = trans
 
                 prevJWS, crsNew, ids = state.getCashRegisterInfo(registerIdx)
