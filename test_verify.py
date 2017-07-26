@@ -29,7 +29,9 @@ from builtins import str
 
 import base64
 import enum
+import json
 import re
+import tempfile
 
 import depparser
 import key_store
@@ -122,23 +124,31 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
             if parse:
                 prevJWS, crsOld, ids = state.getCashRegisterInfo(registerIdx)
 
-                # Temporarily disable translations to make sure error
-                # messages match.
-                __builtin__._ = lambda x: x
+                # We use text mode for the tempfile because otherwise
+                # json.dump() fails on Python 3 and we'd have to use dumps()
+                # and then encode the string before writing.
+                with tempfile.TemporaryFile(mode='w+', suffix='.json',
+                        prefix='rksv_test_dep_') as tmpf:
+                    json.dump(dep, tmpf)
+                    tmpf.seek(0)
 
-                parser = depparser.DictDEPParser(dep, nprocs)
-                state = verify.verifyParsedDEP(parser, ks, key, state,
-                        registerIdx, pool, nprocs, 2)
-                recids = set(ids)
-                for chunk in parser.parse(0):
-                    for recs, cert, chain in chunk:
-                        crsOld.updateFromDEPGroup(recs, key)
-                        for r in recs:
-                            rs = depparser.expandDEPReceipt(r)
-                            ro = receipt.Receipt.fromJWSString(rs)[0]
-                            recids.add(ro.receiptId)
+                    # Temporarily disable translations to make sure error
+                    # messages match.
+                    __builtin__._ = lambda x: x
 
-                __builtin__._ = trans
+                    parser = depparser.FileDEPParser(tmpf)
+                    state = verify.verifyParsedDEP(parser, ks, key, state,
+                            registerIdx, pool, nprocs, 2)
+                    recids = set(ids)
+                    for chunk in parser.parse(0):
+                        for recs, cert, chain in chunk:
+                            crsOld.updateFromDEPGroup(recs, key)
+                            for r in recs:
+                                rs = depparser.expandDEPReceipt(r)
+                                ro = receipt.Receipt.fromJWSString(rs)[0]
+                                recids.add(ro.receiptId)
+
+                    __builtin__._ = trans
 
                 prevJWS, crsNew, ids = state.getCashRegisterInfo(registerIdx)
                 if crsOld != crsNew:
