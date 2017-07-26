@@ -376,9 +376,6 @@ if __name__ == "__main__":
         if len(sys.argv) != 5 and len(sys.argv) != 6:
             usage()
 
-        with open(sys.argv[4]) as f:
-            parser = depparser.CertlessStreamDEPParser(f)
-
         key = None
         if len(sys.argv) == 6:
             with open(sys.argv[5]) as f:
@@ -386,9 +383,12 @@ if __name__ == "__main__":
 
         state = load_state(filename)
 
-        for chunk in parser.parse(depparser.depParserChunkSize()):
-            for recs, cert, chain in chunk:
-                state.cashRegisters[int(sys.argv[3])].updateFromDEPGroup(recs, key)
+        with open(sys.argv[4]) as f:
+            parser = depparser.CertlessStreamDEPParser(f)
+
+            for chunk in parser.parse(depparser.depParserChunkSize()):
+                for recs, cert, chain in chunk:
+                    state.cashRegisters[int(sys.argv[3])].updateFromDEPGroup(recs, key)
 
     else:
         usage()
