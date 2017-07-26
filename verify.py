@@ -552,7 +552,7 @@ def balanceGroupsWithVerifiers(groups, nprocs):
 
     return pkgs
 
-def verifyParsedDEP_finalize(outUsedRecIds, usedRecIds):
+def updateUsedReceiptIds(outUsedRecIds, usedRecIds):
     # merge usedRecIds and check for duplicates
     seen = set()
     for rids in [usedRecIds] + list(outUsedRecIds):
@@ -675,7 +675,7 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
 
         if res is not None:
             outRStates, outUsedRecIds = zip(*res.get())
-            usedRecIds = verifyParsedDEP_finalize(outUsedRecIds, usedRecIds)
+            usedRecIds = updateUsedReceiptIds(outUsedRecIds, usedRecIds)
             rState = outRStates[-1]
 
         wargs = prepareVerificationTuples(pkgs, key, prevStart, rState)
@@ -689,7 +689,7 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
             res = pool.map_async(verifyGroupsWithVerifiersTuple, wargs)
 
     outRStates, outUsedRecIds = zip(*res.get())
-    usedRecIds = verifyParsedDEP_finalize(outUsedRecIds, usedRecIds)
+    usedRecIds = updateUsedReceiptIds(outUsedRecIds, usedRecIds)
     rState = outRStates[-1]
 
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)

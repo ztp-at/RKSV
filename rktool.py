@@ -578,7 +578,7 @@ def verifyDEP_main_Task(args):
 
 def verifyDEP_finalize_Task(outUsedRecIds, usedRecIds):
     try:
-        mergedUsedRecIds = verify.verifyParsedDEP_finalize(outUsedRecIds,
+        mergedUsedRecIds = verify.updateUsedReceiptIds(outUsedRecIds,
                 usedRecIds)
         return None, mergedUsedRecIds
     except (receipt.ReceiptException, verify.DEPException) as e:
