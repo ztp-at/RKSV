@@ -562,9 +562,7 @@ def updateUsedReceiptIds(outUsedRecIds, usedRecIds):
             else:
                 seen.add(rid)
 
-    mergedUsedRecIds = usedRecIds | set.union(*outUsedRecIds)
-
-    return mergedUsedRecIds
+    return seen
 
 def packageChunkWithVerifiers(chunk, keyStore):
     groupsWithVerifiers = list()
