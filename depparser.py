@@ -15,6 +15,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
+"""
+This module provides functions to parse a DEP.
+"""
+
 from builtins import int
 from builtins import range
 
@@ -26,12 +30,22 @@ from six import string_types
 
 import os
 def depParserChunkSize():
+    """
+    This function returns the preferred chunksize that RKSV script should use
+    when none was specified. The default is 100000. The value can be modified
+    via the RKSV_DEP_CHUNKSIZE environment variable.
+    :return: An int specifying the default chunksize.
+    """
     return int(os.environ.get('RKSV_DEP_CHUNKSIZE', 100000))
 
 import utils
 import verify
 
 class DEPParseException(verify.DEPException):
+    """
+    Indicates that an error occurred while parsing the DEP.
+    """
+
     def __init__(self, msg):
         super(DEPParseException, self).__init__(msg)
         self._initargs = (msg,)
@@ -314,6 +328,14 @@ class DEPStateReceiptList(DEPStateWithIncompleteData):
         raise MalformedDEPElementException('Belege-kompakt', self.idx)
 
 def shrinkDEPReceipt(rec, idx = None):
+    """
+    Encode a JWS receipt string to a bytes representation. This takes up less
+    memory.
+    :param rec: The receipt JWS as a string.
+    :param idx: The index of the group in the DEP to which the receipt belongs
+    or None if it is unknown. This is only used to generate error messages.
+    :return: The receipt JWS as a byte array.
+    """
     try:
         return rec.encode('utf-8')
     except TypeError:
@@ -323,6 +345,13 @@ def shrinkDEPReceipt(rec, idx = None):
             raise MalformedDEPElementException('Receipt \"{}\"'.format(rec), idx)
 
 def expandDEPReceipt(rec, idx = None):
+    """
+    Decodes a receipt JWS byte array to a regular string.
+    :param rec: The receipt JWS as a byte array.
+    :param idx: The index of the group in the DEP to which the receipt belongs
+    or None if it is unknown. This is only used to generate error messages.
+    :return: The receipt JWS as a string.
+    """
     try:
         return rec.decode('utf-8')
     except UnicodeDecodeError:
@@ -348,10 +377,37 @@ def parseDEPCert(cert_str):
         raise MalformedCertificateException(cert_str)
 
 class DEPParserI(object):
+    """
+    The base class for DEP parsers. This interface allows reading a DEP in
+    small chunks without having to store it in memory entirely. Do not use this
+    directly, use one of the subclasses.
+    """
+
     def parse(self, chunksize = 0):
+        """
+        This function parses a DEP and yields chunks of at most chunksize
+        receipts. A chunk is a list of group tuples. Every group tuple consists
+        of a list of receipt JWS as byte arrays, a certificate object
+        containing the certificate used to sign the receipts (or None) and a
+        list of certificate objects with the certificates used to sign the
+        first certificate (or an empty list) in that order.
+        If the chunksize is non-zero, every chunk is guaranteed to contain at
+        most chunksize receipts in total (over all groups). Otherwise, the
+        maximum number of receipts is implementation dependent. Every yielded
+        chunk is guaranteed to contain at least one group tuple.
+        :param chunksize: A positive number specifying the maximum number of
+        receipts in one chunk or zero.
+        :yield: One chunk at a time a described above.
+        :throws: DEPParseException
+        """
         raise NotImplementedError("Please implement this yourself.")
 
 class IncrementalDEPParser(DEPParserI):
+    """
+    A DEP parser that reads a DEP from a file descriptor. Do not use this
+    directly, use one of the subclasses.
+    """
+
     def __init__(self, fd):
         # skipBOM checks if we can seek, so no harm in doing it to a non-file
         self.startpos = utils.skipBOM(fd)
@@ -391,6 +447,17 @@ class IncrementalDEPParser(DEPParserI):
 
 
 class StreamDEPParser(IncrementalDEPParser):
+    """
+    A DEP parser that reads a DEP from a stream type file descriptor. Such a
+    file descriptor is not seekable. The parse() method will raise an exception
+    if an element needed to construct a chunk was not read by the time the
+    chunk has to be yielded. It will not perform any look-ahead operations
+    because all receipts read until the missing elements are found would need
+    to be stored in memory, thus defeating the purpose of the parser API.
+    A chunksize of zero for the parse() method will cause all receipts in the
+    DEP to be returned in a single chunk.
+    """
+
     def _needCerts(self, state, chunksize, groupidx):
         raise MalformedDEPException(
                 _("Element \"Signaturzertifikat\" or \"Zertifizierungsstellen\" missing"),
@@ -401,6 +468,16 @@ class StreamDEPParser(IncrementalDEPParser):
             yield chunk
 
 class CertlessStreamDEPParser(StreamDEPParser):
+    """
+    This DEP parser behaves identically to StreamDEPParser, except for the
+    fact, that it will not raise an exception if a DEP element needed to
+    construct the current chunk has not been read yet. Instead, the yielded
+    chunk will have these elements set to None (for Signaturzertifikat) and the
+    empty list (for Zertifizierungsstellen) respectively.
+    Note that the parser will still not tolerate if the elements are missing
+    altogether.
+    """
+
     def _needCerts(self, state, chunksize, groupidx):
         # Do nothing, we don't really care about certs.
         # The parser will still fail if they are outright missing, but we are ok
@@ -408,6 +485,17 @@ class CertlessStreamDEPParser(StreamDEPParser):
         pass
 
 class FileDEPParser(IncrementalDEPParser):
+    """
+    A DEP parser that reads a DEP from a seekable file. If DEP elements needed
+    to construct the current chunk are missing, this parser will perform an
+    additional parsing pass to locate these elements before returning the
+    chunk. If the total number of such elements is less than the given
+    chunksize, they will be cached in memory to avoid having to do even more
+    parsing passes.
+    A chunksize of zero for the parse() method will cause all receipts in the
+    DEP to be returned in a single chunk.
+    """
+
     def __init__(self, fd):
         super(FileDEPParser, self).__init__(fd)
 
@@ -442,6 +530,18 @@ class FileDEPParser(IncrementalDEPParser):
             yield chunk
 
 class DictDEPParser(DEPParserI):
+    """
+    A DEP parser that accepts an already parsed dictionary data structure and
+    yields chunks of the requested size. This parser is intended to parse DEPs
+    that are already completely in memory anyway but emulates the parser API
+    for compatibility.
+    If the chunksize is zero and the nparts parameter equals 1, the parse()
+    method will return each group in the DEP in its own chunk.
+    If the chunksize is zero and the nparts parameter is greater than 1, the
+    parse() method will try to evenly distribute the receipts over nparts
+    chunks. It will then yield at most nparts chunks.
+    """
+
     def __init__(self, dep, nparts = 1):
         self.dep = dep
         self.nparts = nparts
