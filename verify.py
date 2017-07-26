@@ -835,7 +835,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 4 or len(sys.argv) > 7:
         usage()
 
-    chunksize = 0
+    chunksize = depparser.depParserChunkSize()
     if sys.argv[1] == 'chunksize':
         del sys.argv[1]
         try:
