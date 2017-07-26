@@ -129,9 +129,14 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                 parser = depparser.DictDEPParser(dep, nprocs)
                 state = verify.verifyParsedDEP(parser, ks, key, state,
                         registerIdx, pool, nprocs, 2)
+                recids = set(ids)
                 for chunk in parser.parse(0):
                     for recs, cert, chain in chunk:
                         crsOld.updateFromDEPGroup(recs, key)
+                        for r in recs:
+                            rs = depparser.expandDEPReceipt(r)
+                            ro = receipt.Receipt.fromJWSString(rs)[0]
+                            recids.add(ro.receiptId)
 
                 __builtin__._ = trans
 
@@ -139,6 +144,11 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                 if crsOld != crsNew:
                     return TestVerifyResult.FAIL, Exception(
                             _('State update without verification failed.'))
+                if recids != ids:
+                    print(recids)
+                    print(ids)
+                    return TestVerifyResult.FAIL, Exception(
+                            _('List of used receipt IDs invalid.'))
             else:
                 # Temporarily disable translations to make sure error
                 # messages match.
