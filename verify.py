@@ -889,7 +889,7 @@ if __name__ == "__main__":
                     dep = utils.readJsonStream(f)
                     parser = depparser.DictDEPParser(dep, nprocs)
                 else:
-                    parser = depparser.FileDEPParser(f)
+                    parser = depparser.IncrementalDEPParser.fromFd(f, True)
 
                 state = verifyParsedDEP(parser, keyStore, key, state, registerIdx,
                         pool, nprocs, chunksize)
@@ -902,7 +902,7 @@ if __name__ == "__main__":
                 dep = utils.readJsonStream(f)
                 state = verifyDEP(dep, keyStore, key, state, registerIdx)
             else:
-                parser = depparser.FileDEPParser(f)
+                parser = depparser.IncrementalDEPParser.fromFd(f, True)
                 state = verifyParsedDEP(parser, keyStore, key, state, registerIdx,
                         None, nprocs, chunksize)
 

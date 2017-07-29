@@ -410,13 +410,37 @@ class DEPParserI(object):
 class IncrementalDEPParser(DEPParserI):
     """
     A DEP parser that reads a DEP from a file descriptor. Do not use this
-    directly, use one of the subclasses.
+    directly, use one of the subclasses or the fromFd() method which will return
+    an appropriate parser object.
     """
 
     def __init__(self, fd):
         # skipBOM checks if we can seek, so no harm in doing it to a non-file
         self.startpos = utils.skipBOM(fd)
         self.fd = fd
+
+    @staticmethod
+    def fromFd(fd, need_certs=True):
+        """
+        Returns a new IncrementalDEPParser object using the specified file
+        descriptor. If chunks don't necessarily have to contain the DEP group
+        certificates (because, for example, no signature verification is
+        performed), the need_certs parameter can be set to False. In this case
+        fromFd() will return a CertlessStreamDEPParser. If need_certs is True,
+        it will return a FileDEPParser for a seekable file descriptor and a
+        StreamDEPParser for a non-seekable one.
+        :param fd: The file descriptor to use.
+        :param need_certs: Whether chunks need to contain the group
+        certificates.
+        :return: An IncrementalDEPParser object using fd as data source.
+        """
+        if not need_certs:
+            return CertlessStreamDEPParser(fd)
+        try:
+            fd.tell()
+            return FileDEPParser(fd)
+        except IOError:
+            return StreamDEPParser(fd)
 
     def _needCerts(self, state, chunksize, groupidx):
         raise NotImplementedError("Please implement this yourself.")
@@ -500,9 +524,6 @@ class FileDEPParser(IncrementalDEPParser):
     A chunksize of zero for the parse() method will cause all receipts in the
     DEP to be returned in a single chunk.
     """
-
-    def __init__(self, fd):
-        super(FileDEPParser, self).__init__(fd)
 
     def __getItems(self, prefix, chunksize):
         if prefix in self.cache:

@@ -136,7 +136,7 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                     # messages match.
                     __builtin__._ = lambda x: x
 
-                    parser = depparser.FileDEPParser(tmpf)
+                    parser = depparser.IncrementalDEPParser.fromFd(tmpf, True)
                     state = verify.verifyParsedDEP(parser, ks, key, state,
                             registerIdx, pool, nprocs, 2)
                     recids = set(ids)
