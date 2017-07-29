@@ -167,7 +167,7 @@ class DEPStateWithIncompleteData(DEPStateWithData):
     class WIPData(object):
         def __init__(self):
             self.cert = None
-            self.cert_chain = list()
+            self.cert_chain = None
             self.recs = list()
 
     def __init__(self, chunksize, upper, idx):
@@ -179,7 +179,7 @@ class DEPStateWithIncompleteData(DEPStateWithData):
         self.idx = idx
 
     def needCrt(self):
-        if self.wip.cert is None or len(self.wip.cert_chain) == 0:
+        if self.wip.cert is None or self.wip.cert_chain is None:
             return self.idx
         return None
 
@@ -189,7 +189,11 @@ class DEPStateWithIncompleteData(DEPStateWithData):
 
     def mergeIntoChunk(self):
         if len(self.wip.recs) > 0:
-            self.chunk.append((self.wip.recs, self.wip.cert, self.wip.cert_chain))
+            clist = self.wip.cert_chain
+            if clist is None:
+                clist = list()
+
+            self.chunk.append((self.wip.recs, self.wip.cert, clist))
             self.wip.recs = list()
 
     def ready(self):
@@ -288,6 +292,7 @@ class DEPStateGroup(DEPStateWithIncompleteData):
             if event != 'start_array':
                 raise MalformedDEPElementException('Zertifizierungsstellen',
                         'not a list', self.idx)
+            self.wip.cert_chain = list()
             self.cert_list_seen = True
             return DEPStateCertList(self.chunksize, self, self.idx)
 
