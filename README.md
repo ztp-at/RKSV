@@ -7,7 +7,7 @@ analyzing cash register logs (DEPs) and signed receipts according to the
 Registrierkassensicherheitsverordnung (RKSV).
 
 A German tutorial for some of the tools here is available in the
-[Wiki](https://github.com/prentner/RKSV/wiki).
+[Wiki](https://github.com/ztp-at/RKSV/wiki).
 
 Disclaimer
 ----------
