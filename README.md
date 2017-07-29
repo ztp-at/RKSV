@@ -93,6 +93,28 @@ The container also includes an SSH server that can be started with `service
 ssh start`. The default user (and password) is `rksv`. Together with X11
 forwarding, the SSH server can be used to run the GUI.
 
+Managing large DEPs
+-------------------
+
+As larger DEPs may take up too much space to be resident entirely in memory, all
+scripts that read DEP JSON files (except for the `rktool.py` GUI) use an
+incremental parser to read and process a file in several chunks. The default
+number of receipts per chunks is `100000` and can be adjusted with the
+`RKSV_DEP_CHUNKSIZE` environment variable. A higher chunk size can increase
+performance but requires more memory, while a lower chunk size can reduce memory
+usage at the cost of speed. A chunk size of zero will cause the entire DEP to be
+read into memory.
+
+As the incremental parser needs to return the appropriate certificates for each
+chunk it generates, it may need to locate the certificate and certificate chain
+elements in each DEP group before all receipts have been read. Therefore,
+receipts either need to be placed _after_ these elements or the parser needs to
+parse the DEP twice (first to locate the certificate elements, second to read
+the receipts in chunks), thus requiring more time and a seekable file (i.e. not
+a Pipe or a Socket). For optimal performance the certificate and certificate
+chain elements should be placed _before_ the receipt list in each group in the
+DEP file.
+
 make env
 --------
 
@@ -309,8 +331,8 @@ converting them to a different format. The supported input formats are
 
 verify.py
 ---------
-	Usage: ./verify.py [state [continue|<n>]] [par <n>] keyStore <key store> <dep export file> [<base64 AES key file>]
-	       ./verify.py [state [continue|<n>]] [par <n>] json <json container file> <dep export file>
+	Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] keyStore <key store> <dep export file> [<base64 AES key file>]
+	       ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] json <json container file> <dep export file>
 	       ./verify.py state
 
 This script, when called with the `keyStore` command, verifies the given DEP
@@ -347,6 +369,17 @@ the first DEP for this new cash register.
 The `par` keyword will instruct the script to use the following positive
 number as the number of parallel processes to use for verifying the DEP. If
 it is omitted, a single process will be used.
+
+The `chunksize` keyword will set the number of receipts that are processed as
+one chunk. If the keyword is missing, the default chunk size or (if available)
+the chunk size in the `RKSV_DEP_CHUNKSIZE` environment variable will be used. If
+the `par` keyword was also used, the script will read a chunk for every process,
+dispatch the chunks for verification to the processes, and repeat this until no
+chunks are left. If a chunk size of zero is specified, the script will read the
+entire DEP at once and evenly distribute the receipts among the processes. Note
+that all receipts in a chunk must fit in memory at the same time. If multiple
+processes are used one chunk for every process must fit into memory at the same
+time.
 
 test_verify.py
 --------------
