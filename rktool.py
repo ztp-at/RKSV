@@ -763,10 +763,9 @@ class VerifyDEPWidget(BoxLayout):
 
         try:
             with open(os.path.join(path, filename[0])) as f:
-                jsonDEP = utils.readJsonStream(f)
-                # We expect the DictDEPParser to return each group separately
-                # with these parameters.
-                parser = depparser.DictDEPParser(jsonDEP)
+                # We expect the FullFileDEPParser to return each group
+                # separately with these parameters.
+                parser = depparser.FullFileDEPParser(f)
                 self.dep = [ chunk[0] for chunk in parser.parse(0) ]
 
             App.get_running_app().curSearchPath = path

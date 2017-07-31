@@ -886,8 +886,7 @@ if __name__ == "__main__":
         try:
             with open(sys.argv[3]) as f:
                 if chunksize == 0:
-                    dep = utils.readJsonStream(f)
-                    parser = depparser.DictDEPParser(dep, nprocs)
+                    parser = depparser.FullFileDEPParser(f, nprocs)
                 else:
                     parser = depparser.IncrementalDEPParser.fromFd(f, True)
 

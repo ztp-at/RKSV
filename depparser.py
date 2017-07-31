@@ -659,3 +659,27 @@ class DictDEPParser(DEPParserI):
 
         if not got_something:
             raise MalformedDEPException(_('No receipts found'))
+
+class FullFileDEPParser(DEPParserI):
+    """
+    This parser behaves like DictDEPParser but accepts a file descriptor from
+    which to read the JSON instead of an already parsed dictionary structure.
+    The file is read in its entirety on the first call to parse() and JSON
+    parsed contents are kept in memory. Subsequent calls reuse these contents.
+    """
+
+    def __init__(self, fd, nparts = 1):
+        self.fd = fd
+        self.nparts = nparts
+        self.dictParser = None
+
+    def parse(self, chunksize = 0):
+        if not self.dictParser:
+            try:
+                dep = utils.readJsonStream(self.fd)
+            except (IOError, UnicodeDecodeError, ValueError) as e:
+                raise DEPParseException(_('Malformed JSON: {}.').format(e))
+            self.dictParser = DictDEPParser(dep, self.nparts)
+
+        for chunk in self.dictParser.parse(chunksize):
+            yield chunk
