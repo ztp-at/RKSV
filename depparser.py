@@ -555,6 +555,18 @@ class FileDEPParser(IncrementalDEPParser):
         for chunk in super(FileDEPParser, self).parse(chunksize):
             yield chunk
 
+
+def totalRecsInDictDEP(dep):
+    def _nrecs(group):
+        try:
+            return len(group['Belege-kompakt'])
+        except (TypeError, KeyError):
+            return 0
+
+    bg = dep.get('Belege-Gruppe', [])
+    return sum(_nrecs(g) for g in bg)
+
+
 class DictDEPParser(DEPParserI):
     """
     A DEP parser that accepts an already parsed dictionary data structure and
@@ -643,13 +655,7 @@ class DictDEPParser(DEPParserI):
             raise MalformedDEPElementException('Belege-Gruppe')
 
         if self.nparts > 1 and not chunksize:
-            def _nrecs(group):
-                try:
-                    return len(group['Belege-kompakt'])
-                except (TypeError, KeyError):
-                    return 0
-
-            nrecs = sum(_nrecs(g) for g in bg)
+            nrecs = totalRecsInDictDEP(self.dep)
             chunksize = int(ceil(float(nrecs) / self.nparts))
 
         got_something = False

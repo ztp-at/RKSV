@@ -30,6 +30,7 @@ from builtins import str
 import base64
 import enum
 import json
+import random
 import re
 import tempfile
 
@@ -137,8 +138,12 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                     __builtin__._ = lambda x: x
 
                     parser = depparser.IncrementalDEPParser.fromFd(tmpf, True)
+
+                    # Pick a random chunk size.
+                    nrecs = depparser.totalRecsInDictDEP(dep)
+                    randCs = max(2, random.randint(0, nrecs - 1))
                     state = verify.verifyParsedDEP(parser, ks, key, state,
-                            registerIdx, pool, nprocs, 2)
+                            registerIdx, pool, nprocs, randCs)
                     recids = set(ids)
                     for chunk in parser.parse(0):
                         for recs, cert, chain in chunk:
@@ -148,7 +153,19 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                                 ro = receipt.Receipt.fromJWSString(rs)[0]
                                 recids.add(ro.receiptId)
 
+                    # Reenable translations.
                     __builtin__._ = trans
+
+                    if nrecs < 10:
+                        chunksizes = list(range(1, nrecs + 1)) + [nrecs * 2]
+                    else:
+                        chunksizes = [1, randCs, nrecs, nrecs * 2]
+                    dictParser = depparser.DictDEPParser(dep, nprocs)
+                    for i in chunksizes:
+                        for cA, cB in zip(dictParser.parse(i), parser.parse(i)):
+                            if cA != cB:
+                                return TestVerifyResult.FAIL, Exception(
+                                        _('Incremental and dict parser yield different results at chunksize {}.').format(i))
 
                 prevJWS, crsNew, ids = state.getCashRegisterInfo(registerIdx)
                 if crsOld != crsNew:
@@ -179,7 +196,7 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
     except Exception as e:
         return TestVerifyResult.ERROR, e
     finally:
-        # Restore the _() function.
+        # Reenable translations.
         __builtin__._ = trans
 
     if actual_exception:
@@ -310,7 +327,9 @@ def printTestVerifySummary(results):
     nErrors = sum(r[4] == TestVerifyResult.ERROR for r in results)
     print(_('{} tests run, {} failed, {} errors').format(len(results), nFails, nErrors))
 
+import codecs
 import json
+import os
 import sys
 
 def usage():
@@ -320,6 +339,10 @@ def usage():
     sys.exit(3)
 
 if __name__ == "__main__":
+    def get_seed():
+        return os.environ.get('RKSV_TEST_SEED',
+                codecs.encode(os.urandom(8), 'hex').decode('utf-8'))
+
     def closed_or_usage(arg):
         if arg == 'closed':
             return True
@@ -363,6 +386,10 @@ if __name__ == "__main__":
     # We should always test with multiprocessing to catch pickle issues.
     DEFAULT_NPROCS = 2
 
+    seed = get_seed()
+    random.seed(seed)
+    print(_('Using seed \"{}\"').format(seed))
+
     if len(sys.argv) < 5:
         usage()
 
@@ -396,6 +423,7 @@ if __name__ == "__main__":
             pool.join()
 
         printTestVerifySummary(resultList)
+        print(_('Used seed \"{}\"').format(seed))
 
         if any(r[4] == TestVerifyResult.ERROR for r in resultList):
             sys.exit(2)
@@ -429,6 +457,7 @@ if __name__ == "__main__":
         pool.join()
 
     printTestVerifyResult(test_name, 'no Group', closed, tc_size, result, msg)
+    print(_('Used seed \"{}\"').format(seed))
 
     if result == TestVerifyResult.ERROR:
         sys.exit(2)
