@@ -125,7 +125,7 @@ class CashRegisterState(object):
         return NotImplemented
 
 def printStateField(name, value):
-    print('{: >25}: {}'.format(name, value))
+    print(u'{: >25}: {}'.format(name, value))
 
 def printCashRegisterState(state):
     printStateField(_('Start Receipt'), state.startReceiptJWS)
