@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-07-29 22:00+CEST\n"
+"POT-Creation-Date: 2017-07-31 19:42+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -76,15 +76,15 @@ msgstr "Zertifikat \"{}\" ungültig."
 msgid "Duplicate DEP root."
 msgstr "DEP-Wurzel doppelt."
 
-#: depparser.py:222 depparser.py:237 depparser.py:637
+#: depparser.py:222 depparser.py:237 depparser.py:649
 msgid "Malformed DEP root."
 msgstr "Ungültige DEP-Wurzel."
 
-#: depparser.py:473 depparser.py:661
+#: depparser.py:473 depparser.py:667
 msgid "No receipts found"
 msgstr "Keine Rechnungen gefunden"
 
-#: depparser.py:475
+#: depparser.py:475 depparser.py:687
 msgid "Malformed JSON: {}."
 msgstr "Ungültiges JSON: {}."
 
@@ -170,12 +170,12 @@ msgstr "Überprüfe..."
 msgid "Verify"
 msgstr "Überprüfen"
 
-#: main.py:375 main.py:789 rktool.kv:233 rktool.py:375 rktool.py:789
+#: main.py:375 main.py:788 rktool.kv:233 rktool.py:375 rktool.py:788
 msgid "Load AES Key"
 msgstr "AES Schlüssel laden"
 
-#: main.py:396 main.py:809 main.py:959 rktool.py:396 rktool.py:809
-#: rktool.py:959
+#: main.py:396 main.py:808 main.py:958 rktool.py:396 rktool.py:808
+#: rktool.py:958
 msgid "Malformed crypto container"
 msgstr "Ungültiges Schlüsselmaterial"
 
@@ -199,8 +199,8 @@ msgstr "Rechnung laden"
 msgid "Group %d"
 msgstr "Gruppe %d"
 
-#: main.py:642 main.py:649 main.py:852 rktool.py:642 rktool.py:649
-#: rktool.py:852
+#: main.py:642 main.py:649 main.py:851 rktool.py:642 rktool.py:649
+#: rktool.py:851
 msgid "Serial: "
 msgstr "Seriennummer: "
 
@@ -212,35 +212,35 @@ msgstr "Gültiges DEP"
 msgid "Load DEP"
 msgstr "DEP laden"
 
-#: main.py:820 rktool.py:820
+#: main.py:819 rktool.py:819
 msgid "Public Keys"
 msgstr "Öffentliche Schlüssel"
 
-#: main.py:822 rktool.py:822
+#: main.py:821 rktool.py:821
 msgid "Certificates"
 msgstr "Zertifikate"
 
-#: main.py:857 rktool.py:857
+#: main.py:856 rktool.py:856
 msgid "Key ID: "
 msgstr "Schlüssel ID: "
 
-#: main.py:870 rktool.py:870
+#: main.py:869 rktool.py:869
 msgid "Load PEM Public Key"
 msgstr "Öffentlichen Schlüssel (PEM) laden"
 
-#: main.py:875 rktool.py:875
+#: main.py:874 rktool.py:874
 msgid "Load PEM Certificate"
 msgstr "Zertifikat (PEM) laden "
 
-#: main.py:896 rktool.py:896
+#: main.py:895 rktool.py:895
 msgid "Enter Public Key ID"
 msgstr "ID des öffentlichen Schlüssels eingeben"
 
-#: main.py:926 rktool.py:926
+#: main.py:925 rktool.py:925
 msgid "Load Key Store"
 msgstr "Schlüsselspeicher laden"
 
-#: main.py:932 rktool.py:932
+#: main.py:931 rktool.py:931
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
 
@@ -514,7 +514,7 @@ msgstr ""
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:282 test_verify.py:333
+#: run_test.py:282 test_verify.py:354
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
@@ -522,52 +522,66 @@ msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
 
-#: test_verify.py:82 test_verify.py:87 test_verify.py:95
+#: test_verify.py:83 test_verify.py:88 test_verify.py:96
 msgid "no Exception"
 msgstr "kein Fehler"
 
-#: test_verify.py:156
+#: test_verify.py:168
+msgid "Incremental and dict parser yield different results at chunksize {}."
+msgstr ""
+"Inkrementeller und Dictionary Parser liefern unterschiedliche Resultate bei "
+"einer Blockgröße von {}."
+
+#: test_verify.py:173
 msgid "State update without verification failed."
 msgstr "Zustandsupdate ohne Verifikation fehlgeschlagen."
 
-#: test_verify.py:161
+#: test_verify.py:176
 msgid "List of used receipt IDs invalid."
 msgstr "Liste verwendeter Rechnungs-IDs ist ungültig."
 
-#: test_verify.py:174
+#: test_verify.py:189
 msgid "Expected {} in turnover counter but got {}."
 msgstr "Erwartete {} im Umsatzzähler, aber habe {} bekommen."
 
-#: test_verify.py:190
+#: test_verify.py:205
 msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
 msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
 
-#: test_verify.py:198
+#: test_verify.py:213
 msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
 msgstr ""
 "Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
 "bekommen"
 
-#: test_verify.py:206
+#: test_verify.py:221
 msgid "Expected message \"{}\" but got \"{}\" instead"
 msgstr "Erwartete Nachricht war \"{}\", habe stattdessen \"{}\" bekommen"
 
-#: test_verify.py:212
+#: test_verify.py:227
 msgid "Expected message matching \"{}\" but got \"{}\" instead"
 msgstr ""
 "Erwartete Nachricht passend zu \"{}\", habe stattdessen \"{}\" bekommen"
 
-#: test_verify.py:256
+#: test_verify.py:271
 msgid "Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<"
 msgstr "Ergebnisse verschieden: ohne parsing {}:>{}<, mit parsing {}:>{}<"
 
-#: test_verify.py:294
+#: test_verify.py:309
 msgid "No run label"
 msgstr "Kein Simulationsname"
 
-#: test_verify.py:311
+#: test_verify.py:326
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
+
+#: test_verify.py:389
+msgid "Using seed \"{}\""
+msgstr "Verwende Seed \"{}\""
+
+#: test_verify.py:424 test_verify.py:458
+msgid "Used seed \"{}\""
+msgstr "Verwendete Seed \"{}\""
 
 #: verification_state.py:46
 msgid "No cash register with index {}."
@@ -687,7 +701,7 @@ msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 msgid "THIS IS A BUG"
 msgstr "DAS IST EIN BUG"
 
-#: verify.py:913
+#: verify.py:912
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
