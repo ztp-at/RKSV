@@ -172,8 +172,6 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                     return TestVerifyResult.FAIL, Exception(
                             _('State update without verification failed.'))
                 if recids != ids:
-                    print(recids)
-                    print(ids)
                     return TestVerifyResult.FAIL, Exception(
                             _('List of used receipt IDs invalid.'))
             else:
