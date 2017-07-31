@@ -381,6 +381,14 @@ that all receipts in a chunk must fit in memory at the same time. If multiple
 processes are used one chunk for every process must fit into memory at the same
 time.
 
+Note that even when a non-zero chunk size is used, the required memory
+increases linearly with the total number of receipts in the DEP. This is
+because the script needs to keep track of the used receipt IDs to detect
+duplicates. A possible workaround is to split the DEP into multiple files and
+use the `state` keyword to verify them while clearing the list of receipts in
+each state JSON. In this case however, `verify.py` will only be able to
+ascertain the uniqueness of receipt IDs within one file.
+
 test_verify.py
 --------------
 	Usage: ./test_verify.py open <JSON test case spec> <cert priv> <cert> [<turnover counter size>]
