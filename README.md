@@ -421,6 +421,12 @@ specification. If it is present, the script will only execute the test as a
 closed system (if it is `True`) or an open system (if it is `False`). This
 allows for tests that are specific to open/closed systems.
 
+When verifying a DEP using a parser, `test_verify.py` will pick a random chunk
+size for every test. To enable reproducibility of test runs, the script prints
+the seed used for the random number generator at the start and at the end of
+the run. A seed can be set manually via the `RKSV_TEST_SEED` environment
+variable.
+
 verify_receipt.py
 -----------------
 	Usage: ./verify_receipt.py <format> <key store> [<receipt string>]
