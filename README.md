@@ -454,6 +454,18 @@ converting back to JSON.
 
 The CSV contains one receipt per line with `;` serving as the delimiter.
 
+split.py
+--------
+	Usage: ./split.py <chunk size> <output dir>
+
+The split script splits a JSON DEP passed via stdin into segments containing at
+most `chunk size` receipts and stores them as JSON DEP files in `output dir`.
+Note that the output files will only contain the elements specified in the
+RKSV. All other (custom) elements are ignored.
+
+The output files are numbered and can be verified using the `verify.py` script
+with the `state` keyword.
+
 receipt_host.py
 ---------------
 	Usage: ./receipt_host.py dep
