@@ -25,10 +25,92 @@ or deleted from the key store.
 from builtins import int
 from builtins import range
 
+from six import string_types
+
 import copy
-import numbers
 
 import utils
+
+class KeyStoreException(Exception):
+    def __init__(self, message):
+        super(KeyStoreException, self).__init__(message)
+        self._initargs = (message,)
+
+    def __reduce__(self):
+        return (self.__class__, self._initargs)
+
+class KeyStoreParseException(KeyStoreException):
+    """
+    Indicates that an error occurred while parsing the key store.
+    """
+
+    def __init__(self, msg):
+        super(KeyStoreParseException, self).__init__(msg)
+        self._initargs = (msg,)
+
+class MalformedKeyStoreException(KeyStoreParseException):
+    """
+    Indicates that the key store is not properly formed.
+    """
+
+    def __init__(self, msg=None, kid=None):
+        if msg is None:
+            super(MalformedKeyStoreException, self).__init__(_("Malformed key store"))
+        else:
+            if kid is None:
+                super(MalformedKeyStoreException, self).__init__(
+                        _('{}.').format(msg))
+            else:
+                super(MalformedKeyStoreException, self).__init__(
+                        _("In certificate/public key \"{}\": {}.").format(kid, msg))
+        self._initargs = (msg, kid)
+
+class MissingKeyStoreElementException(MalformedKeyStoreException):
+    """
+    Indicates that an element in the key store is missing.
+    """
+
+    def __init__(self, elem, kid=None):
+        super(MissingKeyStoreElementException, self).__init__(
+                _("Element \"{}\" missing").format(elem),
+                kid)
+        self._initargs = (elem, kid)
+
+class MalformedKeyStoreElementException(MalformedKeyStoreException):
+    """
+    Indicates that an element in the key store is malformed.
+    """
+
+    def __init__(self, elem, detail=None, kid=None):
+        if detail is None:
+            super(MalformedKeyStoreElementException, self).__init__(
+                    _("Element \"{}\" malformed").format(elem),
+                    kid)
+        else:
+            super(MalformedKeyStoreElementException, self).__init__(
+                    _("Element \"{}\" malformed: {}").format(elem, detail),
+                    kid)
+        self._initargs = (elem, detail, kid)
+
+class MalformedCertificateException(KeyStoreParseException):
+    """
+    Indicates that a certificate in the key store is not properly formed.
+    """
+
+    def __init__(self, kid):
+        super(MalformedCertificateException, self).__init__(
+                _("Certificate \"{}\" malformed.").format(kid))
+        self._initargs = (kid,)
+
+class MalformedPublicKeyException(KeyStoreParseException):
+    """
+    Indicates that a public key in the key store is not properly formed.
+    """
+
+    def __init__(self, kid):
+        super(MalformedPublicKeyException, self).__init__(
+                _("Public key \"{}\" malformed.").format(kid))
+        self._initargs = (kid,)
 
 class KeyStoreI(object):
     """
@@ -129,6 +211,40 @@ def strSerialToKeyIds(serial):
 
     return validKeyIds
 
+def parseKeyStoreCert(cert_str, kid):
+    """
+    Turns a certificate string as used in a key store into a certificate object.
+    :param cert_str: A certificate in PEM format without header and footer
+    and on a single line.
+    :param kid: The key ID under which the cert is stored.
+    :return: A cryptography certificate object.
+    :throws: MalformedCertificateException
+    """
+    if not isinstance(cert_str, string_types):
+        raise MalformedCertificateException(kid)
+
+    try:
+        return utils.loadCert(utils.addPEMCertHeaders(cert_str))
+    except ValueError:
+        raise MalformedCertificateException(kid)
+
+def parseKeyStorePubkey(pubkey_str, kid):
+    """
+    Turns a public key string as used in a key store into a public key object.
+    :param pubkey_str: A public key in PEM format without header and footer
+    and on a single line.
+    :param kid: The key ID under which the public key is stored.
+    :return: A cryptography public key object.
+    :throws: MalformedPublicKeyException
+    """
+    if not isinstance(pubkey_str, string_types):
+        raise MalformedPublicKeyException(kid)
+
+    try:
+        return utils.loadPubKey(utils.addPEMPubKeyHeaders(pubkey_str))
+    except ValueError:
+        raise MalformedPublicKeyException(kid)
+
 class KeyTuple(object):
     """
     The data structure used internally by KeyStore. For internal use only.
@@ -220,6 +336,7 @@ class KeyStore(KeyStoreI):
         object. The used parser must not modify the case of the keys.
         :param config: The config parser.
         :return: A KeyStore object.
+        :throws KeyStoreParseException
         """
 
         keyStore = KeyStore()
@@ -229,7 +346,7 @@ class KeyStore(KeyStoreI):
                 keyId = keyId.replace('s;', 'S:')
                 keyId = keyId.replace('u;', 'U:')
                 keyId = keyId.replace('g;', 'G:')
-                cert = utils.loadCert(utils.addPEMCertHeaders(certStr))
+                cert = parseKeyStoreCert(certStr, keyId)
                 key = cert.public_key()
                 keyStore.putKey(keyId, key, cert)
         if config.has_section('public_keys'):
@@ -237,7 +354,7 @@ class KeyStore(KeyStoreI):
                 keyId = keyId.replace('s;', 'S:')
                 keyId = keyId.replace('u;', 'U:')
                 keyId = keyId.replace('g;', 'G:')
-                key = utils.loadPubKey(utils.addPEMPubKeyHeaders(keyStr))
+                key = parseKeyStorePubkey(keyStr, keyId)
                 keyStore.putKey(keyId, key, None)
 
         return keyStore
@@ -276,23 +393,69 @@ class KeyStore(KeyStoreI):
         Reads a key store from the given JSON crypto container object.
         :param json: The JSON container.
         :return: A KeyStore object.
+        :throws KeyStoreParseException
         """
+
+        if not isinstance(json, dict):
+            raise MalformedKeyStoreException(_('Malformed key store root'))
+
+        if 'certificateOrPublicKeyMap' not in json:
+            raise MissingKeyStoreElementException('certificateOrPublicKeyMap')
+
+        cpmap = json['certificateOrPublicKeyMap']
+        if not isinstance(cpmap, dict):
+            raise MalformedKeyStoreElementException('certificateOrPublicKeyMap',
+                    _('not a dictionary'))
 
         keyStore = KeyStore()
 
-        for value in json['certificateOrPublicKeyMap'].values():
-            keyStr = value['signatureCertificateOrPublicKey']
+        for rawId, value in cpmap.items():
+            if not isinstance(value, dict):
+                raise MalformedKeyStoreElementException('certificateOrPublicKeyMap',
+                    _('not a dictionary'), rawId)
+
+            if 'id' not in value:
+                raise MissingKeyStoreElementException('id', rawId)
+            if 'signatureDeviceType' not in value:
+                raise MissingKeyStoreElementException('signatureDeviceType', rawId)
+            if 'signatureCertificateOrPublicKey' not in value:
+                raise MissingKeyStoreElementException(
+                        'signatureCertificateOrPublicKey', rawId)
+
+            innerId = value['id']
+            if not isinstance(innerId, string_types):
+                raise MalformedKeyStoreElementException('id', _('not a string'),
+                        rawId)
+            if rawId != innerId:
+                raise MalformedKeyStoreElementException('id',
+                        _('inner ID \"{}\" does not match outer ID \"{}\"').format(
+                            innerId, rawId), rawId)
+
+            devType = value['signatureDeviceType']
+            if not isinstance(devType, string_types):
+                raise MalformedKeyStoreElementException('signatureDeviceType',
+                        _('not a string'), rawId)
+
+            cpStr = value['signatureCertificateOrPublicKey']
 
             keyId = None
             key = None
             cert = None
-            if value['signatureDeviceType'] == 'CERTIFICATE':
-                keyId = strSerialToKeyIds(value['id'])[0]
-                cert = utils.loadCert(utils.addPEMCertHeaders(keyStr))
+
+            if devType == 'CERTIFICATE':
+                certIds = strSerialToKeyIds(rawId)
+                if len(certIds) < 1:
+                    raise MalformedKeyStoreElementException('id',
+                            _('invalid certificate ID \"{}\"').format(rawId), rawId)
+                keyId = certIds[0]
+                cert = parseKeyStoreCert(cpStr, keyId)
                 key = cert.public_key()
-            else:
+            elif devType == 'PUBLIC_KEY':
                 keyId = value['id']
-                key = utils.loadPubKey(utils.addPEMPubKeyHeaders(keyStr))
+                key = parseKeyStorePubkey(cpStr, keyId)
+            else:
+                raise MalformedKeyStoreElementException('signatureDeviceType',
+                        _('not one of \"CERTIFICATE\" or \"PUBLIC_KEY\"'), rawId)
 
             keyStore.putKey(keyId, key, cert)
 
