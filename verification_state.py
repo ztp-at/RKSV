@@ -24,6 +24,8 @@ verifcation function and can be fed to a subsequent call.
 from builtins import int
 from builtins import range
 
+from six import string_types
+
 import base64
 import copy
 
@@ -52,6 +54,60 @@ class NoStartReceiptForLastCashRegisterException(StateException):
                 self).__init__(_("The last cash register has no registered start receipt."))
         self._initargs = ()
 
+class StateParseException(StateException):
+    """
+    Indicates that an error occurred while parsing the state.
+    """
+
+    def __init__(self, msg):
+        super(StateParseException, self).__init__(msg)
+        self._initargs = (msg,)
+
+class MalformedStateException(StateParseException):
+    """
+    Indicates that the state is not properly formed.
+    """
+
+    def __init__(self, msg=None, regidx=None):
+        if msg is None:
+            super(MalformedStateException, self).__init__(
+                    _("Malformed verification state"))
+        else:
+            if regidx is None:
+                super(MalformedStateException, self).__init__(
+                        _('{}.').format(msg))
+            else:
+                super(MalformedStateException, self).__init__(
+                        _("In cash register {}: {}.").format(regidx, msg))
+        self._initargs = (msg, regidx)
+
+class MissingStateElementException(MalformedStateException):
+    """
+    Indicates that an element in the state is missing.
+    """
+
+    def __init__(self, elem, regidx=None):
+        super(MissingStateElementException, self).__init__(
+                _("Element \"{}\" missing").format(elem),
+                regidx)
+        self._initargs = (elem, regidx)
+
+class MalformedStateElementException(MalformedStateException):
+    """
+    Indicates that an element in the state is malformed.
+    """
+
+    def __init__(self, elem, detail=None, regidx=None):
+        if detail is None:
+            super(MalformedStateElementException, self).__init__(
+                    _("Element \"{}\" malformed").format(elem),
+                    regidx)
+        else:
+            super(MalformedStateElementException, self).__init__(
+                    _("Element \"{}\" malformed: {}").format(elem, detail),
+                    regidx)
+        self._initargs = (elem, detail, regidx)
+
 class CashRegisterState(object):
     """
     An object holding the state of a cash register. This allows for the
@@ -63,6 +119,43 @@ class CashRegisterState(object):
         self.lastReceiptJWS = None
         self.lastTurnoverCounter = 0
         self.needRestoreReceipt = False
+
+    @staticmethod
+    def fromDict(d, regidx = None):
+        if 'startReceiptJWS' not in d:
+            raise MissingStateElementException('startReceiptJWS', regidx)
+        if 'lastReceiptJWS' not in d:
+            raise MissingStateElementException('lastReceiptJWS', regidx)
+        if 'lastTurnoverCounter' not in d:
+            raise MissingStateElementException('lastTurnoverCounter', regidx)
+        if 'needRestoreReceipt' not in d:
+            raise MissingStateElementException('needRestoreReceipt', regidx)
+
+        ret = CashRegisterState()
+
+        ret.startReceiptJWS = d['startReceiptJWS']
+        if not ret.startReceiptJWS is None and not isinstance(
+                ret.startReceiptJWS, string_types):
+            raise MalformedStateElementException('startReceiptJWS',
+                    _('not a string'), regidx)
+
+        ret.lastReceiptJWS = d['lastReceiptJWS']
+        if not ret.lastReceiptJWS is None and not isinstance(
+                ret.lastReceiptJWS, string_types):
+            raise MalformedStateElementException('lastReceiptJWS',
+                    _('not a string'), regidx)
+
+        ret.lastTurnoverCounter = d['lastTurnoverCounter']
+        if not isinstance(ret.lastTurnoverCounter, int):
+            raise MalformedStateElementException('lastTurnoverCounter',
+                    _('not an integer'), regidx)
+
+        ret.needRestoreReceipt = d['needRestoreReceipt']
+        if not isinstance(ret.needRestoreReceipt, bool):
+            raise MalformedStateElementException('needRestoreReceipt',
+                    _('not a boolean'), regidx)
+
+        return ret
 
     @staticmethod
     def fromDEPGroup(old, group, key = None):
@@ -213,14 +306,38 @@ class ClusterState(object):
 
     @staticmethod
     def readStateFromJson(json):
+        if not isinstance(json, dict):
+            raise MalformedStateException(_('Malformed verification state root'))
+
+        if 'cashRegisters' not in json:
+            raise MissingStateElementException('cashRegisters')
+        if 'usedReceiptIds' not in json:
+            raise MissingStateElementException('usedReceiptIds')
+
+        cregs = json['cashRegisters']
+        if not isinstance(cregs, list):
+            raise MalformedStateElementException('cashRegisters', _('not a list'))
+
+        recids = json['usedReceiptIds']
+        if not isinstance(recids, list):
+            raise MalformedStateElementException('usedReceiptIds', _('not a list'))
+
         ret = ClusterState()
 
-        for cr in json['cashRegisters']:
-            cro = CashRegisterState()
-            cro.__dict__.update(cr)
+        for i in range(0, len(cregs)):
+            if not isinstance(cregs[i], dict):
+                raise MalformedStateElementException('cashRegisters',
+                        _('not an object'), i)
+
+            cro = CashRegisterState.fromDict(cregs[i], i)
             ret.cashRegisters.append(cro)
 
-        ret.usedReceiptIds = set(json['usedReceiptIds'])
+        for recid in recids:
+            if not isinstance(recid, string_types):
+                raise MalformedStateElementException('usedReceiptIds',
+                        _('receipt ID not a string'))
+
+        ret.usedReceiptIds = set(recids)
 
         return ret
 
