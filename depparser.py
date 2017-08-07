@@ -214,12 +214,12 @@ class DEPStateRoot(DEPStateWithData):
     def parse(self, prefix, event, value):
         if prefix == '' and event == 'start_map' and value == None:
             if self.root_seen:
-                raise MalformedDEPException(_('Duplicate DEP root.'))
+                raise MalformedDEPException(_('Duplicate DEP root'))
 
             self.root_seen = True
             return DEPStateRootMap(self.chunksize, self)
 
-        raise MalformedDEPException(_('Malformed DEP root.'))
+        raise MalformedDEPException(_('Malformed DEP root'))
 
 class DEPStateRootMap(DEPStateWithData):
     def __init__(self, chunksize, upper):
@@ -234,9 +234,9 @@ class DEPStateRootMap(DEPStateWithData):
 
         if prefix == 'Belege-Gruppe':
             if event != 'start_array':
-                raise MalformedDEPException(_('Malformed DEP root.'))
+                raise MalformedDEPException(_('Malformed DEP root'))
             if self.groups_seen:
-                raise MalformedDEPException(_('Duplicate DEP root.'))
+                raise MalformedDEPException(_('Duplicate DEP root'))
             self.groups_seen = True
             return DEPStateBGList(self.chunksize, self)
 
@@ -282,7 +282,7 @@ class DEPStateGroup(DEPStateWithIncompleteData):
                 raise DuplicateDEPElementException('Signaturzertifikat', self.idx)
             if event != 'string':
                 raise MalformedDEPElementException('Signaturzertifikat',
-                        'not a string', self.idx)
+                        _('not a string'), self.idx)
             self.cert_seen = True
             self.wip.cert = parseDEPCert(value) if value != '' else None
 
@@ -291,7 +291,7 @@ class DEPStateGroup(DEPStateWithIncompleteData):
                 raise DuplicateDEPElementException('Zertifizierungsstellen', self.idx)
             if event != 'start_array':
                 raise MalformedDEPElementException('Zertifizierungsstellen',
-                        'not a list', self.idx)
+                        _('not a list'), self.idx)
             self.wip.cert_chain = list()
             self.cert_list_seen = True
             return DEPStateCertList(self.chunksize, self, self.idx)
@@ -301,7 +301,7 @@ class DEPStateGroup(DEPStateWithIncompleteData):
                 raise DuplicateDEPElementException('Belege-kompakt', self.idx)
             if event != 'start_array':
                 raise MalformedDEPElementException('Belege-kompakt',
-                        'not a list', self.idx)
+                        _('not a list'), self.idx)
             self.recs_seen = True
             return DEPStateReceiptList(self.chunksize, self, self.idx)
 
@@ -345,9 +345,9 @@ def shrinkDEPReceipt(rec, idx = None):
         return rec.encode('utf-8')
     except TypeError:
         if idx is None:
-            raise MalformedDEPElementException('Receipt \"{}\"'.format(rec))
+            raise MalformedDEPElementException(_('Receipt \"{}\"').format(rec))
         else:
-            raise MalformedDEPElementException('Receipt \"{}\"'.format(rec), idx)
+            raise MalformedDEPElementException(_('Receipt \"{}\"').format(rec), idx)
 
 def expandDEPReceipt(rec, idx = None):
     """
@@ -361,9 +361,9 @@ def expandDEPReceipt(rec, idx = None):
         return rec.decode('utf-8')
     except UnicodeDecodeError:
         if idx is None:
-            raise MalformedDEPElementException('Receipt \"{}\"'.format(rec))
+            raise MalformedDEPElementException(_('Receipt \"{}\"').format(rec))
         else:
-            raise MalformedDEPElementException('Receipt \"{}\"'.format(rec), idx)
+            raise MalformedDEPElementException(_('Receipt \"{}\"').format(rec), idx)
 
 def parseDEPCert(cert_str):
     """
@@ -604,13 +604,13 @@ class DictDEPParser(DEPParserI):
 
         if not isinstance(cert_str, string_types):
             raise MalformedDEPElementException('Signaturzertifikat',
-                    'not a string', self.idx)
+                    _('not a string'), self.idx)
         if not isinstance(cert_str_list, list):
             raise MalformedDEPElementException('Zertifizierungsstellen',
-                    'not a list', self.idx)
+                    _('not a list'), self.idx)
         if not isinstance(receipts, list):
             raise MalformedDEPElementException('Belege-kompakt',
-                    'not a list', self.idx)
+                    _('not a list'), self.idx)
 
         cert = parseDEPCert(cert_str) if cert_str != '' else None
         cert_list = [ parseDEPCert(cs) for cs in cert_str_list ]
@@ -646,7 +646,7 @@ class DictDEPParser(DEPParserI):
 
     def parse(self, chunksize = 0):
         if not isinstance(self.dep, dict):
-            raise MalformedDEPException(_('Malformed DEP root.'))
+            raise MalformedDEPException(_('Malformed DEP root'))
         if 'Belege-Gruppe' not in self.dep:
             raise MissingDEPElementException('Belege-Gruppe')
 
