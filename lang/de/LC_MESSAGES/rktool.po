@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-07-31 19:42+CEST\n"
+"POT-Creation-Date: 2017-08-07 16:43+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -44,7 +44,7 @@ msgstr "Die Anzahl der Rechnungen muss mindestens 1 sein."
 msgid "Malformed DEP"
 msgstr "Ungültiges DEP"
 
-#: depparser.py:64
+#: depparser.py:64 key_store.py:62 verification_state.py:78
 msgid "{}."
 msgstr "{}."
 
@@ -52,15 +52,15 @@ msgstr "{}."
 msgid "In group {}: {}."
 msgstr "In Gruppe {}: {}"
 
-#: depparser.py:77
+#: depparser.py:77 key_store.py:75 verification_state.py:91
 msgid "Element \"{}\" missing"
 msgstr "Element \"{}\" fehlt"
 
-#: depparser.py:89
+#: depparser.py:89 key_store.py:87 verification_state.py:103
 msgid "Element \"{}\" malformed"
 msgstr "Element \"{}\" ungültig"
 
-#: depparser.py:93
+#: depparser.py:93 key_store.py:91 verification_state.py:107
 msgid "Element \"{}\" malformed: {}"
 msgstr "Element \"{}\" ungültig: {}"
 
@@ -68,17 +68,31 @@ msgstr "Element \"{}\" ungültig: {}"
 msgid "Duplicate element \"{}\""
 msgstr "Element \"{}\" doppelt"
 
-#: depparser.py:116
+#: depparser.py:116 key_store.py:102
 msgid "Certificate \"{}\" malformed."
 msgstr "Zertifikat \"{}\" ungültig."
 
 #: depparser.py:217 depparser.py:239
-msgid "Duplicate DEP root."
-msgstr "DEP-Wurzel doppelt."
+msgid "Duplicate DEP root"
+msgstr "DEP-Wurzel doppelt"
 
 #: depparser.py:222 depparser.py:237 depparser.py:649
-msgid "Malformed DEP root."
-msgstr "Ungültige DEP-Wurzel."
+msgid "Malformed DEP root"
+msgstr "Ungültige DEP-Wurzel"
+
+#: depparser.py:285 depparser.py:607 key_store.py:427 key_store.py:437
+#: verification_state.py:140 verification_state.py:146
+msgid "not a string"
+msgstr "kein String"
+
+#: depparser.py:294 depparser.py:304 depparser.py:610 depparser.py:613
+#: verification_state.py:319 verification_state.py:323
+msgid "not a list"
+msgstr "keine Liste"
+
+#: depparser.py:348 depparser.py:350 depparser.py:364 depparser.py:366
+msgid "Receipt \"{}\""
+msgstr "Rechnung \"{}\""
 
 #: depparser.py:473 depparser.py:667
 msgid "No receipts found"
@@ -91,6 +105,38 @@ msgstr "Ungültiges JSON: {}."
 #: depparser.py:492
 msgid "Element \"Signaturzertifikat\" or \"Zertifizierungsstellen\" missing"
 msgstr "Element \"Signaturzertifikat\" oder \"Zertifizierungsstellen\" fehlt"
+
+#: key_store.py:58
+msgid "Malformed key store"
+msgstr "Ungültiger Schlüsselspeicher"
+
+#: key_store.py:65
+msgid "In certificate/public key \"{}\": {}."
+msgstr "Bei Zertifikat/öffentlichem Schlüssel \"{}\": {}."
+
+#: key_store.py:112
+msgid "Public key \"{}\" malformed."
+msgstr "Öffentlicher Schlüssel \"{}\" ungültig."
+
+#: key_store.py:400
+msgid "Malformed key store root"
+msgstr "Ungültige Schlüsselspeicher-Wurzel."
+
+#: key_store.py:408 key_store.py:415
+msgid "not a dictionary"
+msgstr "kein Verzeichnis"
+
+#: key_store.py:431
+msgid "inner ID \"{}\" does not match outer ID \"{}\""
+msgstr "innere ID \"{}\" ist ungleich äußerer ID \"{}\""
+
+#: key_store.py:449
+msgid "invalid certificate ID \"{}\""
+msgstr "Ungültige Zertifikatsseriennummer \"{}\""
+
+#: key_store.py:458
+msgid "not one of \"CERTIFICATE\" or \"PUBLIC_KEY\""
+msgstr "nicht eines von \"CERTIFICATE\" oder \"PUBLIC_KEY\""
 
 #: main.py:215 rktool.py:215
 msgid "Error"
@@ -583,35 +629,63 @@ msgstr "Verwende Seed \"{}\""
 msgid "Used seed \"{}\""
 msgstr "Verwendete Seed \"{}\""
 
-#: verification_state.py:46
+#: verification_state.py:48
 msgid "No cash register with index {}."
 msgstr "Keine Kassa mit Index {}."
 
-#: verification_state.py:52
+#: verification_state.py:54
 msgid "The last cash register has no registered start receipt."
 msgstr "Die letzte Kassa hat keinen registrierten Startbeleg."
 
-#: verification_state.py:131
+#: verification_state.py:74
+msgid "Malformed verification state"
+msgstr "Ungültiger Überprüfungszustand"
+
+#: verification_state.py:81
+msgid "In cash register {}: {}."
+msgstr "Bei Kassa {}: {}."
+
+#: verification_state.py:151
+msgid "not an integer"
+msgstr "keine Ganzzahl"
+
+#: verification_state.py:156
+msgid "not a boolean"
+msgstr "kein Boolean"
+
+#: verification_state.py:224
 msgid "Start Receipt"
 msgstr "Startbeleg"
 
-#: verification_state.py:132
+#: verification_state.py:225
 msgid "Last Receipt"
 msgstr "Letzter Beleg"
 
-#: verification_state.py:133
+#: verification_state.py:226
 msgid "Last Turnover Counter"
 msgstr "Letzter Umsatzzähler"
 
-#: verification_state.py:134
+#: verification_state.py:227
 msgid "Need Restore Receipt"
 msgstr "Benötigt Nullbeleg"
 
-#: verification_state.py:239
+#: verification_state.py:310
+msgid "Malformed verification state root"
+msgstr "Ungültige Überprüfungszustand-Wurzel"
+
+#: verification_state.py:330
+msgid "not an object"
+msgstr "kein Objekt"
+
+#: verification_state.py:338
+msgid "receipt ID not a string"
+msgstr "Belegnummer ist kein String"
+
+#: verification_state.py:356
 msgid "Cash Register {}:"
 msgstr "Kassa {}:"
 
-#: verification_state.py:242
+#: verification_state.py:359
 msgid "Used Receipt IDs"
 msgstr "Benutzte Belegnummern"
 
