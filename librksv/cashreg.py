@@ -26,9 +26,9 @@ _ = gettext.translation('rktool', './lang', fallback=True).gettext
 
 import base64
 
-import algorithms
-import receipt
-import utils
+from . import algorithms
+from . import receipt
+from . import utils
 
 class CashRegisterI(object):
     """

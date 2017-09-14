@@ -31,20 +31,20 @@ import ijson
 from math import ceil
 from six import string_types
 
-import os
-def depParserChunkSize():
-    """
-    This function returns the preferred chunksize that RKSV script should use
-    when none was specified. The default is 100000. The value can be modified
-    via the RKSV_DEP_CHUNKSIZE environment variable.
-    :return: An int specifying the default chunksize.
-    """
-    return int(os.environ.get('RKSV_DEP_CHUNKSIZE', 100000))
+from . import utils
 
-import utils
-import verify
+class DEPException(Exception):
+    """
+    An exception that is thrown if something is wrong with a DEP.
+    """
+    def __init__(self, message):
+        super(DEPException, self).__init__(message)
+        self._initargs = (message,)
 
-class DEPParseException(verify.DEPException):
+    def __reduce__(self):
+        return (self.__class__, self._initargs)
+
+class DEPParseException(DEPException):
     """
     Indicates that an error occurred while parsing the DEP.
     """

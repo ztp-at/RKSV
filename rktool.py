@@ -20,9 +20,6 @@
 from builtins import int
 from builtins import range
 
-import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
-
 import kivy
 kivy.require('1.9.0')
 
@@ -70,15 +67,15 @@ if platform == 'android':
 else:
     __use_threads = False
 
-import algorithms
-import depparser
+from librksv import algorithms
+from librksv import depparser
+from librksv import key_store
+from librksv import receipt
+from librksv import utils
+from librksv import verification_state
+from librksv import verify_receipt
+from librksv import verify
 import img_decode
-import key_store
-import receipt
-import utils
-import verification_state
-import verify_receipt
-import verify
 
 if __use_threads:
     # This code blatantly copied from https://stackoverflow.com/a/325528
@@ -569,14 +566,14 @@ def verifyDEP_prepare_Task(dep, store, key, nprocs):
         rState = verification_state.CashRegisterState()
         inargs = verify.prepareVerificationTuples(pkgs, key, None, rState)
         return None, inargs
-    except (receipt.ReceiptException, verify.DEPException) as e:
+    except (receipt.ReceiptException, depparser.DEPException) as e:
         return e, None
 
 def verifyDEP_main_Task(args):
     try:
         rState, usedRecIds = verify.verifyGroupsWithVerifiersTuple(args)
         return None, usedRecIds
-    except (receipt.ReceiptException, verify.DEPException) as e:
+    except (receipt.ReceiptException, depparser.DEPException) as e:
         return e, None
 
 def verifyDEP_finalize_Task(outUsedRecIds, usedRecIds):
@@ -584,7 +581,7 @@ def verifyDEP_finalize_Task(outUsedRecIds, usedRecIds):
         mergedUsedRecIds = verify.updateUsedReceiptIds(outUsedRecIds,
                 usedRecIds)
         return None, mergedUsedRecIds
-    except (receipt.ReceiptException, verify.DEPException) as e:
+    except (receipt.ReceiptException, depparser.DEPException) as e:
         return e, None
 
 # TODO: add a visual way to determine where an error happened?
@@ -773,7 +770,7 @@ class VerifyDEPWidget(BoxLayout):
 
             App.get_running_app().curSearchPath = path
         except (IOError, UnicodeDecodeError, ValueError,
-                verify.DEPException) as e:
+                depparser.DEPException) as e:
             displayError(e)
             self.dismissPopup()
             return

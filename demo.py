@@ -21,7 +21,7 @@ from builtins import int
 from builtins import range
 
 import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
+gettext.install('rktool', './lang', True)
 
 import base64
 import datetime
@@ -31,10 +31,10 @@ import sys
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
-import depexport
-import cashreg
-import sigsys
-import utils
+from librksv import depexport
+from librksv import cashreg
+from librksv import sigsys
+from librksv import utils
 
 def usage():
     print("Usage: ./demo.py <private key file> <cert file> <base64 AES key file> <number of receipts>")
@@ -43,9 +43,6 @@ def usage():
     sys.exit(0)
 
 if __name__ == "__main__":
-    import gettext
-    gettext.install('rktool', './lang', True)
-
     if len(sys.argv) < 3 or len(sys.argv) > 6:
         usage()
 

@@ -56,7 +56,7 @@ lang/%/LC_MESSAGES/rktool.po: lang/rktool.pot
 
 lang/rktool.pot:
 	mkdir -p lang
-	pygettext.py -o lang/rktool.pot *.py *.kv
+	pygettext.py -o lang/rktool.pot librksv/*.py *.py *.kv
 
 env: .pyenv
 	echo "Virtualenv ready. Run \"source .pyenv/bin/activate\" to enable it."

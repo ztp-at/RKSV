@@ -32,7 +32,7 @@ import jwt.algorithms
 
 from six import binary_type
 
-import utils
+from . import utils
 
 class AlgorithmI(object):
     """

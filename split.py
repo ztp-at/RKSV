@@ -19,24 +19,21 @@
 
 from builtins import int
 
-import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
-
 import os
 import sys
 
-import depexport
-import depparser
-import receipt
+import gettext
+gettext.install('rktool', './lang', True)
+
+from librksv import depexport
+from librksv import depparser
+from librksv import receipt
 
 def usage():
     print("Usage: ./split.py <chunk size> <output dir>")
     sys.exit(0)
 
 if __name__ == "__main__":
-    import gettext
-    gettext.install('rktool', './lang', True)
-
     if len(sys.argv) != 3:
         usage()
 

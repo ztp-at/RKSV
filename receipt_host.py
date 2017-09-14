@@ -20,16 +20,16 @@
 from builtins import int
 from builtins import range
 
-import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
-
 import sys
 
 from flask import Flask, abort, jsonify, make_response
 
-import depparser
-import receipt
-import utils
+import gettext
+gettext.install('rktool', './lang', True)
+
+from librksv import depparser
+from librksv import receipt
+from librksv import utils
 
 receipt_store = None
 
@@ -54,16 +54,13 @@ def usage():
     sys.exit(0)
 
 if __name__ == "__main__":
-    import gettext
-    gettext.install('rktool', './lang', True)
-
     if len(sys.argv) != 2:
         usage()
 
     receipts = dict()
     if sys.argv[1] == 'dep':
         parser = depparser.CertlessStreamDEPParser(sys.stdin)
-        for chunk in parser.parse(depparser.depParserChunkSize()):
+        for chunk in parser.parse(utils.depParserChunkSize()):
             for recs, cert, cert_list in chunk:
                 for cr in recs:
                     r = depparser.expandDEPReceipt(cr)

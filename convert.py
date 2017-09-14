@@ -21,14 +21,14 @@ from builtins import int
 from builtins import range
 
 import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
+gettext.install('rktool', './lang', True)
 
 import sys
 
-import depexport
-import depparser
-import receipt
-import utils
+from librksv import depexport
+from librksv import depparser
+from librksv import receipt
+from librksv import utils
 
 def usage():
     print("Usage: ./convert.py json2csv")
@@ -36,9 +36,6 @@ def usage():
     sys.exit(0)
 
 if __name__ == "__main__":
-    import gettext
-    gettext.install('rktool', './lang', True)
-
     if len(sys.argv) != 2:
         usage()
 
@@ -46,7 +43,7 @@ if __name__ == "__main__":
     if sys.argv[1] == 'json2csv':
         exporter = depexport.CSVExporter()
         parser = depparser.CertlessStreamDEPParser(sys.stdin)
-        for chunk in parser.parse(depparser.depParserChunkSize()):
+        for chunk in parser.parse(utils.depParserChunkSize()):
             for recs, cert, cert_list in chunk:
                 exporter.addGroup([ receipt.Receipt.fromJWSString(
                     depparser.expandDEPReceipt(r)) for r in recs ], cert, cert_list)

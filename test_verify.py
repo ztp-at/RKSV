@@ -27,9 +27,6 @@ from builtins import int
 from builtins import range
 from builtins import str
 
-import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
-
 import base64
 import enum
 import json
@@ -37,14 +34,14 @@ import random
 import re
 import tempfile
 
-import depparser
-import key_store
-import receipt
-import verification_state
-import verify
-import verify_receipt
+from librksv import depparser
+from librksv import key_store
+from librksv import receipt
+from librksv import verification_state
+from librksv import verify
+from librksv import verify_receipt
 
-import run_test
+from librksv import run_test
 
 class TestVerifyResult(enum.Enum):
     """
@@ -193,7 +190,7 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                             _('Expected {} in turnover counter but got {}.').format(
                                 expectedTurnoverCounter,
                                 cashRegState.lastTurnoverCounter))
-    except (receipt.ReceiptException, verify.DEPException) as e:
+    except (receipt.ReceiptException, depparser.DEPException) as e:
         actual_exception = e
     except Exception as e:
         return TestVerifyResult.ERROR, e
@@ -331,8 +328,12 @@ def printTestVerifySummary(results):
 
 import codecs
 import json
+import multiprocessing
 import os
 import sys
+
+import gettext
+gettext.install('rktool', './lang', True)
 
 def usage():
     print("Usage: ./test_verify.py open <JSON test case spec> <cert priv> <cert> [<turnover counter size>]")
@@ -381,8 +382,7 @@ if __name__ == "__main__":
                 spec['closedSystem'] = True
                 yield spec
 
-    import gettext
-    gettext.install('rktool', './lang', True)
+    # Get rid of translations in the tested code.
     depparser._ = lambda x: x
     key_store._ = lambda x: x
     receipt._ = lambda x: x
@@ -390,7 +390,6 @@ if __name__ == "__main__":
     verify._ = lambda x: x
     verify_receipt._ = lambda x: x
 
-    import multiprocessing
     # We should always test with multiprocessing to catch pickle issues.
     DEFAULT_NPROCS = 2
 

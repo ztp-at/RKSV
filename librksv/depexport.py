@@ -26,7 +26,7 @@ _ = gettext.translation('rktool', './lang', fallback=True).gettext
 
 import json
 
-import utils
+from . import utils
 
 class DEPExporterI(object):
     """

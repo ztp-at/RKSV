@@ -21,23 +21,20 @@ from builtins import int
 from builtins import range
 
 import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
+gettext.install('rktool', './lang', True)
 
 import os
 import sys
 
-import depparser
-import key_store
-import utils
+from librksv import depparser
+from librksv import key_store
+from librksv import utils
 
 def usage():
     print("Usage: ./cert_extract.py <output dir>")
     sys.exit(0)
 
 if __name__ == "__main__":
-    import gettext
-    gettext.install('rktool', './lang', True)
-
     if len(sys.argv) != 2:
         usage()
 
@@ -47,7 +44,7 @@ if __name__ == "__main__":
     os.chdir(outDir)
 
     parser = depparser.CertlessStreamDEPParser(sys.stdin)
-    for chunk in parser.parse(depparser.depParserChunkSize()):
+    for chunk in parser.parse(utils.depParserChunkSize()):
         for recs, cert, cert_list in chunk:
             groupCerts = list(cert_list)
             if cert:

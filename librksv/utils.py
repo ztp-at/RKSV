@@ -31,6 +31,7 @@ import codecs
 import datetime
 import io
 import json
+import os
 import requests
 import re
 import uuid
@@ -45,6 +46,15 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.x509.oid import NameOID
 
 from six import string_types
+
+def depParserChunkSize():
+    """
+    This function returns the preferred chunksize that RKSV script should use
+    when none was specified. The default is 100000. The value can be modified
+    via the RKSV_DEP_CHUNKSIZE environment variable.
+    :return: An int specifying the default chunksize.
+    """
+    return int(os.environ.get('RKSV_DEP_CHUNKSIZE', 100000))
 
 def loadKeyFromJson(json):
     """
