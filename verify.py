@@ -241,13 +241,13 @@ class InvalidChainingOnInitialReceiptException(DEPReceiptException):
                 _("Initial receipt has not been chained to the cash register ID."))
         self._initargs = (rec,)
 
-class InvalidChainingOnClusterInitialReceiptException(InvalidChainingOnInitialReceiptException):
+class InvalidChainingOnClusterInitialReceiptException(DEPReceiptException):
     """
     Indicates that the initial receipt of a GGS cluster register has not
     been chained to the previous cash register's initial receipt.
     """
     def __init__(self, rec):
-        super(InvalidChainingOnInitialReceiptException, self).__init__(
+        super(InvalidChainingOnClusterInitialReceiptException, self).__init__(
                 rec,
                 _("Initial receipt in cluster has not been chained to the previous cash register's initial receipt."))
         self._initargs = (rec,)
