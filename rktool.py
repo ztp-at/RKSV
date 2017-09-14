@@ -20,6 +20,9 @@
 from builtins import int
 from builtins import range
 
+import gettext
+_ = gettext.translation('rktool', './lang', fallback=True).gettext
+
 import kivy
 kivy.require('1.9.0')
 

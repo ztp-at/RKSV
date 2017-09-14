@@ -22,6 +22,9 @@ This module provides functions to parse a DEP.
 from builtins import int
 from builtins import range
 
+import gettext
+_ = gettext.translation('rktool', './lang', fallback=True).gettext
+
 import copy
 import ijson
 

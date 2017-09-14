@@ -27,6 +27,9 @@ from builtins import int
 from builtins import range
 from builtins import str
 
+import gettext
+_ = gettext.translation('rktool', './lang', fallback=True).gettext
+
 import base64
 import enum
 import json
@@ -39,6 +42,7 @@ import key_store
 import receipt
 import verification_state
 import verify
+import verify_receipt
 
 import run_test
 
@@ -379,6 +383,12 @@ if __name__ == "__main__":
 
     import gettext
     gettext.install('rktool', './lang', True)
+    depparser._ = lambda x: x
+    key_store._ = lambda x: x
+    receipt._ = lambda x: x
+    verification_state._ = lambda x: x
+    verify._ = lambda x: x
+    verify_receipt._ = lambda x: x
 
     import multiprocessing
     # We should always test with multiprocessing to catch pickle issues.

@@ -25,6 +25,9 @@ or deleted from the key store.
 from builtins import int
 from builtins import range
 
+import gettext
+_ = gettext.translation('rktool', './lang', fallback=True).gettext
+
 from six import string_types
 
 import copy

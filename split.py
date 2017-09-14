@@ -19,6 +19,9 @@
 
 from builtins import int
 
+import gettext
+_ = gettext.translation('rktool', './lang', fallback=True).gettext
+
 import os
 import sys
 

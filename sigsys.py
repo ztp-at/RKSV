@@ -21,6 +21,9 @@ This module provides classes to work as signature systems.
 from builtins import int
 from builtins import range
 
+import gettext
+_ = gettext.translation('rktool', './lang', fallback=True).gettext
+
 import base64
 import requests
 

@@ -20,6 +20,9 @@
 from builtins import int
 from builtins import range
 
+import gettext
+_ = gettext.translation('rktool', './lang', fallback=True).gettext
+
 import sys
 
 from flask import Flask, abort, jsonify, make_response
