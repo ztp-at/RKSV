@@ -134,6 +134,8 @@ buildozer.spec: misc/buildozer.spec
 clean:
 	rm -rf __pycache__
 	rm -f *.pyc
+	rm -rf librksv/__pycache__
+	rm -f librksv/*.pyc
 	rm -f lang/rktool.pot
 	rm -f lang/*/LC_MESSAGES/rktool.mo
 	rm -f aesBase64*.txt
