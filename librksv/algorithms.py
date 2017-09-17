@@ -61,6 +61,14 @@ class AlgorithmI(object):
         """
         raise NotImplementedError("Please implement this yourself.")
 
+    def chainBytes(self):
+        """
+        The number of bytes of the hash of the previous receipt used in the
+        chaining value.
+        :return: Returns the expected number of bytes.
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
     def hash(self, data):
         """
         Hashes the given data with the hash algorithm specified for the
@@ -147,6 +155,9 @@ class R1(AlgorithmI):
 
     def sigAlgo(self):
         return "ES256"
+
+    def chainBytes(self):
+        return 8
 
     def hash(self, data):
         return utils.sha256(data.encode("utf-8"))

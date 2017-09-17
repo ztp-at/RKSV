@@ -262,7 +262,7 @@ class Receipt(object):
         # Due to how algorithm works encTurnoverCounter and previousChain
         # can both be the empty string when the receipt is created and not
         # parsed from a string.
-        _getEmptyOrB64(encTurnoverCounter, receiptId,
+        encTC = _getEmptyOrB64(encTurnoverCounter, receiptId,
                 _('Encrypted turnover counter \"{}\" invalid.').format(
                     encTurnoverCounter))
         _getEmptyOrB64(previousChain, receiptId,
@@ -304,6 +304,13 @@ class Receipt(object):
         self.previousChain = previousChain
         self.signature = None
         self.signed = False
+
+        # perform post check of turnover counter
+        if len(encTC) != 0 and (len(encTC) < 5 or len(encTC) > 16):
+            if not (self.isDummy() or self.isReversal()):
+                raise MalformedReceiptException(receiptId,
+                        _('Encrypted turnover counter \"{}\" invalid.').format(
+                            encTurnoverCounter))
 
     @staticmethod
     def fromJWSString(jwsString):
@@ -362,7 +369,8 @@ class Receipt(object):
                     _('Algorithm ID \"{}\" invalid.').format(algorithmPrefix))
         if algorithmPrefix not in algorithms.ALGORITHMS:
             raise UnknownAlgorithmException(jwsString)
-        if algorithms.ALGORITHMS[algorithmPrefix].jwsHeader() != header:
+        alg = algorithms.ALGORITHMS[algorithmPrefix]
+        if alg.jwsHeader() != header:
             raise AlgorithmMismatchException(jwsString)
 
         registerId = segments[2]
@@ -377,21 +385,23 @@ class Receipt(object):
         certSerial = segments[11]
         previousChain = segments[12]
 
-        # __init__ does not perform the latter two checks
+        # __init__ does not perform the latter check
         if not isinstance(turnoverCounter, string_types) \
                 or not turnoverCounter.replace('=', ''):
             raise MalformedReceiptException(jwsString,
                     _('Encrypted turnover counter \"{}\" invalid.').format(
                         turnoverCounter))
-        if not isinstance(previousChain, string_types) \
-                or not previousChain.replace('=', ''):
-            raise MalformedReceiptException(jwsString,
-                    _('Chaining value \"{}\" invalid.').format(previousChain))
 
         receipt = Receipt(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
                 certSerial, previousChain)
         receipt.sign(header, signature)
+
+        # We assume this to work, because we got through __init__
+        cv = utils.b64decode(previousChain.encode('utf-8'))
+        if len(cv) != alg.chainBytes():
+            raise MalformedReceiptException(receipt.receiptId,
+                    _('Chaining value \"{}\" invalid.').format(previousChain))
 
         return receipt, algorithmPrefix
 
@@ -470,7 +480,8 @@ class Receipt(object):
                     _('Algorithm ID \"{}\" invalid.').format(algorithmPrefix))
         if algorithmPrefix not in algorithms.ALGORITHMS:
             raise UnknownAlgorithmException(basicCode)
-        header = algorithms.ALGORITHMS[algorithmPrefix].jwsHeader()
+        alg = algorithms.ALGORITHMS[algorithmPrefix]
+        header = alg.jwsHeader()
 
         registerId = segments[2]
         receiptId = segments[3]
@@ -493,21 +504,23 @@ class Receipt(object):
         signature = base64.urlsafe_b64encode(signature).replace(b'=', b'')
         signature = signature.decode("utf-8")
 
-        # __init__ does not perform the latter two checks
+        # __init__ does not perform the latter check
         if not isinstance(turnoverCounter, string_types) \
                 or not turnoverCounter.replace('=', ''):
             raise MalformedReceiptException(basicCode,
                     _('Encrypted turnover counter \"{}\" invalid.').format(
                         turnoverCounter))
-        if not isinstance(previousChain, string_types) \
-                or not previousChain.replace('=', ''):
-            raise MalformedReceiptException(basicCode,
-                    _('Chaining value \"{}\" invalid.').format(previousChain))
 
         receipt = Receipt(zda, registerId, receiptId, dateTime,
                 sumA, sumB, sumC, sumD, sumE, turnoverCounter,
                 certSerial, previousChain)
         receipt.sign(header, signature)
+
+        # We assume this to work, because we got through __init__
+        cv = utils.b64decode(previousChain.encode('utf-8'))
+        if len(cv) != alg.chainBytes():
+            raise MalformedReceiptException(receipt.receiptId,
+                    _('Chaining value \"{}\" invalid.').format(previousChain))
 
         return receipt, algorithmPrefix
 
