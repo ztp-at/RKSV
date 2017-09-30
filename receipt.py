@@ -25,13 +25,14 @@ import gettext
 gettext.install('rktool', './lang', True)
 
 from librksv.receipt import Receipt
+from librksv.url_receipt_helpers import getBasicCodeFromURL
 from librksv import utils
 
 INPUT_FORMATS = {
         'jws': lambda s: Receipt.fromJWSString(s),
         'qr': lambda s: Receipt.fromBasicCode(s),
         'ocr': lambda s: Receipt.fromOCRCode(s),
-        'url': lambda s: Receipt.fromBasicCode(utils.getBasicCodeFromURL(
+        'url': lambda s: Receipt.fromBasicCode(getBasicCodeFromURL(
             s)),
         'csv': lambda s: Receipt.fromCSV(s)
         }

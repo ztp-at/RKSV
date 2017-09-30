@@ -31,7 +31,8 @@ gettext.install('rktool', './lang', True)
 from librksv import key_store
 from librksv import receipt
 
-from librksv.verify_receipt import getAndVerifyReceiptURL, ReceiptVerifier
+from librksv.url_receipt_helpers import getAndVerifyReceiptURL
+from librksv.verify_receipt import ReceiptVerifier
 
 def receiptGenerator(lines):
     for l in lines:

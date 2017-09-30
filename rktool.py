@@ -67,6 +67,7 @@ if platform == 'android':
 else:
     __use_threads = False
 
+from librksv.url_receipt_helpers import getBasicCodeFromURL, getURLHashFromURL
 from librksv import algorithms
 from librksv import depparser
 from librksv import key_store
@@ -538,8 +539,8 @@ class VerifyReceiptWidget(BoxLayout):
             elif (self._input_type == 'OCR'):
                 rec, prefix = receipt.Receipt.fromOCRCode(self.receiptInput.text)
             elif (self._input_type == 'URL'):
-                urlHash = utils.getURLHashFromURL(self.receiptInput.text)
-                basicCode = utils.getBasicCodeFromURL(self.receiptInput.text)
+                urlHash = getURLHashFromURL(self.receiptInput.text)
+                basicCode = getBasicCodeFromURL(self.receiptInput.text)
 
                 rec, prefix = receipt.Receipt.fromBasicCode(basicCode)
 

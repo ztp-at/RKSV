@@ -32,7 +32,6 @@ import datetime
 import io
 import json
 import os
-import requests
 import re
 import uuid
 
@@ -232,37 +231,6 @@ def b32decode(data):
     if not b32Regex.match(data.decode('utf-8')):
         raise TypeError
     return base64.b32decode(data)
-
-def getBasicCodeFromURL(url):
-    """
-    Downloads the basic code representation of a receipt from
-    the given URL.
-    :param url: The URL as a string.
-    :return: The basic code representation as a string.
-    """
-    r = requests.get(url)
-    r.raise_for_status()
-    return r.json()['code']
-
-urlHashRegex = re.compile(
-        r'(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{11}(?![A-Za-z0-9_-])')
-def getURLHashFromURL(url):
-    """
-    Extracts the URL hash from the given URL. If an anchor part is given,
-    it is used as the hash.
-    :param url: The URL to search for the hash.
-    :return: The hash as a base64 URL encoded string without padding or
-    None if the hash could not be found.
-    """
-    urlParts = url.split('#')
-    if len(urlParts) >= 2:
-        return urlParts[1]
-
-    matches = urlHashRegex.findall(urlParts[0])
-    if len(matches) == 0:
-        return None
-
-    return matches[-1]
 
 def makeES256Keypair():
     """

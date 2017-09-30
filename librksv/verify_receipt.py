@@ -296,9 +296,3 @@ def verifyURLHash(rec, algorithm, urlHash):
             raise InvalidURLHashException(urlHash)
         else:
             raise InvalidURLHashException(rec.receiptId)
-
-def getAndVerifyReceiptURL(rv, url):
-    basicCode = utils.getBasicCodeFromURL(url)
-    urlHash = utils.getURLHashFromURL(url)
-    rec, algorithm = rv.verifyBasicCode(basicCode)
-    verifyURLHash(rec, algorithm, urlHash)
