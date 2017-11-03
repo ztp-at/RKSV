@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-09-30 19:37+CEST\n"
+"POT-Creation-Date: 2017-11-03 17:47+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -723,68 +723,68 @@ msgstr "Schlüsselspeicher"
 msgid "I need keys and certificates for %d signature devices."
 msgstr "Ich brauche Schlüssel und Zertifikate für %d Sicherheitseinrichtungen."
 
-#: run_test.py:68 test_verify.py:359
+#: run_test.py:68 test_verify.py:377
 msgid "Turnover counter size needs to be between 5 and 16."
 msgstr "Umsatzzähler-Länge muss zwischen 5 und 16 sein."
 
-#: test_verify.py:84 test_verify.py:89 test_verify.py:97
+#: test_verify.py:84 test_verify.py:89 test_verify.py:94
 msgid "no Exception"
 msgstr "kein Fehler"
 
-#: test_verify.py:169
+#: test_verify.py:160
 msgid "Incremental and dict parser yield different results at chunksize {}."
 msgstr ""
 "Inkrementeller und Dictionary Parser liefern unterschiedliche Resultate bei "
 "einer Blockgröße von {}."
 
-#: test_verify.py:174
+#: test_verify.py:165
 msgid "State update without verification failed."
 msgstr "Zustandsupdate ohne Verifikation fehlgeschlagen."
 
-#: test_verify.py:177
+#: test_verify.py:168
 msgid "List of used receipt IDs invalid."
 msgstr "Liste verwendeter Rechnungs-IDs ist ungültig."
 
-#: test_verify.py:190
+#: test_verify.py:209
 msgid "Expected {} in turnover counter but got {}."
 msgstr "Erwartete {} im Umsatzzähler, aber habe {} bekommen."
 
-#: test_verify.py:206
+#: test_verify.py:222
 msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
 msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
 
-#: test_verify.py:214
+#: test_verify.py:230
 msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
 msgstr ""
 "Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
 "bekommen"
 
-#: test_verify.py:222
+#: test_verify.py:238
 msgid "Expected message \"{}\" but got \"{}\" instead"
 msgstr "Erwartete Nachricht war \"{}\", habe stattdessen \"{}\" bekommen"
 
-#: test_verify.py:228
+#: test_verify.py:244
 msgid "Expected message matching \"{}\" but got \"{}\" instead"
 msgstr ""
 "Erwartete Nachricht passend zu \"{}\", habe stattdessen \"{}\" bekommen"
 
-#: test_verify.py:272
+#: test_verify.py:288
 msgid "Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<"
 msgstr "Ergebnisse verschieden: ohne parsing {}:>{}<, mit parsing {}:>{}<"
 
-#: test_verify.py:310
+#: test_verify.py:326
 msgid "No run label"
 msgstr "Kein Simulationsname"
 
-#: test_verify.py:327
+#: test_verify.py:343
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
-#: test_verify.py:398
+#: test_verify.py:408
 msgid "Using seed \"{}\""
 msgstr "Verwende Seed \"{}\""
 
-#: test_verify.py:433 test_verify.py:467
+#: test_verify.py:443 test_verify.py:477
 msgid "Used seed \"{}\""
 msgstr "Verwendete Seed \"{}\""
 
