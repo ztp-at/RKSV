@@ -57,7 +57,7 @@ if version_info[0] < 3:
 else:
     import builtins as __builtin__
 
-def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
+def _testVerify(spec, deps, cc, parse, proxy):
     """
     Runs a single test case against verify.verifyDEP() and returns the
     result and potentially an error message. In addition to the elements
@@ -88,9 +88,6 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
 
     actual_exception_type = _('no Exception')
     actual_exception = None
-
-    # Save the _() function.
-    trans = __builtin__._ 
 
     try:
         expected_exception_type = spec.get('expectedException',
@@ -134,18 +131,15 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                     json.dump(dep, tmpf)
                     tmpf.seek(0)
 
-                    # Temporarily disable translations to make sure error
-                    # messages match.
-                    __builtin__._ = lambda x: x
-
-                    parser = depparser.IncrementalDEPParser.fromFd(tmpf, True)
-
                     # Pick a random chunk size.
                     nrecs = depparser.totalRecsInDictDEP(dep)
                     randCs = max(2, random.randint(0, nrecs - 1))
-                    state = verify.verifyParsedDEP(parser, ks, key, state,
-                            registerIdx, pool, nprocs, randCs)
+
+                    state = proxy.verify(tmpf, ks, key, state, registerIdx, randCs)
+
                     recids = set(ids)
+                    tmpf.seek(0)
+                    parser = depparser.FileDEPParser(tmpf)
                     for chunk in parser.parse(0):
                         for recs, cert, chain in chunk:
                             crsOld.updateFromDEPGroup(recs, key)
@@ -154,14 +148,11 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                                 ro = receipt.Receipt.fromJWSString(rs)[0]
                                 recids.add(ro.receiptId)
 
-                    # Reenable translations.
-                    __builtin__._ = trans
-
                     if nrecs < 10:
                         chunksizes = list(range(1, nrecs + 1)) + [nrecs * 2]
                     else:
                         chunksizes = [1, randCs, nrecs, nrecs * 2]
-                    dictParser = depparser.DictDEPParser(dep, nprocs)
+                    dictParser = depparser.DictDEPParser(dep)
                     for i in chunksizes:
                         for cA, cB in zip(dictParser.parse(i), parser.parse(i)):
                             if cA != cB:
@@ -176,11 +167,39 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
                     return TestVerifyResult.FAIL, Exception(
                             _('List of used receipt IDs invalid.'))
             else:
+                # Save the _() function.
+                trvec = (
+                    __builtin__._ ,
+                    depparser._,
+                    key_store._,
+                    receipt._,
+                    verification_state._,
+                    verify._,
+                    verify_receipt._,
+                )
                 # Temporarily disable translations to make sure error
                 # messages match.
-                __builtin__._ = lambda x: x
-                state = verify.verifyDEP(dep, ks, key, state, registerIdx)
-                __builtin__._ = trans
+                (
+                    __builtin__._ ,
+                    depparser._,
+                    key_store._,
+                    receipt._,
+                    verification_state._,
+                    verify._,
+                    verify_receipt._,
+                ) = [lambda x: x] * len(trvec)
+                try:
+                    state = verify.verifyDEP(dep, ks, key, state, registerIdx)
+                finally:
+                    (
+                        __builtin__._ ,
+                        depparser._,
+                        key_store._,
+                        receipt._,
+                        verification_state._,
+                        verify._,
+                        verify_receipt._,
+                    ) = trvec
 
             if expectedTurnover:
                 prevJWS, cashRegState, ids = state.getCashRegisterInfo(registerIdx)
@@ -194,9 +213,6 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
         actual_exception = e
     except Exception as e:
         return TestVerifyResult.ERROR, e
-    finally:
-        # Reenable translations.
-        __builtin__._ = trans
 
     if actual_exception:
         actual_exception_type = type(actual_exception).__name__
@@ -231,7 +247,7 @@ def _testVerify(spec, deps, cc, parse=False, pool = None, nprocs = 1):
 
     return TestVerifyResult.OK, None
 
-def testVerify(spec, pub, priv, closed, pool = None, nprocs = 1):
+def testVerify(spec, pub, priv, closed, proxy):
     """
     Runs a single test case against verify.verifyDEP() and returns the
     result and potentially an error message. In addition to the elements
@@ -260,8 +276,8 @@ def testVerify(spec, pub, priv, closed, pool = None, nprocs = 1):
     except Exception as e:
         return TestVerifyResult.ERROR, e
 
-    rN, mN = _testVerify(spec, deps, cc, False, pool, nprocs)
-    rP, mP = _testVerify(spec, deps, cc, True, pool, nprocs)
+    rN, mN = _testVerify(spec, deps, cc, False, proxy)
+    rP, mP = _testVerify(spec, deps, cc, True, proxy)
     if rN == rP and str(mN) == str(mP):
         return rN, mN
 
@@ -273,7 +289,7 @@ def testVerify(spec, pub, priv, closed, pool = None, nprocs = 1):
                     rN.name, mN, rP.name, mP))
 
 def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize,
-        pool = None, nprocs = 1):
+        proxy):
     """
     Runs all the given test cases against verify.verifyDEP. In addition to
     the elements understood by TestVerify(), this function also understands
@@ -310,7 +326,7 @@ def testVerifyMulti(specs, groupLabel, crt, pub, priv, tcDefaultSize,
             msg = _('No run label')
         else:
             pc = pub if closed else crt
-            result, msg = testVerify(s, pc, priv, closed, pool, nprocs)
+            result, msg = testVerify(s, pc, priv, closed, proxy)
         yield (label, groupLabel, closed, tc_size, result, msg)
 
 def printTestVerifyResult(label, groupLabel, closed, tcSize, result, msg):
@@ -334,6 +350,8 @@ import sys
 
 import gettext
 gettext.install('rktool', './lang', True)
+
+import verification_proxy
 
 def usage():
     print("Usage: ./test_verify.py open <JSON test case spec> <cert priv> <cert> [<turnover counter size>]")
@@ -382,14 +400,6 @@ if __name__ == "__main__":
                 spec['closedSystem'] = True
                 yield spec
 
-    # Get rid of translations in the tested code.
-    depparser._ = lambda x: x
-    key_store._ = lambda x: x
-    receipt._ = lambda x: x
-    verification_state._ = lambda x: x
-    verify._ = lambda x: x
-    verify_receipt._ = lambda x: x
-
     # We should always test with multiprocessing to catch pickle issues.
     DEFAULT_NPROCS = 2
 
@@ -417,8 +427,8 @@ if __name__ == "__main__":
         specs = generate_specs(tcSizes, testCases)
 
         pool = multiprocessing.Pool(DEFAULT_NPROCS)
-        results = testVerifyMulti(specs, groupLabel, cert, pub, priv, 8,
-                pool, DEFAULT_NPROCS)
+        proxy = verification_proxy.LibRKSVVerificationProxy(pool, DEFAULT_NPROCS)
+        results = testVerifyMulti(specs, groupLabel, cert, pub, priv, 8, proxy)
 
         resultList = list()
         try:
@@ -456,9 +466,9 @@ if __name__ == "__main__":
     tc_size = tcJson.get('turnoverCounterSize', 8)
 
     pool = multiprocessing.Pool(DEFAULT_NPROCS)
+    proxy = verification_proxy.LibRKSVVerificationProxy(pool, DEFAULT_NPROCS)
     try:
-        result, msg = testVerify(tcJson, pub, priv, closed, pool,
-                DEFAULT_NPROCS)
+        result, msg = testVerify(tcJson, pub, priv, closed, proxy)
     finally:
         pool.terminate()
         pool.join()
