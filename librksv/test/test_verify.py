@@ -35,14 +35,14 @@ import random
 import re
 import tempfile
 
-from librksv import depparser
-from librksv import key_store
-from librksv import receipt
-from librksv import verification_state
-from librksv import verify
-from librksv import verify_receipt
+from .. import depparser
+from .. import key_store
+from .. import receipt
+from .. import verification_state
+from .. import verify
+from .. import verify_receipt
 
-from librksv import run_test
+from .. import run_test
 
 class TestVerifyResult(enum.Enum):
     """
