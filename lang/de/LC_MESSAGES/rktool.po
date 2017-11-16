@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-11-10 17:58+CET\n"
+"POT-Creation-Date: 2017-11-16 14:55+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -337,57 +337,57 @@ msgstr ""
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
 
-#: librksv/test/test_verify.py:84 librksv/test/test_verify.py:89
-#: librksv/test/test_verify.py:94
+#: librksv/test/test_verify.py:103 librksv/test/test_verify.py:108
+#: librksv/test/test_verify.py:113
 msgid "no Exception"
 msgstr "kein Fehler"
 
-#: librksv/test/test_verify.py:160
+#: librksv/test/test_verify.py:179
 msgid "Incremental and dict parser yield different results at chunksize {}."
 msgstr ""
 "Inkrementeller und Dictionary Parser liefern unterschiedliche Resultate bei "
 "einer Blockgröße von {}."
 
-#: librksv/test/test_verify.py:165
+#: librksv/test/test_verify.py:184
 msgid "State update without verification failed."
 msgstr "Zustandsupdate ohne Verifikation fehlgeschlagen."
 
-#: librksv/test/test_verify.py:168
+#: librksv/test/test_verify.py:187
 msgid "List of used receipt IDs invalid."
 msgstr "Liste verwendeter Rechnungs-IDs ist ungültig."
 
-#: librksv/test/test_verify.py:209
+#: librksv/test/test_verify.py:228
 msgid "Expected {} in turnover counter but got {}."
 msgstr "Erwartete {} im Umsatzzähler, aber habe {} bekommen."
 
-#: librksv/test/test_verify.py:222
+#: librksv/test/test_verify.py:246
 msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
 msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
 
-#: librksv/test/test_verify.py:230
+#: librksv/test/test_verify.py:254
 msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
 msgstr ""
 "Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
 "bekommen"
 
-#: librksv/test/test_verify.py:238
+#: librksv/test/test_verify.py:262
 msgid "Expected message \"{}\" but got \"{}\" instead"
 msgstr "Erwartete Nachricht war \"{}\", habe stattdessen \"{}\" bekommen"
 
-#: librksv/test/test_verify.py:244
+#: librksv/test/test_verify.py:268
 msgid "Expected message matching \"{}\" but got \"{}\" instead"
 msgstr ""
 "Erwartete Nachricht passend zu \"{}\", habe stattdessen \"{}\" bekommen"
 
-#: librksv/test/test_verify.py:288
+#: librksv/test/test_verify.py:312
 msgid "Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<"
 msgstr "Ergebnisse verschieden: ohne parsing {}:>{}<, mit parsing {}:>{}<"
 
-#: librksv/test/test_verify.py:326
+#: librksv/test/test_verify.py:350
 msgid "No run label"
 msgstr "Kein Simulationsname"
 
-#: librksv/test/test_verify.py:343
+#: librksv/test/test_verify.py:367
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
