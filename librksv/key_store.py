@@ -32,7 +32,7 @@ import copy
 
 from . import utils
 
-class KeyStoreException(Exception):
+class KeyStoreException(utils.RKSVException):
     def __init__(self, message):
         super(KeyStoreException, self).__init__(message)
         self._initargs = (message,)

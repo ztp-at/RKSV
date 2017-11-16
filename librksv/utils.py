@@ -46,6 +46,12 @@ from cryptography.x509.oid import NameOID
 
 from six import string_types
 
+class RKSVException(Exception):
+    pass
+
+class RKSVVerifyException(RKSVException):
+    pass
+
 def depParserChunkSize():
     """
     This function returns the preferred chunksize that RKSV script should use

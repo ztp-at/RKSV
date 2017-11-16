@@ -35,7 +35,7 @@ from . import depparser
 from . import receipt
 from . import utils
 
-class StateException(Exception):
+class StateException(utils.RKSVException):
     def __init__(self, message):
         super(StateException, self).__init__(message)
         self._initargs = (message,)

@@ -36,7 +36,7 @@ from six import string_types
 from . import algorithms
 from . import utils
 
-class ReceiptException(Exception):
+class ReceiptException(utils.RKSVVerifyException):
     """
     An exception related to a receipt. Generally the message it prints contains
     the receipt in some string representation (usually JWS).

@@ -33,7 +33,7 @@ from six import string_types
 
 from . import utils
 
-class DEPException(Exception):
+class DEPException(utils.RKSVVerifyException):
     """
     An exception that is thrown if something is wrong with a DEP.
     """
