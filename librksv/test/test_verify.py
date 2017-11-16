@@ -33,11 +33,13 @@ import enum
 import json
 import random
 import re
+import sys
 import tempfile
 
 from .. import depparser
 from .. import key_store
 from .. import receipt
+from .. import utils
 from .. import verification_state
 from .. import verify
 from .. import verify_receipt
@@ -57,6 +59,23 @@ if version_info[0] < 3:
     import __builtin__
 else:
     import builtins as __builtin__
+
+# FIXME: WARNING: looking up the exception class like this almost certainly
+# allows for arbitrary code execution, do NOT use this outside of the test
+# framework or in cases where you don't trust your test specs 100%, it is
+# also broken in several other ways (for example when exceptions in different
+# modules have identical names or when the given name is not an exception)
+_librksvModuleRegex = re.compile(r'librksv.[A-Za-z0-9_]+$')
+def _find_exception_class(excName):
+    for name, mod in sys.modules.items():
+        if not _librksvModuleRegex.match(name):
+            continue
+
+        excType = getattr(mod, excName, None)
+        if excType:
+            return excType
+
+    return None
 
 def _testVerify(spec, deps, cc, parse, proxy):
     """
@@ -209,15 +228,20 @@ def _testVerify(spec, deps, cc, parse, proxy):
                             _('Expected {} in turnover counter but got {}.').format(
                                 expectedTurnoverCounter,
                                 cashRegState.lastTurnoverCounter))
-    except (receipt.ReceiptException, depparser.DEPException) as e:
+    except utils.RKSVVerifyException as e:
         actual_exception = e
     except Exception as e:
         return TestVerifyResult.ERROR, e
 
+    actual_exception_is_instance = False
     if actual_exception:
         actual_exception_type = type(actual_exception).__name__
+        expected_exception_class = _find_exception_class(expected_exception_type)
+        if expected_exception_class:
+            actual_exception_is_instance = isinstance(actual_exception,
+                    expected_exception_class)
 
-    if actual_exception_type != expected_exception_type:
+    if actual_exception_type != expected_exception_type and not actual_exception_is_instance:
         return TestVerifyResult.FAIL, Exception(
                 _('Expected "{}" but got "{}", message: "{}"').format(
                     expected_exception_type, actual_exception_type,
