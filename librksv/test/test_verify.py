@@ -68,7 +68,7 @@ else:
 _librksvModuleRegex = re.compile(r'librksv.[A-Za-z0-9_]+$')
 def _find_exception_class(excName):
     for name, mod in sys.modules.items():
-        if not _librksvModuleRegex.match(name):
+        if not _librksvModuleRegex.search(name):
             continue
 
         excType = getattr(mod, excName, None)
