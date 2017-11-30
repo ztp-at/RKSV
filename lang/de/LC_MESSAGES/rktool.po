@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-11-16 14:55+CET\n"
+"POT-Creation-Date: 2017-11-30 17:01+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -84,8 +84,8 @@ msgstr "DEP-Wurzel doppelt"
 msgid "Malformed DEP root"
 msgstr "Ungültige DEP-Wurzel"
 
-#: librksv/depparser.py:288 librksv/depparser.py:610 librksv/key_store.py:428
-#: librksv/key_store.py:438 librksv/verification_state.py:141
+#: librksv/depparser.py:288 librksv/depparser.py:610 librksv/key_store.py:429
+#: librksv/key_store.py:439 librksv/verification_state.py:141
 #: librksv/verification_state.py:147
 msgid "not a string"
 msgstr "kein String"
@@ -125,23 +125,23 @@ msgstr "Bei Zertifikat/öffentlichem Schlüssel \"{}\": {}."
 msgid "Public key \"{}\" malformed."
 msgstr "Öffentlicher Schlüssel \"{}\" ungültig."
 
-#: librksv/key_store.py:401
+#: librksv/key_store.py:402
 msgid "Malformed key store root"
 msgstr "Ungültige Schlüsselspeicher-Wurzel."
 
-#: librksv/key_store.py:409 librksv/key_store.py:416
+#: librksv/key_store.py:410 librksv/key_store.py:417
 msgid "not a dictionary"
 msgstr "kein Verzeichnis"
 
-#: librksv/key_store.py:432
+#: librksv/key_store.py:433
 msgid "inner ID \"{}\" does not match outer ID \"{}\""
 msgstr "innere ID \"{}\" ist ungleich äußerer ID \"{}\""
 
-#: librksv/key_store.py:450
+#: librksv/key_store.py:451
 msgid "invalid certificate ID \"{}\""
 msgstr "Ungültige Zertifikatsseriennummer \"{}\""
 
-#: librksv/key_store.py:459
+#: librksv/key_store.py:460
 msgid "not one of \"CERTIFICATE\" or \"PUBLIC_KEY\""
 msgstr "nicht eines von \"CERTIFICATE\" oder \"PUBLIC_KEY\""
 
