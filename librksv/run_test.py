@@ -27,7 +27,6 @@ from builtins import range
 import gettext
 _ = gettext.translation('rktool', './lang', fallback=True).gettext
 
-import base64
 import datetime
 
 from . import cashreg
@@ -65,7 +64,7 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         raise Exception(_('Need key material for {} signature devices, got {} key pairs.').format(
         spec['numberOfSignatureDevices'], len(keymat)))
 
-    key = base64.b64decode(spec['base64AesKey'])
+    key = utils.loadB64Key(spec['base64AesKey'].encode('utf-8'))
 
     turnoverCounterSize = spec.get('turnoverCounterSize', 8)
     if tcSize:

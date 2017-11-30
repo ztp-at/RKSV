@@ -22,7 +22,6 @@ from builtins import range
 
 from six import string_types
 
-import base64
 import copy
 import json
 import sys
@@ -182,7 +181,7 @@ if __name__ == "__main__":
         key = None
         if len(sys.argv) == 6:
             with open(sys.argv[5]) as f:
-                key = base64.b64decode(f.read().encode("utf-8"))
+                key = utils.loadB64Key(f.read().encode("utf-8"))
 
         state = load_state(filename)
 

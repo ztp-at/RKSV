@@ -28,7 +28,6 @@ from builtins import str
 import gettext
 _ = gettext.translation('rktool', './lang', fallback=True).gettext
 
-import base64
 import enum
 import json
 import random
@@ -118,7 +117,7 @@ def _testVerify(spec, deps, cc, parse, proxy):
             expected_exception_msg_regex = re.compile(expected_exception_msg_regex)
 
 
-        key = base64.b64decode(spec['base64AesKey'])
+        key = utils.loadB64Key(spec['base64AesKey'].encode('utf-8'))
         ks = key_store.KeyStore.readStoreFromJson(cc)
 
         state = verification_state.ClusterState()

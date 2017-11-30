@@ -431,7 +431,8 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
             raise e
 
         if not ro.isDummy():
-            if key:
+            if key is not None:
+                utils.raiseForKey(key, algorithm)
                 newC = cashRegisterState.lastTurnoverCounter + int(round(
                     (ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
                 if not ro.isReversal():

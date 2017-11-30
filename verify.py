@@ -21,7 +21,6 @@ from __future__ import print_function
 from builtins import int
 from builtins import range
 
-import base64
 import configparser
 import json
 import sys
@@ -108,7 +107,7 @@ if __name__ == "__main__":
     if sys.argv[1] == 'keyStore':
         if len(sys.argv) == 5:
             with open(sys.argv[4]) as f:
-                key = base64.b64decode(f.read().encode("utf-8"))
+                key = utils.loadB64Key(f.read().encode("utf-8"))
 
         config = configparser.RawConfigParser()
         config.optionxform = str

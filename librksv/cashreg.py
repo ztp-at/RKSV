@@ -160,8 +160,7 @@ class CashRegister(CashRegisterI):
             if reversal:
                 encTurnoverCounter = b'STO'
             else:
-                if not algorithm.verifyKey(self.key):
-                    raise Exception(_("Invalid key."))
+                utils.raiseForKey(self.key, algorithm)
                 encTurnoverCounter = algorithm.encryptTurnoverCounter(rec,
                         self.turnoverCounter, self.key,
                         self.turnoverCounterSize)

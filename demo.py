@@ -23,7 +23,6 @@ from builtins import range
 import gettext
 gettext.install('rktool', './lang', True)
 
-import base64
 import datetime
 import random
 import sys
@@ -85,7 +84,7 @@ if __name__ == "__main__":
 
     key = None
     with open(keyf) as f:
-        key = base64.b64decode(f.read().encode("utf-8"))
+        key = utils.loadB64Key(f.read().encode("utf-8"))
 
     register = cashreg.CashRegister("PIGGYBANK-007", None, int(0.0 * 100), key)
 

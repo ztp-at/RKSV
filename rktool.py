@@ -23,7 +23,6 @@ from builtins import range
 import kivy
 kivy.require('1.9.0')
 
-import base64 
 import configparser
 import os
 
@@ -265,7 +264,7 @@ class ViewReceiptWidget(BoxLayout):
         self._popup.dismiss()
 
     def __init__(self, receipt, algorithmPrefix, isValid, key, **kwargs):
-        self._init_key = key
+        self._init_key = key if key else None
         self._receipt = receipt
         self._key = None
         self._algorithmPrefix = algorithmPrefix
@@ -402,15 +401,14 @@ class ViewReceiptWidget(BoxLayout):
     def setKey(self, key):
         self._key = None
         try:
-            if key and key != '':
+            if key is not None:
                 self.aes_input.text = key
-                k = base64.b64decode(key.encode('utf-8'))
+                k = utils.loadB64Key(key.encode('utf-8'))
                 if self._algorithmPrefix not in algorithms.ALGORITHMS:
                     raise receipt.UnknownAlgorithmException(
                             self._receipt.receiptId)
                 algorithm = algorithms.ALGORITHMS[self._algorithmPrefix]
-                if not algorithm.verifyKey(k):
-                    raise Exception(_("Invalid key."))
+                utils.raiseForKey(k, algorithm)
                 self._key = k
         except Exception as e:
             self.aes_input.text = ''
@@ -688,7 +686,7 @@ class VerifyDEPWidget(BoxLayout):
         try:
             k = self.aesInput.text
             if k and k != '':
-                key = base64.b64decode(k.encode('utf-8'))
+                key = utils.loadB64Key(k.encode('utf-8'))
         except Exception as e:
             self.aesInput.text = ''
             displayError(e)

@@ -93,15 +93,6 @@ class AlgorithmMismatchException(ReceiptParseException):
         super(AlgorithmMismatchException, self).__init__(receipt, _("Algorithm mismatch."))
         self._initargs = (receipt,)
 
-class InvalidKeyException(ReceiptException):
-    """
-    Indicates that a given key is invalid for a receipt.
-    """
-
-    def __init__(self, receipt):
-        super(InvalidKeyException, self).__init__(receipt, _("Invalid key."))
-        self._initargs = (receipt,)
-
 class CertSerialInvalidException(ReceiptException):
     """
     Indicates that the certificate serial in the receipt is malformed.
@@ -750,8 +741,7 @@ class Receipt(object):
         if self.isReversal():
             raise Exception(_("Can't decrypt turnover counter, this is a reversal receipt."))
 
-        if not algorithm.verifyKey(key):
-            raise InvalidKeyException(self.receiptId)
+        utils.raiseForKey(key, algorithm)
 
         ct = utils.b64decode(self.encTurnoverCounter.encode("utf-8"))
         return algorithm.decryptTurnoverCounter(self, ct, key)

@@ -52,6 +52,14 @@ class RKSVException(Exception):
 class RKSVVerifyException(RKSVException):
     pass
 
+class InvalidKeyException(RKSVException):
+    """
+    Indicates that a given key is invalid for the given algorithm.
+    """
+
+    def __init__(self):
+        super(InvalidKeyException, self).__init__(_("Invalid key."))
+
 def depParserChunkSize():
     """
     This function returns the preferred chunksize that RKSV script should use
@@ -61,6 +69,13 @@ def depParserChunkSize():
     """
     return int(os.environ.get('RKSV_DEP_CHUNKSIZE', 100000))
 
+def raiseForKey(key, algorithm):
+    if not algorithm.verifyKey(key):
+        raise InvalidKeyException()
+
+def loadB64Key(b64Key):
+    return b64decode(b64Key)
+
 def loadKeyFromJson(json):
     """
     Loads an AES-256 key from a cryptographic material container JSON.
@@ -68,10 +83,13 @@ def loadKeyFromJson(json):
     :return: The key as a byte list or None if there is no key element in
     the JSON.
     """
+    b64Key = None
     try:
-        return base64.b64decode(json['base64AESKey'].encode('utf-8'))
+        b64Key = json['base64AESKey']
     except KeyError:
         return None
+
+    return loadB64Key(b64Key.encode('utf-8'))
 
 def sha256(data):
     """
