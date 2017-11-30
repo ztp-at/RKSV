@@ -220,7 +220,7 @@ key_store.py
 ------------
 	Usage: ./key_store.py <key store> create
 	       ./key_store.py <key store> list
-	       ./key_store.py <key store> toJson <base64 AES key file>
+	       ./key_store.py <key store> toJson [<base64 AES key file>]
 	       ./key_store.py <key store> fromJson <json container file>
 	       ./key_store.py <key store> add <pem cert file>
 	       ./key_store.py <key store> add <pem pubkey file> <pubkey id>
@@ -231,8 +231,11 @@ The `create` command creates a new empty key store in the file `key store`.
 The `list` command lists the known certificate serials and key IDs
 
 The `toJson` command prints the key store in the new JSON crypto container
-format defined in version 0.6 of the reference implementation. It requires a
-file containing the base64 encoded AES256 key as a parameter.
+format defined in version 0.6 of the reference implementation. If a file is
+specified as last parameter, the script will read a base64 encoded AES256 key
+from it and store it in the JSON output. If the parameter is omitted, the JSON
+crypto container will not contain an AES key (and will be incompatible with the
+reference implementation).
 
 The `fromJson` command creates a new key store from the new JSON crypto
 container format defined in version 0.6 of the reference implementation.

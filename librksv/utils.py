@@ -65,9 +65,13 @@ def loadKeyFromJson(json):
     """
     Loads an AES-256 key from a cryptographic material container JSON.
     :param json: The JSON data.
-    :return: The key as a byte list.
+    :return: The key as a byte list or None if there is no key element in
+    the JSON.
     """
-    return base64.b64decode(json['base64AESKey'].encode('utf-8'))
+    try:
+        return base64.b64decode(json['base64AESKey'].encode('utf-8'))
+    except KeyError:
+        return None
 
 def sha256(data):
     """

@@ -32,7 +32,7 @@ from librksv.key_store import KeyStore
 def usage():
     print("Usage: ./key_store.py <key store> create")
     print("       ./key_store.py <key store> list")
-    print("       ./key_store.py <key store> toJson <base64 AES key file>")
+    print("       ./key_store.py <key store> toJson [<base64 AES key file>]")
     print("       ./key_store.py <key store> fromJson <json container file>")
     print("       ./key_store.py <key store> add <pem cert file>")
     print("       ./key_store.py <key store> add <pem pubkey file> <pubkey id>")
@@ -65,7 +65,7 @@ if __name__ == "__main__":
             print(keyId)
 
     elif sys.argv[2] == 'toJson':
-        if len(sys.argv) != 4:
+        if len(sys.argv) > 4:
             usage()
 
         config = configparser.RawConfigParser()
@@ -74,8 +74,9 @@ if __name__ == "__main__":
         keyStore = KeyStore.readStore(config)
 
         aesKey = None
-        with open(sys.argv[3]) as f:
-            aesKey = f.read().strip()
+        if len(sys.argv) == 4:
+            with open(sys.argv[3]) as f:
+                aesKey = f.read().strip()
 
         data = keyStore.writeStoreToJson(aesKey)
         print(json.dumps(data, sort_keys=False, indent=2))

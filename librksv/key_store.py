@@ -365,7 +365,7 @@ class KeyStore(KeyStoreI):
         Writes the store to a JSON structure that is compatible with the JSON
         crypto container format and can be used with json.dumps().
         :param b64Key: The AES256 key to attach to the container as a base64
-        encoded string.
+        encoded string or None if the key is not known.
         :return: The JSON container.
         """
 
@@ -383,10 +383,11 @@ class KeyStore(KeyStoreI):
 
             kDict[keyId] = cont
 
-        return {
-                'certificateOrPublicKeyMap': kDict,
-                'base64AESKey': b64Key
-        }
+        ret = { 'certificateOrPublicKeyMap': kDict }
+        if b64Key is not None:
+            ret['base64AESKey'] = b64Key
+
+        return ret
 
     @staticmethod
     def readStoreFromJson(json):
