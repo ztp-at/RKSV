@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-11-30 17:01+CET\n"
+"POT-Creation-Date: 2017-12-01 01:27+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -28,456 +28,456 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: demo.py:83
+#: demo.py:82
 msgid "The number of receipts must be at least 1."
 msgstr "Die Anzahl der Rechnungen muss mindestens 1 sein."
 
-#: librksv/cashreg.py:121
+#: librksv/cashreg.py:120
 msgid "Invalid turnover counter size."
 msgstr "Umsatzzähler-Länge ungültig."
 
-#: librksv/cashreg.py:164 librksv/receipt.py:102 main.py:413 rktool.py:413
-msgid "Invalid key."
-msgstr "Ungültiger Schlüssel."
-
-#: librksv/depparser.py:63
+#: librksv/depparser.py:57
 msgid "Malformed DEP"
 msgstr "Ungültiges DEP"
 
-#: librksv/depparser.py:67 librksv/key_store.py:63
-#: librksv/verification_state.py:79
+#: librksv/depparser.py:61 librksv/key_store.py:62
+#: librksv/verification_state.py:78
 msgid "{}."
 msgstr "{}."
 
-#: librksv/depparser.py:70
+#: librksv/depparser.py:64
 msgid "In group {}: {}."
 msgstr "In Gruppe {}: {}"
 
-#: librksv/depparser.py:80 librksv/key_store.py:76
-#: librksv/verification_state.py:92
+#: librksv/depparser.py:74 librksv/key_store.py:75
+#: librksv/verification_state.py:91
 msgid "Element \"{}\" missing"
 msgstr "Element \"{}\" fehlt"
 
-#: librksv/depparser.py:92 librksv/key_store.py:88
-#: librksv/verification_state.py:104
+#: librksv/depparser.py:86 librksv/key_store.py:87
+#: librksv/verification_state.py:103
 msgid "Element \"{}\" malformed"
 msgstr "Element \"{}\" ungültig"
 
-#: librksv/depparser.py:96 librksv/key_store.py:92
-#: librksv/verification_state.py:108
+#: librksv/depparser.py:90 librksv/key_store.py:91
+#: librksv/verification_state.py:107
 msgid "Element \"{}\" malformed: {}"
 msgstr "Element \"{}\" ungültig: {}"
 
-#: librksv/depparser.py:108
+#: librksv/depparser.py:102
 msgid "Duplicate element \"{}\""
 msgstr "Element \"{}\" doppelt"
 
-#: librksv/depparser.py:119 librksv/key_store.py:103
+#: librksv/depparser.py:113 librksv/key_store.py:102
 msgid "Certificate \"{}\" malformed."
 msgstr "Zertifikat \"{}\" ungültig."
 
-#: librksv/depparser.py:220 librksv/depparser.py:242
+#: librksv/depparser.py:214 librksv/depparser.py:236
 msgid "Duplicate DEP root"
 msgstr "DEP-Wurzel doppelt"
 
-#: librksv/depparser.py:225 librksv/depparser.py:240 librksv/depparser.py:652
+#: librksv/depparser.py:219 librksv/depparser.py:234 librksv/depparser.py:646
 msgid "Malformed DEP root"
 msgstr "Ungültige DEP-Wurzel"
 
-#: librksv/depparser.py:288 librksv/depparser.py:610 librksv/key_store.py:429
-#: librksv/key_store.py:439 librksv/verification_state.py:141
-#: librksv/verification_state.py:147
+#: librksv/depparser.py:282 librksv/depparser.py:604 librksv/key_store.py:428
+#: librksv/key_store.py:438 librksv/verification_state.py:140
+#: librksv/verification_state.py:146
 msgid "not a string"
 msgstr "kein String"
 
-#: librksv/depparser.py:297 librksv/depparser.py:307 librksv/depparser.py:613
-#: librksv/depparser.py:616 librksv/verification_state.py:311
-#: librksv/verification_state.py:315
+#: librksv/depparser.py:291 librksv/depparser.py:301 librksv/depparser.py:607
+#: librksv/depparser.py:610 librksv/verification_state.py:310
+#: librksv/verification_state.py:314
 msgid "not a list"
 msgstr "keine Liste"
 
-#: librksv/depparser.py:351 librksv/depparser.py:353 librksv/depparser.py:367
-#: librksv/depparser.py:369
+#: librksv/depparser.py:345 librksv/depparser.py:347 librksv/depparser.py:361
+#: librksv/depparser.py:363
 msgid "Receipt \"{}\""
 msgstr "Rechnung \"{}\""
 
-#: librksv/depparser.py:476 librksv/depparser.py:670
+#: librksv/depparser.py:470 librksv/depparser.py:664
 msgid "No receipts found"
 msgstr "Keine Rechnungen gefunden"
 
-#: librksv/depparser.py:478 librksv/depparser.py:690
+#: librksv/depparser.py:472 librksv/depparser.py:684
 msgid "Malformed JSON: {}."
 msgstr "Ungültiges JSON: {}."
 
-#: librksv/depparser.py:495
+#: librksv/depparser.py:489
 msgid "Element \"Signaturzertifikat\" or \"Zertifizierungsstellen\" missing"
 msgstr "Element \"Signaturzertifikat\" oder \"Zertifizierungsstellen\" fehlt"
 
-#: librksv/key_store.py:59
+#: librksv/key_store.py:58
 msgid "Malformed key store"
 msgstr "Ungültiger Schlüsselspeicher"
 
-#: librksv/key_store.py:66
+#: librksv/key_store.py:65
 msgid "In certificate/public key \"{}\": {}."
 msgstr "Bei Zertifikat/öffentlichem Schlüssel \"{}\": {}."
 
-#: librksv/key_store.py:113
+#: librksv/key_store.py:112
 msgid "Public key \"{}\" malformed."
 msgstr "Öffentlicher Schlüssel \"{}\" ungültig."
 
-#: librksv/key_store.py:402
+#: librksv/key_store.py:401
 msgid "Malformed key store root"
 msgstr "Ungültige Schlüsselspeicher-Wurzel."
 
-#: librksv/key_store.py:410 librksv/key_store.py:417
+#: librksv/key_store.py:409 librksv/key_store.py:416
 msgid "not a dictionary"
 msgstr "kein Verzeichnis"
 
-#: librksv/key_store.py:433
+#: librksv/key_store.py:432
 msgid "inner ID \"{}\" does not match outer ID \"{}\""
 msgstr "innere ID \"{}\" ist ungleich äußerer ID \"{}\""
 
-#: librksv/key_store.py:451
+#: librksv/key_store.py:450
 msgid "invalid certificate ID \"{}\""
 msgstr "Ungültige Zertifikatsseriennummer \"{}\""
 
-#: librksv/key_store.py:460
+#: librksv/key_store.py:459
 msgid "not one of \"CERTIFICATE\" or \"PUBLIC_KEY\""
 msgstr "nicht eines von \"CERTIFICATE\" oder \"PUBLIC_KEY\""
 
-#: librksv/receipt.py:46 librksv/verify.py:62
+#: librksv/receipt.py:45 librksv/verify.py:61
 msgid "At receipt \"{0}\": {1}"
 msgstr "Bei Rechnung \"{0}\": {1}"
 
-#: librksv/receipt.py:71
+#: librksv/receipt.py:70
 msgid "Malformed receipt"
 msgstr "Ungültige Rechnung"
 
-#: librksv/receipt.py:73
+#: librksv/receipt.py:72
 msgid "Malformed receipt."
 msgstr "Ungültige Rechnung."
 
-#: librksv/receipt.py:84
+#: librksv/receipt.py:83
 msgid "Unknown algorithm."
 msgstr "Unbekannter Algorithmus."
 
-#: librksv/receipt.py:93
+#: librksv/receipt.py:92
 msgid "Algorithm mismatch."
 msgstr "Inkompatible Algorithmen."
 
-#: librksv/receipt.py:110
+#: librksv/receipt.py:100
 msgid "Certificate serial invalid."
 msgstr "Zertifikat-Seriennummer ungültig."
 
-#: librksv/receipt.py:120
+#: librksv/receipt.py:110
 msgid "Invalid certificate provider."
 msgstr "Ungültiger Zertifizierungsdiensteanbieter."
 
-#: librksv/receipt.py:232
+#: librksv/receipt.py:222
 msgid "Unknown Receipt"
 msgstr "Unbekannte Rechnung."
 
-#: librksv/receipt.py:233 librksv/receipt.py:236
+#: librksv/receipt.py:223 librksv/receipt.py:226
 msgid "Receipt ID \"{}\" invalid."
 msgstr "Rechnungs-ID \"{}\" ungültig."
 
-#: librksv/receipt.py:241
+#: librksv/receipt.py:231
 msgid "ZDA \"{}\" invalid."
 msgstr "ZDA \"{}\" ungültig."
 
-#: librksv/receipt.py:246
+#: librksv/receipt.py:236
 msgid "Register ID \"{}\" invalid."
 msgstr "Kassen-ID \"{}\" ungültig."
 
-#: librksv/receipt.py:249
+#: librksv/receipt.py:239
 msgid "Timestamp \"{}\" invalid."
 msgstr "Zeitstempel \"{}\" ungültig."
 
-#: librksv/receipt.py:252
+#: librksv/receipt.py:242
 msgid "Sum tax normal \"{}\" invalid."
 msgstr "Betrag Satz normal \"{}\" ungültig."
 
-#: librksv/receipt.py:254
+#: librksv/receipt.py:244
 msgid "Sum tax reduced 1 \"{}\" invalid."
 msgstr "Betrag Satz ermäßigt 1 \"{}\" ungültig."
 
-#: librksv/receipt.py:256
+#: librksv/receipt.py:246
 msgid "Sum tax reduced 2 \"{}\" invalid."
 msgstr "Betrag Satz ermäßigt 2 \"{}\" ungültig."
 
-#: librksv/receipt.py:258
+#: librksv/receipt.py:248
 msgid "Sum tax zero \"{}\" invalid."
 msgstr "Betrag Satz null \"{}\" ungültig."
 
-#: librksv/receipt.py:260
+#: librksv/receipt.py:250
 msgid "Sum tax special \"{}\" invalid."
 msgstr "Betrag Satz besonders \"{}\" ungültig."
 
-#: librksv/receipt.py:266 librksv/receipt.py:312 librksv/receipt.py:392
-#: librksv/receipt.py:511
+#: librksv/receipt.py:256 librksv/receipt.py:302 librksv/receipt.py:382
+#: librksv/receipt.py:501
 msgid "Encrypted turnover counter \"{}\" invalid."
 msgstr "Verschlüsselter Umsatzzähler \"{}\" ungültig."
 
-#: librksv/receipt.py:269 librksv/receipt.py:404 librksv/receipt.py:523
+#: librksv/receipt.py:259 librksv/receipt.py:394 librksv/receipt.py:513
 msgid "Chaining value \"{}\" invalid."
 msgstr "Verkettungswert \"{}\" ungültig."
 
-#: librksv/receipt.py:274
+#: librksv/receipt.py:264
 msgid "Certificate serial/Key ID \"{}\" invalid."
 msgstr "Zertifikat-Seriennummer/Schlüssel-ID \"{}\" ungültig."
 
-#: librksv/receipt.py:326
+#: librksv/receipt.py:316
 msgid "Invalid JWS."
 msgstr "Ungültiges JWS."
 
-#: librksv/receipt.py:331
+#: librksv/receipt.py:321
 msgid "JWS does not contain exactly three segments."
 msgstr "Das JWS beinhaltet nicht genau drei Segmente."
 
-#: librksv/receipt.py:335
+#: librksv/receipt.py:325
 msgid "Base 64 padding was used in JWS."
 msgstr "Base 64 Padding wurde im JWS benutzt."
 
-#: librksv/receipt.py:343
+#: librksv/receipt.py:333
 msgid "Invalid JWS header."
 msgstr "Ungültiger JWS Header."
 
-#: librksv/receipt.py:351
+#: librksv/receipt.py:341
 msgid "Invalid JWS payload."
 msgstr "Ungültige JWS Payload."
 
-#: librksv/receipt.py:358
+#: librksv/receipt.py:348
 msgid "JWS payload does not contain 12 elements."
 msgstr "Die JWS Payload beinhaltet nicht genau 12 Elemente."
 
-#: librksv/receipt.py:363
+#: librksv/receipt.py:353
 msgid "Payload does not contain algorithm and ZDA IDs."
 msgstr "Die Payload beinhaltet keine Algorithmus- und ZDA-ID."
 
-#: librksv/receipt.py:369 librksv/receipt.py:480
+#: librksv/receipt.py:359 librksv/receipt.py:470
 msgid "Algorithm ID \"{}\" invalid."
 msgstr "Algorithmus-ID \"{}\" ungültig."
 
-#: librksv/receipt.py:417 librksv/receipt.py:534 librksv/receipt.py:605
-#: librksv/receipt.py:709
+#: librksv/receipt.py:407 librksv/receipt.py:524 librksv/receipt.py:595
+#: librksv/receipt.py:699
 msgid "You need to sign the receipt first."
 msgstr "Die Rechnung muss zuerst signiert werden."
 
-#: librksv/receipt.py:464
+#: librksv/receipt.py:454
 msgid "Invalid machine-readable code."
 msgstr "Ungültiger maschinenlesbarer Code."
 
-#: librksv/receipt.py:469
+#: librksv/receipt.py:459
 msgid "Machine-readable code does not contain 13 elements."
 msgstr "Der maschinenlesbare Code beinhaltet nicht genau 13 Elemente."
 
-#: librksv/receipt.py:474
+#: librksv/receipt.py:464
 msgid "Machine-readable code does not contain algorithm and ZDA IDs."
 msgstr "Der maschinenlesbare Code beinhaltet keine Algorithmus- und ZDA-ID."
 
-#: librksv/receipt.py:503
+#: librksv/receipt.py:493
 msgid "Signature \"{}\" not Base 64 encoded."
 msgstr "Signatur \"{}\" nicht Base 64 enkodiert."
 
-#: librksv/receipt.py:556
+#: librksv/receipt.py:546
 msgid "Invalid OCR code."
 msgstr "Ungültiger OCR Code."
 
-#: librksv/receipt.py:561
+#: librksv/receipt.py:551
 msgid "OCR code does not contain 13 elements."
 msgstr "Der OCR Code beinhaltet nicht genau 13 Elemente."
 
-#: librksv/receipt.py:568
+#: librksv/receipt.py:558
 msgid "Encrypted turnover counter \"{}\" not Base 32 encoded."
 msgstr "Verschlüsselter Umsatzzähler \"{}\" nicht Base 32 enkodiert."
 
-#: librksv/receipt.py:576
+#: librksv/receipt.py:566
 msgid "Chaining value \"{}\" not Base 32 encoded."
 msgstr "Verkettungswert \"{}\" nicht Base 32 enkodiert."
 
-#: librksv/receipt.py:584
+#: librksv/receipt.py:574
 msgid "Signature \"{}\" not Base 32 encoded."
 msgstr "Signatur \"{}\" nicht Base 32 enkodiert."
 
-#: librksv/receipt.py:661
+#: librksv/receipt.py:651
 msgid "Invalid CSV."
 msgstr "Ungültiges CSV."
 
-#: librksv/receipt.py:683
+#: librksv/receipt.py:673
 msgid "JWS header \"{}\" invalid."
 msgstr "JWS header \"{}\" ungültig."
 
-#: librksv/receipt.py:687
+#: librksv/receipt.py:677
 msgid "Signature \"{}\" invalid."
 msgstr "Signatur \"{}\" ungültig."
 
-#: librksv/receipt.py:690
+#: librksv/receipt.py:680
 msgid "Signature \"{}\" uses padding."
 msgstr "Signatur \"{}\" benutzt Padding."
 
-#: librksv/receipt.py:696
+#: librksv/receipt.py:686
 msgid "Signature \"{}\" not Base 64 URL encoded."
 msgstr "Signatur \"{}\" nicht Base 64 URL enkodiert."
 
-#: librksv/receipt.py:749
+#: librksv/receipt.py:739
 msgid "Can't decrypt turnover counter, this is a dummy receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Trainingsbeleg."
 
-#: librksv/receipt.py:751
+#: librksv/receipt.py:741
 msgid "Can't decrypt turnover counter, this is a reversal receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Stornobeleg."
 
-#: librksv/run_test.py:65
+#: librksv/run_test.py:63
 msgid "Need key material for {} signature devices, got {} key pairs."
 msgstr ""
 "Brauche Schlüsselmaterial für {} Sicherheitseinrichtungen, habe {} "
 "Schlüsselpaare bekommen."
 
-#: librksv/sigsys.py:157
+#: librksv/sigsys.py:156
 msgid "Selected algorithm not supported."
 msgstr "Gewählter Algorithmus wird nicht unterstützt."
 
-#: librksv/test/test_verify.py:103 librksv/test/test_verify.py:108
-#: librksv/test/test_verify.py:113
+#: librksv/test/test_verify.py:101 librksv/test/test_verify.py:106
+#: librksv/test/test_verify.py:111
 msgid "no Exception"
 msgstr "kein Fehler"
 
-#: librksv/test/test_verify.py:179
+#: librksv/test/test_verify.py:177
 msgid "Incremental and dict parser yield different results at chunksize {}."
 msgstr ""
 "Inkrementeller und Dictionary Parser liefern unterschiedliche Resultate bei "
 "einer Blockgröße von {}."
 
-#: librksv/test/test_verify.py:184
+#: librksv/test/test_verify.py:182
 msgid "State update without verification failed."
 msgstr "Zustandsupdate ohne Verifikation fehlgeschlagen."
 
-#: librksv/test/test_verify.py:187
+#: librksv/test/test_verify.py:185
 msgid "List of used receipt IDs invalid."
 msgstr "Liste verwendeter Rechnungs-IDs ist ungültig."
 
-#: librksv/test/test_verify.py:228
+#: librksv/test/test_verify.py:226
 msgid "Expected {} in turnover counter but got {}."
 msgstr "Erwartete {} im Umsatzzähler, aber habe {} bekommen."
 
-#: librksv/test/test_verify.py:246
+#: librksv/test/test_verify.py:244
 msgid "Expected \"{}\" but got \"{}\", message: \"{}\""
 msgstr "Erwartete \"{}\", aber habe \"{}\" bekommen, Nachricht: \"{}\""
 
-#: librksv/test/test_verify.py:254
+#: librksv/test/test_verify.py:252
 msgid "Expected \"{}\" at receipt \"{}\" but it occured at \"{}\" instead"
 msgstr ""
 "Erwartete \"{}\" bei Rechnung \"{}\", aber habe es stattdessen bei \"{}\" "
 "bekommen"
 
-#: librksv/test/test_verify.py:262
+#: librksv/test/test_verify.py:260
 msgid "Expected message \"{}\" but got \"{}\" instead"
 msgstr "Erwartete Nachricht war \"{}\", habe stattdessen \"{}\" bekommen"
 
-#: librksv/test/test_verify.py:268
+#: librksv/test/test_verify.py:266
 msgid "Expected message matching \"{}\" but got \"{}\" instead"
 msgstr ""
 "Erwartete Nachricht passend zu \"{}\", habe stattdessen \"{}\" bekommen"
 
-#: librksv/test/test_verify.py:312
+#: librksv/test/test_verify.py:310
 msgid "Result mismatch: without parsing {}:>{}<, with parsing {}:>{}<"
 msgstr "Ergebnisse verschieden: ohne parsing {}:>{}<, mit parsing {}:>{}<"
 
-#: librksv/test/test_verify.py:350
+#: librksv/test/test_verify.py:348
 msgid "No run label"
 msgstr "Kein Simulationsname"
 
-#: librksv/test/test_verify.py:367
+#: librksv/test/test_verify.py:365
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
-#: librksv/verification_state.py:49
+#: librksv/utils.py:70
+msgid "Invalid key."
+msgstr "Ungültiger Schlüssel."
+
+#: librksv/verification_state.py:48
 msgid "No cash register with index {}."
 msgstr "Keine Kassa mit Index {}."
 
-#: librksv/verification_state.py:55
+#: librksv/verification_state.py:54
 msgid "The last cash register has no registered start receipt."
 msgstr "Die letzte Kassa hat keinen registrierten Startbeleg."
 
-#: librksv/verification_state.py:75
+#: librksv/verification_state.py:74
 msgid "Malformed verification state"
 msgstr "Ungültiger Überprüfungszustand"
 
-#: librksv/verification_state.py:82
+#: librksv/verification_state.py:81
 msgid "In cash register {}: {}."
 msgstr "Bei Kassa {}: {}."
 
-#: librksv/verification_state.py:152
+#: librksv/verification_state.py:151
 msgid "not an integer"
 msgstr "keine Ganzzahl"
 
-#: librksv/verification_state.py:157
+#: librksv/verification_state.py:156
 msgid "not a boolean"
 msgstr "kein Boolean"
 
-#: librksv/verification_state.py:302
+#: librksv/verification_state.py:301
 msgid "Malformed verification state root"
 msgstr "Ungültige Überprüfungszustand-Wurzel"
 
-#: librksv/verification_state.py:322
+#: librksv/verification_state.py:321
 msgid "not an object"
 msgstr "kein Objekt"
 
-#: librksv/verification_state.py:330
+#: librksv/verification_state.py:329
 msgid "receipt ID not a string"
 msgstr "Belegnummer ist kein String"
 
-#: librksv/verify.py:51
+#: librksv/verify.py:50
 msgid "GGS Cluster is not supported in an open system."
 msgstr "GGS Verbund wird in offenen Systemen nicht unterstützt."
 
-#: librksv/verify.py:74
+#: librksv/verify.py:73
 msgid "Previous receipt is not \"{0}\"."
 msgstr "Vorherige Rechnung ist nicht \"{0}\"."
 
-#: librksv/verify.py:86
+#: librksv/verify.py:85
 msgid "Receipt after restored signature system must not have any turnover."
 msgstr ""
 "Rechnung nach Wiederherstellung der Sicherheitseinrichtung darf keinen "
 "Umsatz haben."
 
-#: librksv/verify.py:97
+#: librksv/verify.py:96
 msgid "Receipt ID already in use."
 msgstr "Rechnungs-ID wird bereits verwendet."
 
-#: librksv/verify.py:107
+#: librksv/verify.py:106
 msgid "Turnover counter invalid."
 msgstr "Umsatzzähler ungültig."
 
-#: librksv/verify.py:117
+#: librksv/verify.py:116
 msgid "Register ID changed."
 msgstr "Kassen-ID geändert."
 
-#: librksv/verify.py:128
+#: librksv/verify.py:127
 msgid "Receipt was created before previous receipt."
 msgstr "Rechnung wurde vor vorhergehender Rechnung erstellt."
 
-#: librksv/verify.py:139
+#: librksv/verify.py:138
 msgid "The system type changed."
 msgstr "Typ des Systems wurde geändert."
 
-#: librksv/verify.py:150
+#: librksv/verify.py:149
 msgid "The size of the turnover counter changed."
 msgstr "Die Länge des Umsatzzählers wurde geändert."
 
-#: librksv/verify.py:160
+#: librksv/verify.py:159
 msgid "No certificate specified in DEP and multiple groups used."
 msgstr "Kein Zertifikat angegeben, aber DEP hat mehrere Gruppen."
 
-#: librksv/verify.py:172
+#: librksv/verify.py:171
 msgid "Certificate \"%s\" is not trusted."
 msgstr "Zertifikat \"%s\" wird nicht vertraut."
 
-#: librksv/verify.py:184
+#: librksv/verify.py:183
 msgid "Certificate \"{}\" was not signed by \"{}\"."
 msgstr "Zertifikat \"{}\" wurde nicht von \"{}\" signiert."
 
-#: librksv/verify.py:196
+#: librksv/verify.py:195
 msgid ""
 "Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and "
 "\"{2}\"). This may be an attempted attack."
@@ -485,19 +485,19 @@ msgstr ""
 "Zwei Zertifikate mit Seriennummer \"{0}\" gefunden (Fingerabdrücke \"{1}\" "
 "und \"{2}\"). Dies könnte ein versuchter Angriff sein."
 
-#: librksv/verify.py:206
+#: librksv/verify.py:205
 msgid "Initial receipt not signed."
 msgstr "Startbeleg nicht signiert."
 
-#: librksv/verify.py:215
+#: librksv/verify.py:214
 msgid "Initial receipt has nonzero turnover."
 msgstr "Startbeleg hat Umsatz ungleich Null."
 
-#: librksv/verify.py:226
+#: librksv/verify.py:225
 msgid "Initial receipt has not been chained to the cash register ID."
 msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
 
-#: librksv/verify.py:237
+#: librksv/verify.py:236
 msgid ""
 "Initial receipt in cluster has not been chained to the previous cash "
 "register's initial receipt."
@@ -505,7 +505,7 @@ msgstr ""
 "Startbeleg in Verbund ist nicht mit dem Startbeleg der vorherigen Kassa "
 "verkettet."
 
-#: librksv/verify.py:247
+#: librksv/verify.py:246
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
@@ -513,183 +513,183 @@ msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 msgid "THIS IS A BUG"
 msgstr "DAS IST EIN BUG"
 
-#: librksv/verify_receipt.py:42
+#: librksv/verify_receipt.py:41
 msgid "Certificate serial mismatch."
 msgstr "Zertifikat-Seriennummern stimmen nicht überein."
 
-#: librksv/verify_receipt.py:51
+#: librksv/verify_receipt.py:50
 msgid "No public key found."
 msgstr "Kein öffentlicher Schlüssel gefunden."
 
-#: librksv/verify_receipt.py:59
+#: librksv/verify_receipt.py:58
 msgid "Invalid Signature."
 msgstr "Ungültige Signatur."
 
-#: librksv/verify_receipt.py:69
+#: librksv/verify_receipt.py:68
 msgid "{} This is probably fine."
 msgstr "{} Das ist wahrscheinlich in Ordnung."
 
-#: librksv/verify_receipt.py:78
+#: librksv/verify_receipt.py:77
 msgid "Signature System failed."
 msgstr "Sicherheitseinrichtung ausgefallen."
 
-#: librksv/verify_receipt.py:87
+#: librksv/verify_receipt.py:86
 msgid "Invalid URL hash."
 msgstr "Ungültige URL Prüfsumme."
 
-#: librksv/verify_receipt.py:96
+#: librksv/verify_receipt.py:95
 msgid "Null receipt not signed."
 msgstr "Nullbeleg nicht signiert."
 
-#: main.py:216 rktool.py:216
+#: main.py:215 rktool.py:215
 msgid "Error"
 msgstr "Fehler"
 
-#: main.py:291 main.py:363 rktool.py:291 rktool.py:363
+#: main.py:290 main.py:362 rktool.py:290 rktool.py:362
 msgid "Valid Signature"
 msgstr "Gültige Signatur"
 
-#: main.py:296 rktool.py:296
+#: main.py:295 rktool.py:295
 msgid "No Signature"
 msgstr "Keine Signatur"
 
-#: main.py:328 rktool.py:328
+#: main.py:327 rktool.py:327
 msgid "Signature system broken"
 msgstr "Sicherheitseinrichtung ausgefallen"
 
-#: main.py:330 rktool.py:330
+#: main.py:329 rktool.py:329
 msgid "ZDA ID"
 msgstr "ZDA ID"
 
-#: main.py:331 rktool.py:331
+#: main.py:330 rktool.py:330
 msgid "Cash Register ID"
 msgstr "Kassen-ID"
 
-#: main.py:332 rktool.py:332
+#: main.py:331 rktool.py:331
 msgid "Receipt ID"
 msgstr "Belegnummer"
 
-#: main.py:333 rktool.py:333
+#: main.py:332 rktool.py:332
 msgid "Timestamp"
 msgstr "Datum & Uhrzeit"
 
-#: main.py:334 rktool.py:334
+#: main.py:333 rktool.py:333
 msgid "Sum Tax Normal"
 msgstr "Betrag Satz Normal"
 
-#: main.py:335 rktool.py:335
+#: main.py:334 rktool.py:334
 msgid "Sum Tax Reduced 1"
 msgstr "Betrag Satz Ermäßigt 1"
 
-#: main.py:336 rktool.py:336
+#: main.py:335 rktool.py:335
 msgid "Sum Tax Reduced 2"
 msgstr "Betrag Satz Ermäßigt 2"
 
-#: main.py:337 rktool.py:337
+#: main.py:336 rktool.py:336
 msgid "Sum Tax Zero"
 msgstr "Betrag Satz Null"
 
-#: main.py:338 rktool.py:338
+#: main.py:337 rktool.py:337
 msgid "Sum Tax Special"
 msgstr "Betrag Satz Besonders"
 
-#: main.py:339 rktool.py:339
+#: main.py:338 rktool.py:338
 msgid "Turnover Counter"
 msgstr "Umsatzzähler"
 
-#: main.py:340 rktool.py:340
+#: main.py:339 rktool.py:339
 msgid "Certificate Serial/Key ID"
 msgstr "Zertifikat-Seriennummer/Schlüssel ID"
 
-#: main.py:341 rktool.py:341
+#: main.py:340 rktool.py:340
 msgid "Chaining Value"
 msgstr "Verkettungswert"
 
-#: main.py:342 rktool.py:342
+#: main.py:341 rktool.py:341
 msgid "Signature"
 msgstr "Signatur"
 
-#: main.py:347 main.py:698 rktool.py:347 rktool.py:698
+#: main.py:346 main.py:696 rktool.py:346 rktool.py:696
 msgid "Verifying..."
 msgstr "Überprüfe..."
 
-#: main.py:357 main.py:679 main.py:712 main.py:727 main.py:743 rktool.kv:145
-#: rktool.kv:248 rktool.py:357 rktool.py:679 rktool.py:712 rktool.py:727
-#: rktool.py:743
+#: main.py:356 main.py:677 main.py:710 main.py:725 main.py:741 rktool.kv:144
+#: rktool.kv:247 rktool.py:356 rktool.py:677 rktool.py:710 rktool.py:725
+#: rktool.py:741
 msgid "Verify"
 msgstr "Überprüfen"
 
-#: main.py:376 main.py:789 rktool.kv:233 rktool.py:376 rktool.py:789
+#: main.py:375 main.py:787 rktool.kv:232 rktool.py:375 rktool.py:787
 msgid "Load AES Key"
 msgstr "AES Schlüssel laden"
 
-#: main.py:397 main.py:809 main.py:959 rktool.py:397 rktool.py:809
-#: rktool.py:959
+#: main.py:396 main.py:807 main.py:957 rktool.py:396 rktool.py:807
+#: rktool.py:957
 msgid "Malformed crypto container"
 msgstr "Ungültiges Schlüsselmaterial"
 
-#: main.py:458 rktool.py:458
+#: main.py:456 rktool.py:456
 msgid "No image taken."
 msgstr "Kein Bild aufgenommen."
 
-#: main.py:467 rktool.py:467
+#: main.py:465 rktool.py:465
 msgid "Failed to compress image."
 msgstr "Fehler beim Komprimieren des Bildes."
 
-#: main.py:486 main.py:507 rktool.py:486 rktool.py:507
+#: main.py:484 main.py:505 rktool.py:484 rktool.py:505
 msgid "No QR codes found."
 msgstr "Keine QR-Codes gefunden."
 
-#: main.py:494 rktool.py:494
+#: main.py:492 rktool.py:492
 msgid "Load Receipt"
 msgstr "Rechnung laden"
 
-#: main.py:631 rktool.py:631
+#: main.py:629 rktool.py:629
 msgid "Group %d"
 msgstr "Gruppe %d"
 
-#: main.py:643 main.py:650 main.py:852 rktool.py:643 rktool.py:650
-#: rktool.py:852
+#: main.py:641 main.py:648 main.py:850 rktool.py:641 rktool.py:648
+#: rktool.py:850
 msgid "Serial: "
 msgstr "Seriennummer: "
 
-#: main.py:749 rktool.py:749
+#: main.py:747 rktool.py:747
 msgid "Valid DEP"
 msgstr "Gültiges DEP"
 
-#: main.py:758 rktool.kv:230 rktool.py:758
+#: main.py:756 rktool.kv:229 rktool.py:756
 msgid "Load DEP"
 msgstr "DEP laden"
 
-#: main.py:820 rktool.py:820
+#: main.py:818 rktool.py:818
 msgid "Public Keys"
 msgstr "Öffentliche Schlüssel"
 
-#: main.py:822 rktool.py:822
+#: main.py:820 rktool.py:820
 msgid "Certificates"
 msgstr "Zertifikate"
 
-#: main.py:857 rktool.py:857
+#: main.py:855 rktool.py:855
 msgid "Key ID: "
 msgstr "Schlüssel ID: "
 
-#: main.py:870 rktool.py:870
+#: main.py:868 rktool.py:868
 msgid "Load PEM Public Key"
 msgstr "Öffentlichen Schlüssel (PEM) laden"
 
-#: main.py:875 rktool.py:875
+#: main.py:873 rktool.py:873
 msgid "Load PEM Certificate"
 msgstr "Zertifikat (PEM) laden "
 
-#: main.py:896 rktool.py:896
+#: main.py:894 rktool.py:894
 msgid "Enter Public Key ID"
 msgstr "ID des öffentlichen Schlüssels eingeben"
 
-#: main.py:926 rktool.py:926
+#: main.py:924 rktool.py:924
 msgid "Load Key Store"
 msgstr "Schlüsselspeicher laden"
 
-#: main.py:932 rktool.py:932
+#: main.py:930 rktool.py:930
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
 
@@ -701,75 +701,75 @@ msgstr "Eingabeformat muss eines aus %s sein."
 msgid "Output format must be one of %s."
 msgstr "Ausgabeformat muss eines aus %s sein."
 
-#: rktool.kv:52 rktool.kv:75 rktool.kv:93
+#: rktool.kv:51 rktool.kv:74 rktool.kv:92
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: rktool.kv:55
+#: rktool.kv:54
 msgid "Load"
 msgstr "Laden"
 
-#: rktool.kv:78
+#: rktool.kv:77
 msgid "Save"
 msgstr "Speichern"
 
-#: rktool.kv:96
+#: rktool.kv:95
 msgid "Ok"
 msgstr "Ok"
 
-#: rktool.kv:128
+#: rktool.kv:127
 msgid "Receipt"
 msgstr "Rechnung"
 
-#: rktool.kv:132 rktool.kv:286
+#: rktool.kv:131 rktool.kv:285
 msgid "Exit"
 msgstr "Beenden"
 
-#: rktool.kv:149
+#: rktool.kv:148
 msgid "Decrypt Turnover Counter"
 msgstr "Umsatzzähler entschlüsseln"
 
-#: rktool.kv:197
+#: rktool.kv:196
 msgid "JWS string"
 msgstr "JWS-Zeichenkette"
 
-#: rktool.kv:203
+#: rktool.kv:202
 msgid "QR code"
 msgstr "QR-Code"
 
-#: rktool.kv:208
+#: rktool.kv:207
 msgid "OCR code"
 msgstr "OCR-Code"
 
-#: rktool.kv:213
+#: rktool.kv:212
 msgid "URL"
 msgstr "URL"
 
-#: rktool.kv:217
+#: rktool.kv:216
 msgid "Read Receipt"
 msgstr "Rechnung lesen"
 
-#: rktool.kv:268
+#: rktool.kv:267
 msgid "Import"
 msgstr "Importieren"
 
-#: rktool.kv:271
+#: rktool.kv:270
 msgid "Export"
 msgstr "Exportieren"
 
-#: rktool.kv:279
+#: rktool.kv:278
 msgid "Registrierkassen Tool"
 msgstr "Registrierkassen Tool"
 
-#: rktool.kv:298
+#: rktool.kv:297
 msgid "Verify Receipt"
 msgstr "Rechnung überprüfen"
 
-#: rktool.kv:302
+#: rktool.kv:301
 msgid "Verify DEP"
 msgstr "DEP überprüfen"
 
-#: rktool.kv:306
+#: rktool.kv:305
 msgid "Key Store"
 msgstr "Schlüsselspeicher"
 
@@ -789,31 +789,31 @@ msgstr "Verwende Seed \"{}\""
 msgid "Used seed \"{}\""
 msgstr "Verwendete Seed \"{}\""
 
-#: verification_state.py:41
+#: verification_state.py:40
 msgid "Start Receipt"
 msgstr "Startbeleg"
 
-#: verification_state.py:42
+#: verification_state.py:41
 msgid "Last Receipt"
 msgstr "Letzter Beleg"
 
-#: verification_state.py:43
+#: verification_state.py:42
 msgid "Last Turnover Counter"
 msgstr "Letzter Umsatzzähler"
 
-#: verification_state.py:44
+#: verification_state.py:43
 msgid "Need Restore Receipt"
 msgstr "Benötigt Nullbeleg"
 
-#: verification_state.py:48
+#: verification_state.py:47
 msgid "Cash Register {}:"
 msgstr "Kassa {}:"
 
-#: verification_state.py:51
+#: verification_state.py:50
 msgid "Used Receipt IDs"
 msgstr "Benutzte Belegnummern"
 
-#: verify.py:168
+#: verify.py:167
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
