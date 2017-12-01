@@ -15,8 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
+from ..gettext_helper import _
 
 class RKSVVerificationProxyI(object):
     def verify(self, fd, keyStore, aesKey, inState, registerIdx, chunksize):

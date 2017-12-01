@@ -24,8 +24,7 @@ from __future__ import unicode_literals
 from builtins import int
 from builtins import range
 
-import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
+from .gettext_helper import _
 
 import datetime
 

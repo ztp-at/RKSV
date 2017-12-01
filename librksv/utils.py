@@ -23,8 +23,7 @@ from __future__ import unicode_literals
 from builtins import int
 from builtins import range
 
-import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
+from .gettext_helper import _
 
 import base64
 import codecs
@@ -33,6 +32,7 @@ import io
 import json
 import os
 import re
+import six
 import uuid
 
 from cryptography import x509
@@ -44,10 +44,19 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
 from cryptography.x509.oid import NameOID
 
-from six import string_types
-
 class RKSVException(Exception):
-    pass
+    def __init__(self, message):
+        super(RKSVException, self).__init__(message)
+        self.message = message
+        self._initargs = (message,)
+
+    def __reduce__(self):
+        return (self.__class__, self._initargs)
+
+    def __str__(self):
+        if six.PY2:
+            return self.message.encode('utf-8')
+        return self.message
 
 class RKSVVerifyException(RKSVException):
     pass
@@ -223,7 +232,7 @@ def certFingerprint(cert):
     :return: The fingerprint as a string.
     """
     fp = cert.fingerprint(hashes.SHA256())
-    if isinstance(fp, string_types):
+    if isinstance(fp, six.string_types):
         # Python 2
         return ':'.join('{:02x}'.format(ord(b)) for b in fp)
     else:

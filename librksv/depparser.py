@@ -22,8 +22,7 @@ This module provides functions to parse a DEP.
 from builtins import int
 from builtins import range
 
-import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
+from .gettext_helper import _
 
 import copy
 import ijson
@@ -37,12 +36,7 @@ class DEPException(utils.RKSVVerifyException):
     """
     An exception that is thrown if something is wrong with a DEP.
     """
-    def __init__(self, message):
-        super(DEPException, self).__init__(message)
-        self._initargs = (message,)
-
-    def __reduce__(self):
-        return (self.__class__, self._initargs)
+    pass
 
 class DEPParseException(DEPException):
     """

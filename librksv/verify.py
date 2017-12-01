@@ -22,8 +22,7 @@ This module provides functions to verify a DEP.
 from builtins import int
 from builtins import range
 
-import gettext
-_ = gettext.translation('rktool', './lang', fallback=True).gettext
+from .gettext_helper import _
 
 import base64
 
