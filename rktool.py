@@ -23,8 +23,8 @@ from builtins import range
 import kivy
 kivy.require('1.9.0')
 
-import configparser
 import os
+import json
 
 from requests.exceptions import RequestException
 from PIL import Image
@@ -393,7 +393,7 @@ class ViewReceiptWidget(BoxLayout):
         except (IOError, UnicodeDecodeError, ValueError) as e:
             displayError(e)
         except KeyError:
-            displayError(_("Malformed crypto container"))
+            displayError(_("No AES key in crypto container"))
 
         self.dismissPopup()
         self.setKey(key)
@@ -804,7 +804,7 @@ class VerifyDEPWidget(BoxLayout):
         except (IOError, UnicodeDecodeError, ValueError) as e:
             displayError(e)
         except KeyError:
-            displayError(_("Malformed crypto container"))
+            displayError(_("No AES key in crypto container"))
 
         self.dismissPopup()
 
@@ -936,18 +936,10 @@ class KeyStoreWidget(BoxLayout):
 
         try:
             full = os.path.join(path, filename[0])
-            if full.endswith(".json"):
-                with open(full) as f:
-                    jsonKS = utils.readJsonStream(f)
-                    App.get_running_app().keyStore = \
-                            key_store.KeyStore.readStoreFromJson(jsonKS)
-            else:
-                config = configparser.RawConfigParser()
-                config.optionxform = str
-                with open(full) as f:
-                    config.readfp(f)
+            with open(full) as f:
+                jsonKS = utils.readJsonStream(f)
                 App.get_running_app().keyStore = \
-                        key_store.KeyStore.readStore(config)
+                        key_store.KeyStore.readStoreFromJson(jsonKS)
 
             App.get_running_app().curSearchPath = path
         except (IOError, UnicodeDecodeError, ValueError,
@@ -963,12 +955,10 @@ class KeyStoreWidget(BoxLayout):
         if not filename:
             return
 
-        config = configparser.RawConfigParser()
-        config.optionxform = str
-        App.get_running_app().keyStore.writeStore(config)
+        jsonStore = App.get_running_app().keyStore.writeStoreToJson(None)
         try:
             with open(os.path.join(path, filename), 'w') as f:
-                config.write(f)
+                json.dump(jsonStore, f, sort_keys=False, indent=2)
 
             App.get_running_app().curSearchPath = path
         except IOError as e:
