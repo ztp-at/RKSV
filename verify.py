@@ -21,7 +21,6 @@ from __future__ import print_function
 from builtins import int
 from builtins import range
 
-import configparser
 import json
 import sys
 
@@ -36,15 +35,13 @@ from librksv import verification_state
 from librksv.verify import verifyDEP, verifyParsedDEP
 
 def usage():
-    print("Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] keyStore <key store> <dep export file> [<base64 AES key file>]",
-            file=sys.stderr)
-    print("       ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] json <json container file> <dep export file>",
+    print("       ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] <key store> <dep export file>",
             file=sys.stderr)
     print("       ./verify.py state", file=sys.stderr)
     sys.exit(0)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2 or len(sys.argv) > 11:
+    if len(sys.argv) < 2 or len(sys.argv) > 10:
         usage()
 
     key = None
@@ -73,7 +70,7 @@ if __name__ == "__main__":
         except ValueError:
             pass
 
-    if len(sys.argv) < 4 or len(sys.argv) > 9:
+    if len(sys.argv) < 3 or len(sys.argv) > 8:
         usage()
 
     nprocs = 1
@@ -87,7 +84,7 @@ if __name__ == "__main__":
     if nprocs < 1:
         usage()
 
-    if len(sys.argv) < 4 or len(sys.argv) > 7:
+    if len(sys.argv) < 3 or len(sys.argv) > 6:
         usage()
 
     chunksize = utils.depParserChunkSize()
@@ -101,31 +98,21 @@ if __name__ == "__main__":
     if chunksize < 0:
         usage()
 
-    if len(sys.argv) < 4 or len(sys.argv) > 5:
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
         usage()
 
-    if sys.argv[1] == 'keyStore':
-        if len(sys.argv) == 5:
-            with open(sys.argv[4]) as f:
-                key = utils.loadB64Key(f.read().encode("utf-8"))
+    # We allow this for backwards compatibility.
+    if sys.argv[1] == 'json':
+        del sys.argv[1]
 
-        config = configparser.RawConfigParser()
-        config.optionxform = str
-        config.read(sys.argv[2])
-        keyStore = key_store.KeyStore.readStore(config)
-
-    elif sys.argv[1] == 'json':
-        if len(sys.argv) != 4:
-            usage()
-
-        with open(sys.argv[2]) as f:
-            jsonStore = utils.readJsonStream(f)
-
-            key = utils.loadKeyFromJson(jsonStore)
-            keyStore = key_store.KeyStore.readStoreFromJson(jsonStore)
-
-    else:
+    if len(sys.argv) != 3:
         usage()
+
+    with open(sys.argv[1]) as f:
+        jsonStore = utils.readJsonStream(f)
+
+        key = utils.loadKeyFromJson(jsonStore)
+        keyStore = key_store.KeyStore.readStoreFromJson(jsonStore)
 
     state = None
     if statePassthrough:
@@ -139,7 +126,7 @@ if __name__ == "__main__":
         pool = multiprocessing.Pool(nprocs)
 
         try:
-            with open(sys.argv[3]) as f:
+            with open(sys.argv[2]) as f:
                 if chunksize == 0:
                     parser = depparser.FullFileDEPParser(f, nprocs)
                 else:
@@ -151,7 +138,7 @@ if __name__ == "__main__":
             pool.terminate()
             pool.join()
     else:
-        with open(sys.argv[3]) as f:
+        with open(sys.argv[2]) as f:
             if chunksize == 0:
                 dep = utils.readJsonStream(f)
                 state = verifyDEP(dep, keyStore, key, state, registerIdx)

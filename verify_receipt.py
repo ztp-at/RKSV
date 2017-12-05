@@ -20,7 +20,6 @@
 from builtins import int
 from builtins import range
 
-import configparser
 import sys
 
 from six import string_types
@@ -30,6 +29,7 @@ gettext.install('rktool', './lang', True)
 
 from librksv import key_store
 from librksv import receipt
+from librksv import utils
 
 from librksv.url_receipt_helpers import getAndVerifyReceiptURL
 from librksv.verify_receipt import ReceiptVerifier
@@ -62,10 +62,9 @@ if __name__ == "__main__":
         sys.exit(0)
 
     rv = None
-    config = configparser.RawConfigParser()
-    config.optionxform = str
-    config.read(sys.argv[2])
-    keyStore = key_store.KeyStore.readStore(config)
+    with open(sys.argv[2], 'r') as f:
+        data = utils.readJsonStream(f)
+    keyStore = key_store.KeyStore.readStoreFromJson(data)
     rv = ReceiptVerifier.fromKeyStore(keyStore)
 
     if len(sys.argv) == 4:
