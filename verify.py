@@ -35,7 +35,7 @@ from librksv import verification_state
 from librksv.verify import verifyDEP, verifyParsedDEP
 
 def usage():
-    print("       ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] <key store> <dep export file>",
+    print("Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] <key store> <dep export file>",
             file=sys.stderr)
     print("       ./verify.py state", file=sys.stderr)
     sys.exit(0)
