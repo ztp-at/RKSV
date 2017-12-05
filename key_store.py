@@ -19,6 +19,7 @@
 
 from builtins import int
 
+import base64
 import configparser
 import json
 import sys
@@ -32,99 +33,100 @@ from librksv.key_store import KeyStore
 def usage():
     print("Usage: ./key_store.py <key store> create")
     print("       ./key_store.py <key store> list")
-    print("       ./key_store.py <key store> toJson [<base64 AES key file>]")
-    print("       ./key_store.py <key store> fromJson <json container file>")
     print("       ./key_store.py <key store> add <pem cert file>")
     print("       ./key_store.py <key store> add <pem pubkey file> <pubkey id>")
     print("       ./key_store.py <key store> del <pubkey id|cert serial>")
+    print("       ./key_store.py <key store> showSymmetricKey")
+    print("       ./key_store.py <key store> setSymmetricKey")
+    print("       ./key_store.py <key store> delSymmetricKey")
+    print("       ./key_store.py <key store> toLegacyIni")
+    print("       ./key_store.py <key store> fromLegacyIni")
     sys.exit(0)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    # Do arg parsing first
+    if len(sys.argv) < 3 or len(sys.argv) > 5:
+        usage()
+    if sys.argv[2] not in ['create', 'list', 'add', 'del',
+            'showSymmetricKey', 'setSymmetricKey',
+            'delSymmetricKey', 'toLegacyIni', 'fromLegacyIni']:
+        usage()
+    if len(sys.argv) == 5 and sys.argv[2] != 'add':
+        usage()
+    if len(sys.argv) == 4 and sys.argv[2] not in ['add', 'del']:
+        usage()
+    if len(sys.argv) == 3 and sys.argv[2] in ['add', 'del']:
         usage()
 
-    filename = sys.argv[1]
-    keyStore = None
-
-    if sys.argv[2] == 'create':
-        if len(sys.argv) != 3:
-            usage()
-
+    if sys.argv[2] == 'create' or sys.argv[2] == 'fromLegacyIni':
         keyStore = KeyStore()
+        symmetricKey = None
+    else:
+        with open(sys.argv[1], 'r') as f:
+            data = utils.readJsonStream(f)
+        keyStore = KeyStore.readStoreFromJson(data)
+        symmetricKey = utils.loadKeyFromJson(data)
 
-    elif sys.argv[2] == 'list':
-        if len(sys.argv) != 3:
-            usage()
-
-        config = configparser.RawConfigParser()
-        config.optionxform = str
-        config.read(filename)
-        keyStore = KeyStore.readStore(config)
-
+    if sys.argv[2] == 'list':
         for keyId in keyStore.getKeyIds():
             print(keyId)
-
-    elif sys.argv[2] == 'toJson':
-        if len(sys.argv) > 4:
-            usage()
-
-        config = configparser.RawConfigParser()
-        config.optionxform = str
-        config.read(filename)
-        keyStore = KeyStore.readStore(config)
-
-        aesKey = None
-        if len(sys.argv) == 4:
-            with open(sys.argv[3]) as f:
-                aesKey = f.read().strip()
-
-        data = keyStore.writeStoreToJson(aesKey)
-        print(json.dumps(data, sort_keys=False, indent=2))
-
-    elif sys.argv[2] == 'fromJson':
-        if len(sys.argv) != 4:
-            usage()
-
-        keyStore = None
-        with open(sys.argv[3]) as f:
-            keyStore = KeyStore.readStoreFromJson(utils.readJsonStream(f))
+        sys.exit(0)
 
     elif sys.argv[2] == 'add':
-        if len(sys.argv) < 4:
-            usage()
-
-        config = configparser.RawConfigParser()
-        config.optionxform = str
-        config.read(filename)
-        keyStore = KeyStore.readStore(config)
-
         newKey = None
         with open(sys.argv[3]) as f:
             newKey = f.read()
 
         if len(sys.argv) == 4:
             keyStore.putPEMCert(newKey)
-        elif len(sys.argv) == 5:
-            keyStore.putPEMKey(sys.argv[4], newKey)
         else:
-            usage()
+            keyStore.putPEMKey(sys.argv[4], newKey)
 
     elif sys.argv[2] == 'del':
-        if len(sys.argv) != 4:
-            usage()
-
-        config = configparser.RawConfigParser()
-        config.optionxform = str
-        config.read(filename)
-        keyStore = KeyStore.readStore(config)
-
         keyStore.delKey(sys.argv[3])
 
-    else:
-        usage()
+    elif sys.argv[2] == 'showSymmetricKey':
+        if symmetricKey is None:
+            print(_('No symmetric key present.'))
+        else:
+            print(base64.b64encode(symmetricKey).decode('utf-8'))
+        sys.exit(0)
 
-    config = configparser.RawConfigParser()
-    config.optionxform = str
-    keyStore.writeStore(config)
-    with open(filename, 'w') as f:
-        config.write(f)
+    elif sys.argv[2] == 'setSymmetricKey':
+        b64Key = None
+        try:
+            b64Key = next(sys.stdin).strip().encode('utf-8')
+            if b64Key:
+                symmetricKey = utils.loadB64Key(b64Key)
+        except StopIteration:
+            pass
+
+        if not b64Key:
+            sys.exit(0)
+
+    elif sys.argv[2] == 'delSymmetricKey':
+        symmetricKey = None
+
+    elif sys.argv[2] == 'toLegacyIni':
+        config = configparser.RawConfigParser()
+        config.optionxform = str
+        keyStore.writeStore(config)
+        config.write(sys.stdout)
+        sys.exit(0)
+
+    elif sys.argv[2] == 'fromLegacyIni':
+        config = configparser.RawConfigParser()
+        config.optionxform = str
+        config.read_file(sys.stdin)
+
+        keyStore = KeyStore.readStore(config)
+        symmetricKey = None
+
+    if symmetricKey is None:
+        b64Key = None
+    else:
+        b64Key = base64.b64encode(symmetricKey).decode('utf-8')
+
+    data = keyStore.writeStoreToJson(b64Key)
+    with open(sys.argv[1], 'w') as f:
+        json.dump(data, f, sort_keys=False, indent=2)
