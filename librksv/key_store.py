@@ -28,6 +28,7 @@ from .gettext_helper import _
 from six import string_types
 
 import copy
+import warnings
 
 from . import utils
 
@@ -307,6 +308,11 @@ class KeyStore(KeyStoreI):
         self.keydict[keyId] = KeyTuple(keyId, pubKey, None)
 
     def writeStore(self, config):
+        warnings.warn('The old INI key store format is no longer supported. '
+                'Please use the JSON cryptographic material container format instead. '
+                'You can convert your old stores using they key_store.py script.',
+                DeprecationWarning
+        )
         """
         Writes the store to the given config parser. The used parser must not
         modify the case of the keys.
@@ -331,6 +337,11 @@ class KeyStore(KeyStoreI):
 
     @staticmethod
     def readStore(config):
+        warnings.warn('The old INI key store format is no longer supported. '
+                'Please use the JSON cryptographic material container format instead. '
+                'You can convert your old stores using they key_store.py script.',
+                DeprecationWarning
+        )
         """
         Reads a key store from the given config parser and returns it as an
         object. The used parser must not modify the case of the keys.
