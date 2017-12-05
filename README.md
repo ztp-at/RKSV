@@ -220,25 +220,23 @@ key_store.py
 ------------
 	Usage: ./key_store.py <key store> create
 	       ./key_store.py <key store> list
-	       ./key_store.py <key store> toJson [<base64 AES key file>]
-	       ./key_store.py <key store> fromJson <json container file>
 	       ./key_store.py <key store> add <pem cert file>
 	       ./key_store.py <key store> add <pem pubkey file> <pubkey id>
 	       ./key_store.py <key store> del <pubkey id|cert serial>
+	       ./key_store.py <key store> showSymmetricKey
+	       ./key_store.py <key store> setSymmetricKey
+	       ./key_store.py <key store> delSymmetricKey
+	       ./key_store.py <key store> toLegacyIni
+	       ./key_store.py <key store> fromLegacyIni
+
+A key store is a JSON file conforming to the format specified in
+[Festlegungen des BMF zu Detailfragen der RKSV](https://github.com/a-sit-plus/at-registrierkassen-mustercode/releases/download/1.2-DOK/2016-09-05-Detailfragen-RKSV-V1.2.pdf),
+Section 8.2 (`cryptographicMaterialContainer.json`), with the exception that the
+`base64AESKey` may be missing if no symmetric key is known.
 
 The `create` command creates a new empty key store in the file `key store`.
 
-The `list` command lists the known certificate serials and key IDs
-
-The `toJson` command prints the key store in the new JSON crypto container
-format defined in version 0.6 of the reference implementation. If a file is
-specified as last parameter, the script will read a base64 encoded AES256 key
-from it and store it in the JSON output. If the parameter is omitted, the JSON
-crypto container will not contain an AES key (and will be incompatible with the
-reference implementation).
-
-The `fromJson` command creates a new key store from the new JSON crypto
-container format defined in version 0.6 of the reference implementation.
+The `list` command lists the known certificate serials and key IDs.
 
 The first `add` command adds a PEM certificate to the key store using the
 certificate's serial number as ID.
@@ -248,7 +246,25 @@ The second `add` command adds a PEM public key to the key store using
 
 The `del` command deletes the key or certificate with the given ID.
 
-A key store is just a simple `.ini` file.
+In addition to public keys and certificates, a key store can also contain a
+single symmetric key (used for encryption and decryption of turnover counters)
+encoded as base64.
+
+The `showSymmetricKey` command prints the contained key (if any) in base64.
+
+The `setSymmetricKey` command reads a new key from stdin and stores it in the
+key store.
+
+Lastly, the `delSymmetricKey` command removes the symmetric key from the key
+store.
+
+Before commit `f9aad95725f21cb01c4d8c2f7a252d336f10460d` (on the 5th of December
+2017) the scripts here used a simple INI style format for key stores. This
+format is now deprecated and only the JSON format should be used. The
+`key_store.py` script can convert key stores from and to the old format with the
+`fromLegacyIni` and `toLegacyIni` commands respectively. The `toLegacyIni`
+command prints the INI key store to stdout while the `fromLegacyIni` command
+reads it from stdin.
 
 verification_state.py
 ---------------------
@@ -334,28 +350,22 @@ converting them to a different format. The supported input formats are
 
 verify.py
 ---------
-	Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] keyStore <key store> <dep export file> [<base64 AES key file>]
-	       ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] json <json container file> <dep export file>
+	Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] <key store> <dep export file>
 	       ./verify.py state
 
-This script, when called with the `keyStore` command, verifies the given DEP
-export file. The used certificates or public keys must be available in the given
-key store. If the DEP is valid the script prints a short success message, if it
-is not then the script will print an error message.
-
-If an AES key file is specified, the script will also check the turnover
-counter in each receipt.
-
-When the script is called with the `json` command it will instead read the
-certificates and the AES key from a cryptographic material container JSON file.
+This script verifies the given DEP export file. The used certificates or public
+keys must be available in the given key store. If the DEP is valid the script
+prints a short success message, if it is not then the script will print an error
+message. If the key store contains an AES key, the script will also check the
+turnover counter in each receipt.
 
 When just `state` is specified, the script will emit the JSON for an empty
 verification state to stdout.
 
-If `state` is specified before the `keyStore` or `json` commands, the script
-expects a JSON state store on stdin and emits the modified store after
-verification to stdout. The state store can contain multiple cash registers but
-may only do so if the DEP belongs to a register in a GGS cluster.
+If `state` is specified before key store and DEP export file, the script expects
+a JSON state store on stdin and emits the modified store after verification to
+stdout. The state store can contain multiple cash registers but may only do so
+if the DEP belongs to a register in a GGS cluster.
 
 `state <n>` instructs the script to interpret the DEP as a continuation of the
 nth cash register in the read state. Verification will expect the first receipt
@@ -380,7 +390,7 @@ the `par` keyword was also used, the script will read a chunk for every process,
 dispatch the chunks for verification to the processes, and repeat this until no
 chunks are left. If a chunk size of zero is specified, the script will read the
 entire DEP at once and evenly distribute the receipts among the processes. Note
-that all receipts in a chunk must fit in memory at the same time. If multiple
+that all receipts in a chunk must fit into memory at the same time. If multiple
 processes are used one chunk for every process must fit into memory at the same
 time.
 
@@ -391,6 +401,8 @@ duplicates. A possible workaround is to split the DEP into multiple files and
 use the `state` keyword to verify them while clearing the list of receipts in
 each state JSON. In this case however, `verify.py` will only be able to
 ascertain the uniqueness of receipt IDs within one file.
+
+The `json` keyword is just here for backwards compatibility and can be omitted.
 
 test_verify.py
 --------------
