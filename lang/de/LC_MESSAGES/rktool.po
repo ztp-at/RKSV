@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-12-01 01:27+CET\n"
+"POT-Creation-Date: 2017-12-05 18:33+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -32,6 +32,10 @@ msgstr ""
 msgid "The number of receipts must be at least 1."
 msgstr "Die Anzahl der Rechnungen muss mindestens 1 sein."
 
+#: key_store.py:90
+msgid "No symmetric key present."
+msgstr "Kein symmetrischer Schlüssel vorhanden."
+
 #: librksv/cashreg.py:120
 msgid "Invalid turnover counter size."
 msgstr "Umsatzzähler-Länge ungültig."
@@ -40,7 +44,7 @@ msgstr "Umsatzzähler-Länge ungültig."
 msgid "Malformed DEP"
 msgstr "Ungültiges DEP"
 
-#: librksv/depparser.py:61 librksv/key_store.py:62
+#: librksv/depparser.py:61 librksv/key_store.py:63
 #: librksv/verification_state.py:78
 msgid "{}."
 msgstr "{}."
@@ -49,17 +53,17 @@ msgstr "{}."
 msgid "In group {}: {}."
 msgstr "In Gruppe {}: {}"
 
-#: librksv/depparser.py:74 librksv/key_store.py:75
+#: librksv/depparser.py:74 librksv/key_store.py:76
 #: librksv/verification_state.py:91
 msgid "Element \"{}\" missing"
 msgstr "Element \"{}\" fehlt"
 
-#: librksv/depparser.py:86 librksv/key_store.py:87
+#: librksv/depparser.py:86 librksv/key_store.py:88
 #: librksv/verification_state.py:103
 msgid "Element \"{}\" malformed"
 msgstr "Element \"{}\" ungültig"
 
-#: librksv/depparser.py:90 librksv/key_store.py:91
+#: librksv/depparser.py:90 librksv/key_store.py:92
 #: librksv/verification_state.py:107
 msgid "Element \"{}\" malformed: {}"
 msgstr "Element \"{}\" ungültig: {}"
@@ -68,7 +72,7 @@ msgstr "Element \"{}\" ungültig: {}"
 msgid "Duplicate element \"{}\""
 msgstr "Element \"{}\" doppelt"
 
-#: librksv/depparser.py:113 librksv/key_store.py:102
+#: librksv/depparser.py:113 librksv/key_store.py:103
 msgid "Certificate \"{}\" malformed."
 msgstr "Zertifikat \"{}\" ungültig."
 
@@ -80,8 +84,8 @@ msgstr "DEP-Wurzel doppelt"
 msgid "Malformed DEP root"
 msgstr "Ungültige DEP-Wurzel"
 
-#: librksv/depparser.py:282 librksv/depparser.py:604 librksv/key_store.py:428
-#: librksv/key_store.py:438 librksv/verification_state.py:140
+#: librksv/depparser.py:282 librksv/depparser.py:604 librksv/key_store.py:439
+#: librksv/key_store.py:449 librksv/verification_state.py:140
 #: librksv/verification_state.py:146
 msgid "not a string"
 msgstr "kein String"
@@ -109,35 +113,35 @@ msgstr "Ungültiges JSON: {}."
 msgid "Element \"Signaturzertifikat\" or \"Zertifizierungsstellen\" missing"
 msgstr "Element \"Signaturzertifikat\" oder \"Zertifizierungsstellen\" fehlt"
 
-#: librksv/key_store.py:58
+#: librksv/key_store.py:59
 msgid "Malformed key store"
 msgstr "Ungültiger Schlüsselspeicher"
 
-#: librksv/key_store.py:65
+#: librksv/key_store.py:66
 msgid "In certificate/public key \"{}\": {}."
 msgstr "Bei Zertifikat/öffentlichem Schlüssel \"{}\": {}."
 
-#: librksv/key_store.py:112
+#: librksv/key_store.py:113
 msgid "Public key \"{}\" malformed."
 msgstr "Öffentlicher Schlüssel \"{}\" ungültig."
 
-#: librksv/key_store.py:401
+#: librksv/key_store.py:412
 msgid "Malformed key store root"
 msgstr "Ungültige Schlüsselspeicher-Wurzel."
 
-#: librksv/key_store.py:409 librksv/key_store.py:416
+#: librksv/key_store.py:420 librksv/key_store.py:427
 msgid "not a dictionary"
 msgstr "kein Verzeichnis"
 
-#: librksv/key_store.py:432
+#: librksv/key_store.py:443
 msgid "inner ID \"{}\" does not match outer ID \"{}\""
 msgstr "innere ID \"{}\" ist ungleich äußerer ID \"{}\""
 
-#: librksv/key_store.py:450
+#: librksv/key_store.py:461
 msgid "invalid certificate ID \"{}\""
 msgstr "Ungültige Zertifikatsseriennummer \"{}\""
 
-#: librksv/key_store.py:459
+#: librksv/key_store.py:470
 msgid "not one of \"CERTIFICATE\" or \"PUBLIC_KEY\""
 msgstr "nicht eines von \"CERTIFICATE\" oder \"PUBLIC_KEY\""
 
@@ -623,10 +627,9 @@ msgstr "Überprüfen"
 msgid "Load AES Key"
 msgstr "AES Schlüssel laden"
 
-#: main.py:396 main.py:807 main.py:957 rktool.py:396 rktool.py:807
-#: rktool.py:957
-msgid "Malformed crypto container"
-msgstr "Ungültiges Schlüsselmaterial"
+#: main.py:396 main.py:807 rktool.py:396 rktool.py:807
+msgid "No AES key in crypto container"
+msgstr "Kein AES Schlüssel in Schlüsselspeicher"
 
 #: main.py:456 rktool.py:456
 msgid "No image taken."
@@ -692,6 +695,10 @@ msgstr "Schlüsselspeicher laden"
 #: main.py:930 rktool.py:930
 msgid "Save Key Store"
 msgstr "Schlüsselspeicher speichern"
+
+#: main.py:949 rktool.py:949
+msgid "Malformed crypto container"
+msgstr "Ungültiges Schlüsselmaterial"
 
 #: receipt.py:54 verify_receipt.py:61
 msgid "Input format must be one of %s."
@@ -813,14 +820,14 @@ msgstr "Kassa {}:"
 msgid "Used Receipt IDs"
 msgstr "Benutzte Belegnummern"
 
-#: verify.py:167
+#: verify.py:154
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
-#: verify_receipt.py:83
+#: verify_receipt.py:82
 msgid "Line {: >3}: {}"
 msgstr "Zeile {: >3}: {}"
 
-#: verify_receipt.py:86
+#: verify_receipt.py:85
 msgid "{} of {} receipts verified successfully."
 msgstr "{} von {} Rechnungen wurden erfolgreich überprüft."
