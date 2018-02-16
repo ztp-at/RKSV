@@ -49,13 +49,12 @@ if __name__ == "__main__":
     parser = depparser.IncrementalDEPParser.fromFd(sys.stdin, True)
     i = 0
     for chunk in parser.parse(chunksize):
-        exporter = depexport.JSONExporter()
-        for recs, cert, cert_list in chunk:
-            exporter.addGroup([ receipt.Receipt.fromJWSString(
-                depparser.expandDEPReceipt(r)) for r in recs ], cert, cert_list)
+        generator = depparser.receiptGroupAdapter([chunk])
+        stream = depexport.DEPStream(generator)
+        exporter = depexport.JSONExporter(stream)
 
-        dep = exporter.export()
         with open('dep-export{}.json'.format(i), 'w') as f:
-            f.write(dep)
+            for part in exporter.export():
+                f.write(part)
 
         i += 1

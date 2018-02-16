@@ -144,7 +144,8 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         sigsWorking.append(sigW)
         groupCerts.append(certList)
 
-    exporter = depexport.DEPExporter()
+    stream = depexport.DEPStream()
+    exporter = depexport.DEPExporter(stream, list)
     deps = list()
     lastStartJWS = None
     previousClusterDEPIdx = 0
@@ -182,19 +183,20 @@ def runTest(spec, keymat, closed=False, tcSize=None):
 
         if doGroups and prevSigId is not None:
             if newDEP != 'NO_NEW_DEP' or prevSigId != sigId:
-                exporter.addGroup(receipts, groupCerts[prevSigId][0],
-                        groupCerts[prevSigId][1:])
+                stream.append(receipts, groupCerts[prevSigId][0],
+                    groupCerts[prevSigId][1:])
                 receipts = list()
         else:
             if newDEP != 'NO_NEW_DEP':
-                exporter.addGroup(receipts)
+                stream.append(receipts)
                 receipts = list()
 
         if newDEP != 'NO_NEW_DEP':
             if expectedTurnover:
                 exporter.addExtra('Umsatz-gesamt', expectedTurnover)
             dep = exporter.export()
-            exporter = depexport.DEPExporter()
+            stream = depexport.DEPStream()
+            exporter = depexport.DEPExporter(stream, list)
             if newDEP == 'NEW_CLUSTER_DEP':
                 exporter.addExtra('Vorheriges-DEP', previousClusterDEPIdx)
             else:
@@ -224,10 +226,10 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         prevSigId = sigId
 
     if doGroups:
-        exporter.addGroup(receipts, groupCerts[prevSigId][0],
+        stream.append(receipts, groupCerts[prevSigId][0],
                 groupCerts[prevSigId][1:])
     else:
-        exporter.addGroup(receipts)
+        stream.append(receipts)
 
     if expectedTurnover:
         exporter.addExtra('Umsatz-gesamt', expectedTurnover)

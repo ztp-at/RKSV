@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
+from __future__ import print_function
 from builtins import int
 from builtins import range
 
@@ -41,19 +42,18 @@ if __name__ == "__main__":
 
     recs = list()
     if sys.argv[1] == 'json2csv':
-        exporter = depexport.CSVExporter()
         parser = depparser.CertlessStreamDEPParser(sys.stdin)
-        for chunk in parser.parse(utils.depParserChunkSize()):
-            for recs, cert, cert_list in chunk:
-                exporter.addGroup([ receipt.Receipt.fromJWSString(
-                    depparser.expandDEPReceipt(r)) for r in recs ], cert, cert_list)
+        generator = depparser.receiptGroupAdapter(parser.parse(
+            utils.depParserChunkSize()))
+        stream = depexport.DEPStream(generator)
+        exporter = depexport.CSVExporter(stream)
     elif sys.argv[1] == 'csv2json':
         next(sys.stdin)
-        for row in sys.stdin:
-            recs.append(receipt.Receipt.fromCSV(row.strip()))
-        exporter = depexport.JSONExporter()
-        exporter.addGroup(recs)
+        rec_generator = (receipt.Receipt.fromCSV(r.strip()) for r in sys.stdin)
+        exporter = depexport.JSONExporter.fromSingleGroup(rec_generator)
     else:
         usage()
 
-    print(exporter.export())
+    for s in exporter.export():
+        print(s, end='')
+    print()

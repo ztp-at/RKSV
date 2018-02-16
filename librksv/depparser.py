@@ -31,6 +31,7 @@ from math import ceil
 from six import string_types
 
 from . import utils
+from . import receipt
 
 class DEPException(utils.RKSVVerifyException):
     """
@@ -399,7 +400,7 @@ class DEPParserI(object):
         chunk is guaranteed to contain at least one group tuple.
         :param chunksize: A positive number specifying the maximum number of
         receipts in one chunk or zero.
-        :yield: One chunk at a time a described above.
+        :yield: One chunk at a time as described above.
         :throws: DEPParseException
         """
         raise NotImplementedError("Please implement this yourself.")
@@ -556,11 +557,17 @@ class FileDEPParser(IncrementalDEPParser):
 def totalRecsInDictDEP(dep):
     def _nrecs(group):
         try:
-            return len(group['Belege-kompakt'])
+            recs = group['Belege-kompakt']
+            if not isinstance(recs, list):
+                return 0
+            return len(recs)
         except (TypeError, KeyError):
             return 0
 
     bg = dep.get('Belege-Gruppe', [])
+    if not isinstance(bg, list):
+        return 0
+
     return sum(_nrecs(g) for g in bg)
 
 
@@ -597,17 +604,19 @@ class DictDEPParser(DEPParserI):
 
         cert_str = group['Signaturzertifikat']
         cert_str_list = group['Zertifizierungsstellen']
-        receipts = list(map(shrinkDEPReceipt, group['Belege-kompakt']))
+        receipts = (shrinkDEPReceipt(r) for r in group['Belege-kompakt'])
 
         if not isinstance(cert_str, string_types):
             raise MalformedDEPElementException('Signaturzertifikat',
-                    _('not a string'), self.idx)
+                    _('not a string'), idx)
         if not isinstance(cert_str_list, list):
             raise MalformedDEPElementException('Zertifizierungsstellen',
-                    _('not a list'), self.idx)
-        if not isinstance(receipts, list):
+                    _('not a list'), idx)
+        try:
+            iter(receipts)
+        except TypeError:
             raise MalformedDEPElementException('Belege-kompakt',
-                    _('not a list'), self.idx)
+                    _('not a list'), idx)
 
         cert = parseDEPCert(cert_str) if cert_str != '' else None
         cert_list = [ parseDEPCert(cs) for cs in cert_str_list ]
@@ -616,27 +625,35 @@ class DictDEPParser(DEPParserI):
 
     def _groupChunkGen(self, chunksize, groups):
         if chunksize == 0:
-            for groupidx in range(0, len(groups)):
-                recs, cert, certs = self._parseDEPGroup(groups[groupidx], groupidx)
+            groupidx = 0
+            for group in groups:
+                recgen, cert, certs = self._parseDEPGroup(group, groupidx)
+                recs = list(recgen)
                 if len(recs) > 0:
                     yield [(recs, cert, certs)]
+                groupidx += 1
             return
 
         chunk = list()
         chunklen = 0
-        for groupidx in range(0, len(groups)):
-            recs, cert, cert_list = self._parseDEPGroup(groups[groupidx], groupidx)
-            while len(recs) > 0:
-                recs_needed = chunksize - chunklen
-                nextrecs = recs[0:recs_needed]
-                chunk.append((nextrecs, cert, cert_list))
-                chunklen += len(nextrecs)
-                recs = recs[recs_needed:]
+        groupidx = 0
+        for group in groups:
+            recgen, cert, cert_list = self._parseDEPGroup(group, groupidx)
+            nextrecs = list()
+            for rec in recgen:
+                nextrecs.append(rec)
+                chunklen += 1
 
                 if chunklen >= chunksize:
+                    chunk.append((nextrecs, cert, cert_list))
                     yield chunk
+                    nextrecs = list()
                     chunk = list()
                     chunklen = 0
+
+            if len(nextrecs) > 0:
+                chunk.append((nextrecs, cert, cert_list))
+            groupidx += 1
 
         if chunklen > 0:
             yield chunk
@@ -648,7 +665,7 @@ class DictDEPParser(DEPParserI):
             raise MissingDEPElementException('Belege-Gruppe')
 
         bg = self.dep['Belege-Gruppe']
-        if not isinstance(bg, list) or len(bg) <= 0:
+        if not isinstance(bg, list) or not bg:
             raise MalformedDEPElementException('Belege-Gruppe')
 
         if self.nparts > 1 and not chunksize:
@@ -686,3 +703,10 @@ class FullFileDEPParser(DEPParserI):
 
         for chunk in self.dictParser.parse(chunksize):
             yield chunk
+
+def receiptGroupAdapter(depgen):
+    for chunk in depgen:
+        for recs, cert, cert_list in chunk:
+            rec_tuples = [ receipt.Receipt.fromJWSString(expandDEPReceipt(r))
+                    for r in recs ]
+            yield (rec_tuples, cert, cert_list)
