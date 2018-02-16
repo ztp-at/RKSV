@@ -43,6 +43,10 @@ class DEPStream(Generator):
     tuple lists.
     """
 
+    @classmethod
+    def fromIterList(cls, stream_list):
+        return cls(itertools.chain(*stream_list))
+
     def __init__(self, stream=None):
         self._last = None
         if stream is None:
@@ -117,8 +121,8 @@ class MergingDEPStream(DEPStream):
             if (self._last is None or self._last.cert != cert or
                     self._last.cert_list != cert_list):
                 # new group
-                self._last = DEPStream._ReceiptTupleStream(self, rec_tuples,
-                        cert, cert_list)
+                self._last = MergingDEPStream._ReceiptTupleStream(self,
+                        rec_tuples, cert, cert_list)
                 return (self._last, cert, cert_list)
 
             # same group
