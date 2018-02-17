@@ -28,10 +28,12 @@ import json
 
 try:
     # ABCs live in "collections.abc" in Python >= 3.3
-    from collections.abc import Coroutine, Generator
+    from collections.abc import Generator
 except ImportError:
     # fall back to import from "backports_abc"
-    from backports_abc import Coroutine, Generator
+    from backports_abc import Generator
+
+from collections import OrderedDict
 
 from . import utils
 
@@ -201,12 +203,12 @@ class DEPExporter(DEPExporterI):
         self._extra = dict()
 
     def export(self):
-        mkdict = lambda rs, c, cs: {
-            "Signaturzertifikat": utils.exportCertToPEM(c) if c else "",
-            "Zertifizierungsstellen": [utils.exportCertToPEM(c) for c in cs],
-            "Belege-kompakt": self._wrapper((r[0].toJWSString(r[1])
-                for r in rs)),
-        }
+        mkdict = lambda rs, c, cs: OrderedDict([
+            ("Signaturzertifikat", utils.exportCertToPEM(c) if c else ""),
+            ("Zertifizierungsstellen", [utils.exportCertToPEM(c) for c in cs]),
+            ("Belege-kompakt", self._wrapper((r[0].toJWSString(r[1])
+                for r in rs))),
+        ])
         dep_groups = self._wrapper((mkdict(*g) for g in self._stream))
 
         ret = { "Belege-Gruppe": dep_groups }
