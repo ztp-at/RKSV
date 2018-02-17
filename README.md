@@ -42,6 +42,7 @@ To run `make env`:
 
 To use on Linux:
 * Kivy >=1.9.1
+* dsv-python/backports-abc >=0.4
 * dev-python/configparser >=3.3.0.2
 * dev-python/cryptography >=1.2
 * dev-python/cython >=0.24.1
@@ -480,6 +481,22 @@ RKSV. All other (custom) elements are ignored.
 
 The output files are numbered and can be verified using the `verify.py` script
 with the `state` keyword.
+
+merge.py
+--------
+	Usage: ./merge.py [nomerge] <input file 1> <input file 2>...
+
+The merge script merges the DEPs in the given input files into one output file
+(printed to stdout) in the order in which the files are specified. Note that
+the output will only contain the elements specified in the RKSV. All other
+(custom) elements are ignored.
+
+By default the script merges adjacent groups if their certificate and
+certificate chain elements are identical. The `nomerge` keyword deactivates
+this. Note that due to how the DEP parser works, the final DEP can contain more
+groups than the input files if `nomerge` is used. The exact number depends on
+the chunk size that is used (default or read from `RKSV_DEP_CHUNKSIZE`).
+
 
 receipt_host.py
 ---------------
