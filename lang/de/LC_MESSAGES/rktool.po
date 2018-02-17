@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2017-12-05 18:33+CET\n"
+"POT-Creation-Date: 2018-02-17 03:34+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: demo.py:82
+#: demo.py:102
 msgid "The number of receipts must be at least 1."
 msgstr "Die Anzahl der Rechnungen muss mindestens 1 sein."
 
@@ -40,76 +40,76 @@ msgstr "Kein symmetrischer Schlüssel vorhanden."
 msgid "Invalid turnover counter size."
 msgstr "Umsatzzähler-Länge ungültig."
 
-#: librksv/depparser.py:57
+#: librksv/depparser.py:58
 msgid "Malformed DEP"
 msgstr "Ungültiges DEP"
 
-#: librksv/depparser.py:61 librksv/key_store.py:63
+#: librksv/depparser.py:62 librksv/key_store.py:63
 #: librksv/verification_state.py:78
 msgid "{}."
 msgstr "{}."
 
-#: librksv/depparser.py:64
+#: librksv/depparser.py:65
 msgid "In group {}: {}."
 msgstr "In Gruppe {}: {}"
 
-#: librksv/depparser.py:74 librksv/key_store.py:76
+#: librksv/depparser.py:75 librksv/key_store.py:76
 #: librksv/verification_state.py:91
 msgid "Element \"{}\" missing"
 msgstr "Element \"{}\" fehlt"
 
-#: librksv/depparser.py:86 librksv/key_store.py:88
+#: librksv/depparser.py:87 librksv/key_store.py:88
 #: librksv/verification_state.py:103
 msgid "Element \"{}\" malformed"
 msgstr "Element \"{}\" ungültig"
 
-#: librksv/depparser.py:90 librksv/key_store.py:92
+#: librksv/depparser.py:91 librksv/key_store.py:92
 #: librksv/verification_state.py:107
 msgid "Element \"{}\" malformed: {}"
 msgstr "Element \"{}\" ungültig: {}"
 
-#: librksv/depparser.py:102
+#: librksv/depparser.py:103
 msgid "Duplicate element \"{}\""
 msgstr "Element \"{}\" doppelt"
 
-#: librksv/depparser.py:113 librksv/key_store.py:103
+#: librksv/depparser.py:114 librksv/key_store.py:103
 msgid "Certificate \"{}\" malformed."
 msgstr "Zertifikat \"{}\" ungültig."
 
-#: librksv/depparser.py:214 librksv/depparser.py:236
+#: librksv/depparser.py:215 librksv/depparser.py:237
 msgid "Duplicate DEP root"
 msgstr "DEP-Wurzel doppelt"
 
-#: librksv/depparser.py:219 librksv/depparser.py:234 librksv/depparser.py:646
+#: librksv/depparser.py:220 librksv/depparser.py:235 librksv/depparser.py:663
 msgid "Malformed DEP root"
 msgstr "Ungültige DEP-Wurzel"
 
-#: librksv/depparser.py:282 librksv/depparser.py:604 librksv/key_store.py:439
+#: librksv/depparser.py:283 librksv/depparser.py:611 librksv/key_store.py:439
 #: librksv/key_store.py:449 librksv/verification_state.py:140
 #: librksv/verification_state.py:146
 msgid "not a string"
 msgstr "kein String"
 
-#: librksv/depparser.py:291 librksv/depparser.py:301 librksv/depparser.py:607
-#: librksv/depparser.py:610 librksv/verification_state.py:310
+#: librksv/depparser.py:292 librksv/depparser.py:302 librksv/depparser.py:614
+#: librksv/depparser.py:619 librksv/verification_state.py:310
 #: librksv/verification_state.py:314
 msgid "not a list"
 msgstr "keine Liste"
 
-#: librksv/depparser.py:345 librksv/depparser.py:347 librksv/depparser.py:361
-#: librksv/depparser.py:363
+#: librksv/depparser.py:346 librksv/depparser.py:348 librksv/depparser.py:362
+#: librksv/depparser.py:364
 msgid "Receipt \"{}\""
 msgstr "Rechnung \"{}\""
 
-#: librksv/depparser.py:470 librksv/depparser.py:664
+#: librksv/depparser.py:471 librksv/depparser.py:681
 msgid "No receipts found"
 msgstr "Keine Rechnungen gefunden"
 
-#: librksv/depparser.py:472 librksv/depparser.py:684
+#: librksv/depparser.py:473 librksv/depparser.py:701
 msgid "Malformed JSON: {}."
 msgstr "Ungültiges JSON: {}."
 
-#: librksv/depparser.py:489
+#: librksv/depparser.py:490
 msgid "Element \"Signaturzertifikat\" or \"Zertifizierungsstellen\" missing"
 msgstr "Element \"Signaturzertifikat\" oder \"Zertifizierungsstellen\" fehlt"
 
