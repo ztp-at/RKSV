@@ -31,7 +31,7 @@ from librksv import receipt
 from librksv import utils
 
 def usage():
-    print("Usage: ./merge.py [groups] <input file 1> <input file 2>...")
+    print("Usage: ./merge.py [nomerge] <input file 1> <input file 2>...")
     sys.exit(0)
 
 if __name__ == "__main__":
@@ -39,9 +39,9 @@ if __name__ == "__main__":
         usage()
 
     # check if adjacent groups should be merged if they are the same
-    streamcls = depexport.DEPStream
-    if sys.argv[1] == 'groups':
-        streamcls = depexport.MergingDEPStream
+    streamcls = depexport.MergingDEPStream
+    if sys.argv[1] == 'nomerge':
+        streamcls = depexport.DEPStream
         del sys.argv[1]
 
     if len(sys.argv) < 3:
@@ -58,8 +58,8 @@ if __name__ == "__main__":
         # build the parser-stream-exporter pipeline
         ps = [ depparser.IncrementalDEPParser.fromFd(f, True) for f in fds ]
         gs = [ depparser.receiptGroupAdapter(p.parse(csz)) for p in ps ]
-        stream = depexport.MergingDEPStream.fromIterList(gs)
-        exporter = streamcls(stream)
+        stream = streamcls.fromIterList(gs)
+        exporter = depexport.JSONExporter(stream)
 
         # export as one DEP
         for s in exporter.export():
