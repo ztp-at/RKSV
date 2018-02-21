@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2018-02-17 03:34+CET\n"
+"POT-Creation-Date: 2018-02-21 12:00+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -85,14 +85,14 @@ msgid "Malformed DEP root"
 msgstr "Ungültige DEP-Wurzel"
 
 #: librksv/depparser.py:283 librksv/depparser.py:611 librksv/key_store.py:439
-#: librksv/key_store.py:449 librksv/verification_state.py:140
-#: librksv/verification_state.py:146
+#: librksv/key_store.py:449 librksv/verification_state.py:143
+#: librksv/verification_state.py:149 librksv/verification_state.py:165
 msgid "not a string"
 msgstr "kein String"
 
 #: librksv/depparser.py:292 librksv/depparser.py:302 librksv/depparser.py:614
-#: librksv/depparser.py:619 librksv/verification_state.py:310
-#: librksv/verification_state.py:314
+#: librksv/depparser.py:619 librksv/verification_state.py:348
+#: librksv/verification_state.py:352
 msgid "not a list"
 msgstr "keine Liste"
 
@@ -327,7 +327,7 @@ msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Trainingsbeleg."
 msgid "Can't decrypt turnover counter, this is a reversal receipt."
 msgstr "Kann Umsatzzähler nicht entschlüsseln. Dies ist ein Stornobeleg."
 
-#: librksv/run_test.py:63
+#: librksv/run_test.py:64
 msgid "Need key material for {} signature devices, got {} key pairs."
 msgstr ""
 "Brauche Schlüsselmaterial für {} Sicherheitseinrichtungen, habe {} "
@@ -411,23 +411,23 @@ msgstr "Ungültiger Überprüfungszustand"
 msgid "In cash register {}: {}."
 msgstr "Bei Kassa {}: {}."
 
-#: librksv/verification_state.py:151
+#: librksv/verification_state.py:154
 msgid "not an integer"
 msgstr "keine Ganzzahl"
 
-#: librksv/verification_state.py:156
+#: librksv/verification_state.py:159
 msgid "not a boolean"
 msgstr "kein Boolean"
 
-#: librksv/verification_state.py:301
+#: librksv/verification_state.py:339
 msgid "Malformed verification state root"
 msgstr "Ungültige Überprüfungszustand-Wurzel"
 
-#: librksv/verification_state.py:321
+#: librksv/verification_state.py:359
 msgid "not an object"
 msgstr "kein Objekt"
 
-#: librksv/verification_state.py:329
+#: librksv/verification_state.py:367
 msgid "receipt ID not a string"
 msgstr "Belegnummer ist kein String"
 
@@ -513,7 +513,7 @@ msgstr ""
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: librksv/verify.py:737
+#: librksv/verify.py:744
 msgid "THIS IS A BUG"
 msgstr "DAS IST EIN BUG"
 
@@ -700,7 +700,8 @@ msgstr "Schlüsselspeicher speichern"
 msgid "Malformed crypto container"
 msgstr "Ungültiges Schlüsselmaterial"
 
-#: receipt.py:54 verify_receipt.py:61
+#: receipt.py:54 verification_state.py:221 verification_state.py:238
+#: verify_receipt.py:61
 msgid "Input format must be one of %s."
 msgstr "Eingabeformat muss eines aus %s sein."
 
@@ -796,27 +797,27 @@ msgstr "Verwende Seed \"{}\""
 msgid "Used seed \"{}\""
 msgstr "Verwendete Seed \"{}\""
 
-#: verification_state.py:40
+#: verification_state.py:41
 msgid "Start Receipt"
 msgstr "Startbeleg"
 
-#: verification_state.py:41
+#: verification_state.py:42
 msgid "Last Receipt"
 msgstr "Letzter Beleg"
 
-#: verification_state.py:42
+#: verification_state.py:43
 msgid "Last Turnover Counter"
 msgstr "Letzter Umsatzzähler"
 
-#: verification_state.py:43
+#: verification_state.py:44
 msgid "Need Restore Receipt"
 msgstr "Benötigt Nullbeleg"
 
-#: verification_state.py:47
+#: verification_state.py:48
 msgid "Cash Register {}:"
 msgstr "Kassa {}:"
 
-#: verification_state.py:50
+#: verification_state.py:51
 msgid "Used Receipt IDs"
 msgstr "Benutzte Belegnummern"
 
