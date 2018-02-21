@@ -31,6 +31,7 @@ gettext.install('rktool', './lang', True)
 
 from librksv import depparser
 from librksv import utils
+from librksv.receipt import Receipt
 from librksv.verification_state import CashRegisterState, ClusterState
 
 def printStateField(name, value):
@@ -49,6 +50,15 @@ def printClusterState(state):
         print('')
     printStateField(_('Used Receipt IDs'), len(state.usedReceiptIds))
 
+INPUT_FORMATS = {
+        'jws': lambda s: Receipt.fromJWSString(s),
+        'qr': lambda s: Receipt.fromBasicCode(s),
+        'ocr': lambda s: Receipt.fromOCRCode(s),
+        'url': lambda s: Receipt.fromBasicCode(getBasicCodeFromURL(
+            s)),
+        'csv': lambda s: Receipt.fromCSV(s)
+        }
+
 def usage():
     print("Usage: ./verification_state.py <state> create")
     print("       ./verification_state.py <state> show")
@@ -59,9 +69,12 @@ def usage():
     print("       ./verification_state.py <state> updateCashRegister <n-Target> <dep export file> [<base64 AES key file>]")
     print("       ./verification_state.py <state> setLastReceiptJWS <n> <receipt in JWS format>")
     print("       ./verification_state.py <state> setLastTurnoverCounter <n> <counter in cents>")
+    print("       ./verification_state.py <state> setChainNextTo <n> <chaining value>")
     print("       ./verification_state.py <state> toggleNeedRestoreReceipt <n>")
     print("       ./verification_state.py <state> setStartReceiptJWS <n> <receipt in JWS format>")
     print("       ./verification_state.py <state> readUsedReceiptIds <file with one receipt ID per line>")
+    print("       ./verification_state.py <state> fromArbitraryReceipt <in format> <receipt in in format> [<base64 AES key file>]")
+    print("       ./verification_state.py <state> fromArbitraryStartReceipt <in format> <receipt in in format>")
     sys.exit(0)
 
 if __name__ == "__main__":
@@ -139,6 +152,14 @@ if __name__ == "__main__":
         state.cashRegisters[int(
             sys.argv[3])].lastTurnoverCounter = int(sys.argv[4])
 
+    elif sys.argv[2] == 'setChainNextTo':
+        if len(sys.argv) != 5:
+            usage()
+
+        state = load_state(filename)
+        state.cashRegisters[int(
+            sys.argv[3])].chainNextTo = arg_str_or_none(sys.argv[4])
+
     elif sys.argv[2] == 'toggleNeedRestoreReceipt':
         if len(sys.argv) != 4:
             usage()
@@ -191,6 +212,35 @@ if __name__ == "__main__":
             for chunk in parser.parse(utils.depParserChunkSize()):
                 for recs, cert, chain in chunk:
                     state.cashRegisters[int(sys.argv[3])].updateFromDEPGroup(recs, key)
+
+    elif sys.argv[2] == 'fromArbitraryReceipt':
+        if len(sys.argv) != 5 and len(sys.argv) != 6:
+            usage()
+
+        if sys.argv[3] not in INPUT_FORMATS:
+            print(_("Input format must be one of %s.") % INPUT_FORMATS.keys())
+            sys.exit(0)
+
+        key = None
+        if len(sys.argv) == 6:
+            with open(sys.argv[5]) as f:
+                key = utils.loadB64Key(f.read().encode("utf-8"))
+
+        r, p = INPUT_FORMATS[sys.argv[3]](sys.argv[4].strip())
+
+        state = ClusterState.fromArbitraryReceipt(r, p, key)
+
+    elif sys.argv[2] == 'fromArbitraryStartReceipt':
+        if len(sys.argv) != 5:
+            usage()
+
+        if sys.argv[3] not in INPUT_FORMATS:
+            print(_("Input format must be one of %s.") % INPUT_FORMATS.keys())
+            sys.exit(0)
+
+        r, p = INPUT_FORMATS[sys.argv[3]](sys.argv[4].strip())
+
+        state = ClusterState.fromArbitraryStartReceipt(r)
 
     else:
         usage()

@@ -246,6 +246,10 @@ class NonstandardTypeOnInitialReceiptException(DEPReceiptException):
                 _("Initial receipt is a dummy or reversal receipt."))
         self._initargs = (rec,)
 
+def verifyChainValue(rec, chainingValue):
+    if chainingValue != rec.previousChain:
+        raise ChainingException(rec.receiptId, chainingValue)
+
 def verifyChain(rec, prev, algorithm):
     """
     Verifies that a receipt is preceeded by another receipt in the receipt
@@ -258,8 +262,7 @@ def verifyChain(rec, prev, algorithm):
     """
     chainingValue = algorithm.chain(rec, prev)
     chainingValue = base64.b64encode(chainingValue)
-    if chainingValue.decode("utf-8") != rec.previousChain:
-        raise ChainingException(rec.receiptId, prev)
+    verifyChainValue(rec, chainingValue.decode('utf-8'));
 
 def verifyCert(cert, chain, keyStore):
     """
@@ -420,7 +423,11 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
         usedReceiptIds.add(ro.receiptId)
 
         try:
-            verifyChain(ro, prev, algorithm)
+            if cashRegisterState.chainNextTo:
+                verifyChainValue(ro, cashRegisterState.chainNextTo)
+                cashRegisterState.chainNextTo = None
+            else:
+                verifyChain(ro, prev, algorithm)
         except ChainingException as e:
             # Special exception for the initial receipt
             if cashRegisterState.startReceiptJWS == r:

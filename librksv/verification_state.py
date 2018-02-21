@@ -119,6 +119,7 @@ class CashRegisterState(object):
         self.lastReceiptJWS = None
         self.lastTurnoverCounter = 0
         self.needRestoreReceipt = False
+        self.chainNextTo = None
 
     @staticmethod
     def fromDict(d, regidx = None):
@@ -130,6 +131,8 @@ class CashRegisterState(object):
             raise MissingStateElementException('lastTurnoverCounter', regidx)
         if 'needRestoreReceipt' not in d:
             raise MissingStateElementException('needRestoreReceipt', regidx)
+        if 'chainNextTo' not in d:
+            raise MissingStateElementException('chainNextTo', regidx)
 
         ret = CashRegisterState()
 
@@ -154,6 +157,12 @@ class CashRegisterState(object):
         if not isinstance(ret.needRestoreReceipt, bool):
             raise MalformedStateElementException('needRestoreReceipt',
                     _('not a boolean'), regidx)
+
+        ret.chainNextTo = d['chainNextTo']
+        if not ret.chainNextTo is None and not isinstance(
+                ret.chainNextTo, string_types):
+            raise MalformedStateElementException('chainNextTo',
+                    _('not a string'), regidx)
 
         return ret
 
@@ -224,16 +233,45 @@ class ClusterState(object):
     that is not in a GGS use a ClusterState with a single cash register.
     """
 
-    def __init__(self, initReceiptJWS = None, initUsedReceiptIds = None):
+    def __init__(self, initChainNextTo = None, initReceiptJWS = None,
+            initUsedReceiptIds = None):
         self.cashRegisters = list()
         self.usedReceiptIds = set()
 
-        if initReceiptJWS:
+        if initReceiptJWS or initChainNextTo:
             self.addNewCashRegister()
-            self.cashRegisters[0].startReceiptJWS = initReceiptJWS
+            self.cashRegisters[0].lastReceiptJWS = initReceiptJWS
+            self.cashRegisters[0].chainNextTo = initChainNextTo
 
         if initUsedReceiptIds:
             self.usedReceiptIds.update(initUsedReceiptIds)
+
+    @staticmethod
+    def fromArbitraryReceipt(rec, prefix, key = None):
+        if prefix not in algorithms.ALGORITHMS:
+            raise receipt.UnknownAlgorithmException(rec.receiptId)
+        algorithm = algorithms.ALGORITHMS[prefix]
+
+        dummyLastTC = 0
+        if key and not rec.isDummy() and not rec.isReversal():
+            curTC = rec.decryptTurnoverCounter(key, algorithm)
+            dummyLastTC = curTC - int(round((rec.sumA + rec.sumB + rec.sumC
+                + rec.sumD + rec.sumE) * 100))
+
+        dummyChain = base64.b64encode("DUMMY000".encode('utf-8'))
+        dummyRec = receipt.Receipt(rec.zda, rec.registerId, "dummyrec",
+                rec.dateTimeStr, "0,00", "0,00", "0,00", "0,00", "0,00",
+                "DUMMY000", rec.certSerial, dummyChain.decode('utf-8'));
+        dummyRec.sign(algorithm.jwsHeader(), "DUMMY000")
+
+        cs = ClusterState(rec.previousChain, dummyRec.toJWSString(prefix))
+        cs.cashRegisters[0].lastTurnoverCounter = dummyLastTC
+        return cs
+
+    @staticmethod
+    def fromArbitraryStartReceipt(rec):
+        cs = ClusterState(rec.previousChain)
+        return cs
 
     def addNewCashRegister(self):
         """
