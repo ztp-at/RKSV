@@ -278,9 +278,12 @@ verification_state.py
 	       ./verification_state.py <state> updateCashRegister <n-Target> <dep export file> [<base64 AES key file>]
 	       ./verification_state.py <state> setLastReceiptJWS <n> <receipt in JWS format>
 	       ./verification_state.py <state> setLastTurnoverCounter <n> <counter in cents>
+	       ./verification_state.py <state> setChainNextTo <n> <chaining value>
 	       ./verification_state.py <state> toggleNeedRestoreReceipt <n>
 	       ./verification_state.py <state> setStartReceiptJWS <n> <receipt in JWS format>
 	       ./verification_state.py <state> readUsedReceiptIds <file with one receipt ID per line>
+	       ./verification_state.py <state> fromArbitraryReceipt <in format> <receipt in in format> [<base64 AES key file>]
+	       ./verification_state.py <state> fromArbitraryStartReceipt <in format> <receipt in in format>
 
 This script manages the verification state if multiple related DEPs need to be
 verified. A state store is a simple JSON file. It contains a list of used receipt
@@ -328,6 +331,9 @@ register to the given value.
 The `setLastTurnoverCounter` command sets the last known turnover counter for
 the nth cash register to the given value.
 
+The `setChainNextTo` command sets chaining value the next receipt must chain to.
+This is useful if only part of the DEP is available.
+
 The `toggleNeedRestoreReceipt` command toggles the value indicating whether the
 next receipt for the nth cash register must be a signed null receipt.
 
@@ -338,6 +344,17 @@ inconsistent state as the start receipt is lost and the start receipt of the
 
 The `readUsedReceiptIds` command reads the list of used receipt IDs from the
 specified file.
+
+The `fromArbitraryReceipt` command creates a new state such that a DEP section
+beginning with the given receipt can be verified starting from that state. The
+turnover counter can only be determined if the key is given and the receipt is
+neither a dummy, nor a reversal receipt.
+
+The `fromArbitraryStartReceipt` command behaves like `fromArbitraryReceipt` but
+assumes the given receipt to be a start receipt in a GGS cluster. As the
+turnover counter should always be zero, no key is needed. This can be used to
+verify a DEP from a GGS cluster where the previous start receipt in not
+available.
 
 receipt.py
 -----------
