@@ -27,6 +27,7 @@ from builtins import range
 from .gettext_helper import _
 
 import datetime
+import random
 
 from . import cashreg
 from . import depexport
@@ -73,8 +74,6 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             int(0.0 * 100), key, turnoverCounterSize)
 
     keyStore = key_store.KeyStore()
-
-    zda = 'AT0' if closed else 'AT77'
 
     doGroups = spec.get('multipleGroups', False)
     chainLength = spec.get('certChainLength',
@@ -134,6 +133,7 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             kid = "%s-K%d" % (spec['companyID'], i)
             keyStore.putKey(kid, certList[0].public_key(), None)
 
+        zda = 'AT0' if closed else 'AT{}'.format(random.randint(1, 999))
         sigB = sigsys.SignatureSystemBroken(zda, serial)
         sigW = sigsys.SignatureSystemWorking(zda, serial, privObj)
 
