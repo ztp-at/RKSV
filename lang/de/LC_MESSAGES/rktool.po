@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2018-02-21 12:00+CET\n"
+"POT-Creation-Date: 2018-03-02 21:52+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -80,18 +80,18 @@ msgstr "Zertifikat \"{}\" ungültig."
 msgid "Duplicate DEP root"
 msgstr "DEP-Wurzel doppelt"
 
-#: librksv/depparser.py:220 librksv/depparser.py:235 librksv/depparser.py:663
+#: librksv/depparser.py:220 librksv/depparser.py:235 librksv/depparser.py:661
 msgid "Malformed DEP root"
 msgstr "Ungültige DEP-Wurzel"
 
-#: librksv/depparser.py:283 librksv/depparser.py:611 librksv/key_store.py:439
+#: librksv/depparser.py:283 librksv/depparser.py:609 librksv/key_store.py:439
 #: librksv/key_store.py:449 librksv/verification_state.py:143
 #: librksv/verification_state.py:149 librksv/verification_state.py:165
 msgid "not a string"
 msgstr "kein String"
 
-#: librksv/depparser.py:292 librksv/depparser.py:302 librksv/depparser.py:614
-#: librksv/depparser.py:619 librksv/verification_state.py:348
+#: librksv/depparser.py:292 librksv/depparser.py:302 librksv/depparser.py:612
+#: librksv/depparser.py:617 librksv/verification_state.py:348
 #: librksv/verification_state.py:352
 msgid "not a list"
 msgstr "keine Liste"
@@ -101,11 +101,11 @@ msgstr "keine Liste"
 msgid "Receipt \"{}\""
 msgstr "Rechnung \"{}\""
 
-#: librksv/depparser.py:471 librksv/depparser.py:681
+#: librksv/depparser.py:471 librksv/depparser.py:679
 msgid "No receipts found"
 msgstr "Keine Rechnungen gefunden"
 
-#: librksv/depparser.py:473 librksv/depparser.py:701
+#: librksv/depparser.py:473 librksv/depparser.py:699
 msgid "Malformed JSON: {}."
 msgstr "Ungültiges JSON: {}."
 
@@ -513,7 +513,7 @@ msgstr ""
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: librksv/verify.py:744
+#: librksv/verify.py:745
 msgid "THIS IS A BUG"
 msgstr "DAS IST EIN BUG"
 
@@ -700,7 +700,7 @@ msgstr "Schlüsselspeicher speichern"
 msgid "Malformed crypto container"
 msgstr "Ungültiges Schlüsselmaterial"
 
-#: receipt.py:54 verification_state.py:221 verification_state.py:238
+#: receipt.py:54 verification_state.py:224 verification_state.py:241
 #: verify_receipt.py:61
 msgid "Input format must be one of %s."
 msgstr "Eingabeformat muss eines aus %s sein."
