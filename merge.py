@@ -50,15 +50,23 @@ if __name__ == "__main__":
     # get the chunksize for the individual parsers
     csz = utils.depParserChunkSize()
     fds = list()
-    try:
-        # open all input files
-        for infile_name in sys.argv[1:]:
-                fds.append(open(infile_name, 'r'))
 
+    # open current input file and start streaming
+    def fdgen(fname):
+        f =  open(fname, 'r')
+        fds.append(f)
+
+        dp = depparser.IncrementalDEPParser.fromFd(f, True)
+        for g in depparser.receiptGroupAdapter(dp.parse(csz)):
+            yield g
+            g = None
+
+        fds.pop()
+        f.close()
+
+    try:
         # build the parser-stream-exporter pipeline
-        ps = [ depparser.IncrementalDEPParser.fromFd(f, True) for f in fds ]
-        gs = [ depparser.receiptGroupAdapter(p.parse(csz)) for p in ps ]
-        stream = streamcls.fromIterList(gs)
+        stream = streamcls.fromIterList([ fdgen(fn) for fn in sys.argv[1:] ])
         exporter = depexport.JSONExporter(stream)
 
         # export as one DEP
