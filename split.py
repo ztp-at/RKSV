@@ -58,3 +58,4 @@ if __name__ == "__main__":
                 f.write(part)
 
         i += 1
+        chunk = None

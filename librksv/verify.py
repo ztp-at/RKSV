@@ -583,6 +583,7 @@ def getChunksForProcs(allChunks, nprocs):
     ret = list()
     for chunk in allChunks:
         ret.append(chunk)
+        chunk = None
         if len(ret) >= nprocs:
             yield ret
             ret = list()

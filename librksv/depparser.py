@@ -491,8 +491,7 @@ class StreamDEPParser(IncrementalDEPParser):
                 groupidx)
 
     def parse(self, chunksize = 0):
-        for chunk in super(StreamDEPParser, self).parse(chunksize):
-            yield chunk
+        return super(StreamDEPParser, self).parse(chunksize)
 
 class CertlessStreamDEPParser(StreamDEPParser):
     """
@@ -550,8 +549,7 @@ class FileDEPParser(IncrementalDEPParser):
     def parse(self, chunksize = 0):
         self.fd.seek(self.startpos)
         self.cache = dict()
-        for chunk in super(FileDEPParser, self).parse(chunksize):
-            yield chunk
+        return super(FileDEPParser, self).parse(chunksize)
 
 
 def totalRecsInDictDEP(dep):
@@ -701,12 +699,14 @@ class FullFileDEPParser(DEPParserI):
                 raise DEPParseException(_('Malformed JSON: {}.').format(e))
             self.dictParser = DictDEPParser(dep, self.nparts)
 
-        for chunk in self.dictParser.parse(chunksize):
-            yield chunk
+        return self.dictParser.parse(chunksize)
 
 def receiptGroupAdapter(depgen):
     for chunk in depgen:
         for recs, cert, cert_list in chunk:
             rec_tuples = [ receipt.Receipt.fromJWSString(expandDEPReceipt(r))
                     for r in recs ]
+            recs = None
             yield (rec_tuples, cert, cert_list)
+            rec_tuples = None
+        chunk = None

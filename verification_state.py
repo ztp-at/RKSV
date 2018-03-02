@@ -213,6 +213,9 @@ if __name__ == "__main__":
                 for recs, cert, chain in chunk:
                     state.cashRegisters[int(sys.argv[3])].updateFromDEPGroup(recs, key)
 
+                    recs = None
+                chunk = None
+
     elif sys.argv[2] == 'fromArbitraryReceipt':
         if len(sys.argv) != 5 and len(sys.argv) != 6:
             usage()

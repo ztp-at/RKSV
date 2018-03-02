@@ -55,3 +55,6 @@ if __name__ == "__main__":
                 with open('{}.crt'.format(cs), 'w') as f:
                     f.write(utils.addPEMCertHeaders(
                         utils.exportCertToPEM(co)))
+
+            recs = None
+        chunk = None

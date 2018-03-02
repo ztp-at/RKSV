@@ -253,6 +253,7 @@ class CSVExporter(DEPExporterI):
         for g in self._stream:
             for r in g[0]:
                 yield ('\n' + r[0].toCSV(r[1]))
+            g = None
 
     def addExtra(self, key, value):
         pass
