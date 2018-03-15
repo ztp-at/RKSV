@@ -27,6 +27,7 @@ from builtins import str
 
 from ..gettext_helper import _
 
+import copy
 import enum
 import json
 import random
@@ -154,7 +155,7 @@ def _testVerify(spec, deps, cc, parse, proxy):
 
                     state = proxy.verify(tmpf, ks, key, state, registerIdx, randCs)
 
-                    recids = set(ids)
+                    recids = copy.copy(ids)
                     tmpf.seek(0)
                     parser = depparser.FileDEPParser(tmpf)
                     for chunk in parser.parse(0):

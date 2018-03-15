@@ -85,17 +85,6 @@ class NoRestoreReceiptAfterSignatureSystemFailureException(DEPReceiptException):
                 _("Receipt after restored signature system must not have any turnover."))
         self._initargs = (rec,)
 
-class DuplicateReceiptIdException(DEPReceiptException):
-    """
-    This exception indicates that the ID of a receipt is already in use in
-    a previous receipt.
-    """
-
-    def __init__(self, rec):
-        super(DuplicateReceiptIdException, self).__init__(rec,
-                _("Receipt ID already in use."))
-        self._initargs = (rec,)
-
 class InvalidTurnoverCounterException(DEPReceiptException):
     """
     This exception indicates that the turnover counter is invalid.
@@ -356,7 +345,7 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
     if not cashRegisterState:
         cashRegisterState = verification_state.CashRegisterState()
     if not usedReceiptIds:
-        usedReceiptIds = set()
+        usedReceiptIds = verification_state.UsedReceiptIdsUnique()
 
     prev = cashRegisterState.lastReceiptJWS
     prevObj = None
@@ -408,8 +397,7 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
             cashRegisterState.startReceiptJWS = r
 
         if prevObj:
-            if ro.receiptId in usedReceiptIds:
-                raise DuplicateReceiptIdException(ro.receiptId)
+            usedReceiptIds.check(ro.receiptId)
             if prevObj.registerId != ro.registerId:
                 raise ChangingRegisterIdException(ro.receiptId)
             if (prevObj.zda == 'AT0' and ro.zda != 'AT0') or (
@@ -547,18 +535,6 @@ def balanceGroupsWithVerifiers(groups, nprocs):
 
     return pkgs
 
-def updateUsedReceiptIds(outUsedRecIds, usedRecIds):
-    # merge usedRecIds and check for duplicates
-    seen = set()
-    for rids in [usedRecIds] + list(outUsedRecIds):
-        for rid in rids:
-            if rid in seen:
-                raise DuplicateReceiptIdException(rid)
-            else:
-                seen.add(rid)
-
-    return seen
-
 def packageChunkWithVerifiers(chunk, keyStore):
     groupsWithVerifiers = list()
     if len(chunk) == 1:
@@ -669,7 +645,7 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
 
         if res is not None:
             outRStates, outUsedRecIds = zip(*res.get())
-            usedRecIds = updateUsedReceiptIds(outUsedRecIds, usedRecIds)
+            usedRecIds.merge(outUsedRecIds)
             rState = outRStates[-1]
 
         wargs = prepareVerificationTuples(pkgs, key, prevStart, rState)
@@ -683,7 +659,7 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
             res = pool.map_async(verifyGroupsWithVerifiersTuple, wargs)
 
     outRStates, outUsedRecIds = zip(*res.get())
-    usedRecIds = updateUsedReceiptIds(outUsedRecIds, usedRecIds)
+    usedRecIds.merge(outUsedRecIds)
     rState = outRStates[-1]
 
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)

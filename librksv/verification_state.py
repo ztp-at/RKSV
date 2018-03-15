@@ -108,6 +108,79 @@ class MalformedStateElementException(MalformedStateException):
                     regidx)
         self._initargs = (elem, detail, regidx)
 
+class DuplicateReceiptIdException(depparser.DEPException):
+    """
+    This exception indicates that the ID of a receipt is not unique in the
+    DEP/GGS cluster.
+    """
+
+    def __init__(self, receipt):
+        super(DuplicateReceiptIdException, self).__init__(
+                _("Receipt ID \"{0}\" is already in use.").format(receipt))
+        self.receipt = receipt
+        self._initargs = (receipt,)
+
+class UsedReceiptIdsI(object):
+    def check(self, receiptId):
+        raise NotImplementedError("Please implement this yourself.")
+
+    def add(self, receiptId):
+        raise NotImplementedError("Please implement this yourself.")
+
+    def merge(self, usedReceiptIdsList):
+        raise NotImplementedError("Please implement this yourself.")
+
+    @classmethod
+    def readFromJson(cls, json, label):
+        raise NotImplementedError("Please implement this yourself.")
+
+    def writeToJson(self):
+        raise NotImplementedError("Please implement this yourself.")
+
+class UsedReceiptIdsUnique(UsedReceiptIdsI):
+    def __init__(self):
+        self._usedRecIds = set()
+
+    def check(self, receiptId):
+        if receiptId in self._usedRecIds:
+            raise DuplicateReceiptIdException(receiptId)
+
+    def add(self, receiptId):
+        self._usedRecIds.add(receiptId)
+
+    def merge(self, usedReceiptIdsList):
+        for rIds in usedReceiptIdsList:
+            for rId in rIds._usedRecIds:
+                self.check(rId)
+                self.add(rId)
+
+    @classmethod
+    def readFromJson(cls, json, label):
+        if not isinstance(json, list):
+            raise MalformedStateElementException(label, _('not a list'))
+
+        for recId in json:
+            if not isinstance(recId, string_types):
+                raise MalformedStateElementException(label,
+                        _('receipt ID not a string'))
+
+        ret = cls()
+        ret._usedRecIds = set(json)
+        return ret
+
+    def writeToJson(self):
+        return list(self._usedRecIds)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
 class CashRegisterState(object):
     """
     An object holding the state of a cash register. This allows for the
@@ -233,18 +306,14 @@ class ClusterState(object):
     that is not in a GGS use a ClusterState with a single cash register.
     """
 
-    def __init__(self, initChainNextTo = None, initReceiptJWS = None,
-            initUsedReceiptIds = None):
+    def __init__(self, initChainNextTo = None, initReceiptJWS = None):
         self.cashRegisters = list()
-        self.usedReceiptIds = set()
+        self.usedReceiptIds = UsedReceiptIdsUnique()
 
         if initReceiptJWS or initChainNextTo:
             self.addNewCashRegister()
             self.cashRegisters[0].lastReceiptJWS = initReceiptJWS
             self.cashRegisters[0].chainNextTo = initChainNextTo
-
-        if initUsedReceiptIds:
-            self.usedReceiptIds.update(initUsedReceiptIds)
 
     @staticmethod
     def fromArbitraryReceipt(rec, prefix, key = None):
@@ -310,7 +379,7 @@ class ClusterState(object):
             prev = self.cashRegisters[registerIdx - 1].startReceiptJWS
 
         return prev, copy.copy(
-                self.cashRegisters[registerIdx]), copy.copy(
+                self.cashRegisters[registerIdx]), copy.deepcopy(
                         self.usedReceiptIds)
 
     def updateCashRegisterInfo(self, registerIdx, newRegisterState,
@@ -331,7 +400,7 @@ class ClusterState(object):
             raise InvalidCashRegisterIndexException(registerIdx)
 
         self.cashRegisters[registerIdx] = newRegisterState
-        self.usedReceiptIds.update(newUsedReceiptIds)
+        self.usedReceiptIds = newUsedReceiptIds
 
     @staticmethod
     def readStateFromJson(json):
@@ -347,10 +416,6 @@ class ClusterState(object):
         if not isinstance(cregs, list):
             raise MalformedStateElementException('cashRegisters', _('not a list'))
 
-        recids = json['usedReceiptIds']
-        if not isinstance(recids, list):
-            raise MalformedStateElementException('usedReceiptIds', _('not a list'))
-
         ret = ClusterState()
 
         for i in range(0, len(cregs)):
@@ -361,12 +426,8 @@ class ClusterState(object):
             cro = CashRegisterState.fromDict(cregs[i], i)
             ret.cashRegisters.append(cro)
 
-        for recid in recids:
-            if not isinstance(recid, string_types):
-                raise MalformedStateElementException('usedReceiptIds',
-                        _('receipt ID not a string'))
-
-        ret.usedReceiptIds = set(recids)
+        ret.usedReceiptIds = UsedReceiptIdsUnique().readFromJson(
+                json['usedReceiptIds'], 'usedReceiptIds')
 
         return ret
 
@@ -377,5 +438,5 @@ class ClusterState(object):
 
         return {
                 'cashRegisters': regs,
-                'usedReceiptIds': list(self.usedReceiptIds)
+                'usedReceiptIds': self.usedReceiptIds.writeToJson()
         }
