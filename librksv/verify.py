@@ -296,8 +296,8 @@ def verifyCert(cert, chain, keyStore):
     raise UntrustedCertificateException(key_store.numSerialToKeyId(
         cert.serial))
 
-def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
-        cashRegisterState=None, usedReceiptIds = None):
+def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
+        usedReceiptIds):
     """
     Verifies a group of receipts from a DEP. It checks if the signature of
     each receipt is valid, if the receipts are properly chained and if
@@ -343,9 +343,9 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
     :throws: ClusterInOpenSystemException
     """
     if not cashRegisterState:
-        cashRegisterState = verification_state.CashRegisterState()
+        raise Exception(_('THIS IS A BUG'))
     if not usedReceiptIds:
-        usedReceiptIds = verification_state.UsedReceiptIdsUnique()
+        raise Exception(_('THIS IS A BUG'))
 
     prev = cashRegisterState.lastReceiptJWS
     prevObj = None
@@ -441,8 +441,7 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS = None,
     cashRegisterState.lastReceiptJWS = prev
     return cashRegisterState, usedReceiptIds
 
-def verifyGroupsWithVerifiers(groups, key, prevStart = None,
-        rState = None, usedRecIds = None):
+def verifyGroupsWithVerifiers(groups, key, prevStart, rState, usedRecIds):
     """
     Takes a list of tuples containing a list of receipts and their
     according ReceiptVerifier each and calls verifyGroup() for each of
@@ -567,7 +566,8 @@ def getChunksForProcs(allChunks, nprocs):
     if len(ret) > 0:
         yield ret
 
-def prepareVerificationTuples(chunksWithVerifiers, key, prevStartJWS, cashregState):
+def prepareVerificationTuples(chunksWithVerifiers, key, prevStartJWS,
+        cashregState, usedRecIdsBackend):
     # create start cashreg state for each package
     npkgs = len(chunksWithVerifiers)
     pkgRStates = [cashregState]
@@ -580,7 +580,7 @@ def prepareVerificationTuples(chunksWithVerifiers, key, prevStartJWS, cashregSta
     del pkgRStates[-1]
 
     return zip(chunksWithVerifiers, [key] * npkgs, [prevStartJWS] * npkgs,
-            pkgRStates, [set()] * npkgs)
+            pkgRStates, [usedRecIdsBackend()] * npkgs)
 
 def verifyParsedDEP(parser, keyStore, key, state = None,
         cashRegisterIdx = None, pool = None, nprocs = 1,
@@ -635,8 +635,10 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     :throws: NoStartReceiptForLastCashRegisterException
     :throws: depparser.DEPParseException
     """
+    # TODO
+    usedRecIdsBackend = verification_state.UsedReceiptIdsUnique
     if not state:
-        state = verification_state.ClusterState()
+        state = verification_state.ClusterState(usedRecIdsBackend)
 
     prevStart, rState, usedRecIds = state.getCashRegisterInfo(cashRegisterIdx)
     res = None
@@ -648,7 +650,8 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
             usedRecIds.merge(outUsedRecIds)
             rState = outRStates[-1]
 
-        wargs = prepareVerificationTuples(pkgs, key, prevStart, rState)
+        wargs = prepareVerificationTuples(pkgs, key, prevStart, rState,
+                usedRecIdsBackend)
 
         # apply verifyGroup() to each package
         if not pool:
@@ -708,8 +711,10 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
     :throws: NoStartReceiptForLastCashRegisterException
     :throws: depparser.DEPParseException
     """
+    # TODO
+    usedRecIdsBackend = verification_state.UsedReceiptIdsUnique
     if not state:
-        state = verification_state.ClusterState()
+        state = verification_state.ClusterState(usedRecIdsBackend)
 
     prevStart, rState, usedRecIds = state.getCashRegisterInfo(
             cashRegisterIdx)

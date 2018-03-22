@@ -563,7 +563,8 @@ def verifyDEP_prepare_Task(dep, store, key, nprocs):
         groupsWithVerifiers = verify.packageChunkWithVerifiers(dep, store)
         pkgs = verify.balanceGroupsWithVerifiers(groupsWithVerifiers, nprocs)
         rState = verification_state.CashRegisterState()
-        inargs = verify.prepareVerificationTuples(pkgs, key, None, rState)
+        inargs = verify.prepareVerificationTuples(pkgs, key, None, rState,
+                verification_state.UsedReceiptIdsUnique)
         return None, inargs
     except (receipt.ReceiptException, depparser.DEPException) as e:
         return e, None

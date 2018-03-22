@@ -120,7 +120,9 @@ class DuplicateReceiptIdException(depparser.DEPException):
         self.receipt = receipt
         self._initargs = (receipt,)
 
-class UsedReceiptIdsI(object):
+class UsedReceiptIdsBackend(object):
+    _backendType = 'USED_RECEIPT_IDS_INVALID'
+
     def check(self, receiptId):
         raise NotImplementedError("Please implement this yourself.")
 
@@ -131,13 +133,44 @@ class UsedReceiptIdsI(object):
         raise NotImplementedError("Please implement this yourself.")
 
     @classmethod
-    def readFromJson(cls, json, label):
+    def _dataImport(cls, data, label):
         raise NotImplementedError("Please implement this yourself.")
+
+    def _dataExport(self):
+        raise NotImplementedError("Please implement this yourself.")
+
+    @staticmethod
+    def readFromJson(json, label):
+        if not isinstance(json, dict):
+            raise MalformedStateElementException(label, _('not a dictionary'))
+
+        if 'backendType' not in json:
+            raise MalformedStateElementException(label,
+                    _('backend type missing'))
+        if 'backendData' not in json:
+            raise MalformedStateElementException(label,
+                    _('backend data missing'))
+
+        if not isinstance(json['backendType'], string_types):
+            raise MalformedStateElementException(label,
+                    _('backend type not a string'))
+
+        if json['backendType'] not in USED_RECEIPT_IDS_BACKENDS:
+            raise MalformedStateElementException(label,
+                    _('unknown backend type'))
+
+        backend_cls = USED_RECEIPT_IDS_BACKENDS[json['backendType']]
+        return backend_cls._dataImport(json['backendData'], label)
 
     def writeToJson(self):
-        raise NotImplementedError("Please implement this yourself.")
+        return {
+                'backendType': self.__class__._backendType,
+                'backendData': self._dataExport(),
+        }
 
-class UsedReceiptIdsUnique(UsedReceiptIdsI):
+class UsedReceiptIdsUnique(UsedReceiptIdsBackend):
+    _backendType = 'USED_RECEIPT_IDS_UNIQUE'
+
     def __init__(self):
         self._usedRecIds = set()
 
@@ -155,20 +188,21 @@ class UsedReceiptIdsUnique(UsedReceiptIdsI):
                 self.add(rId)
 
     @classmethod
-    def readFromJson(cls, json, label):
-        if not isinstance(json, list):
-            raise MalformedStateElementException(label, _('not a list'))
+    def _dataImport(cls, data, label):
+        if not isinstance(data, list):
+            raise MalformedStateElementException(label,
+                    _('backend data not a list'))
 
-        for recId in json:
+        for recId in data:
             if not isinstance(recId, string_types):
                 raise MalformedStateElementException(label,
                         _('receipt ID not a string'))
 
         ret = cls()
-        ret._usedRecIds = set(json)
+        ret._usedRecIds = set(data)
         return ret
 
-    def writeToJson(self):
+    def _dataExport(self):
         return list(self._usedRecIds)
 
     def __eq__(self, other):
@@ -180,6 +214,10 @@ class UsedReceiptIdsUnique(UsedReceiptIdsI):
         if isinstance(other, self.__class__):
             return not self.__eq__(other)
         return NotImplemented
+
+USED_RECEIPT_IDS_BACKENDS = {
+        UsedReceiptIdsUnique._backendType: UsedReceiptIdsUnique,
+}
 
 class CashRegisterState(object):
     """
@@ -306,9 +344,10 @@ class ClusterState(object):
     that is not in a GGS use a ClusterState with a single cash register.
     """
 
-    def __init__(self, initChainNextTo = None, initReceiptJWS = None):
+    def __init__(self, usedRecIdsBackend = UsedReceiptIdsUnique,
+            initChainNextTo = None, initReceiptJWS = None):
         self.cashRegisters = list()
-        self.usedReceiptIds = UsedReceiptIdsUnique()
+        self.usedReceiptIds = usedRecIdsBackend()
 
         if initReceiptJWS or initChainNextTo:
             self.addNewCashRegister()
@@ -426,7 +465,7 @@ class ClusterState(object):
             cro = CashRegisterState.fromDict(cregs[i], i)
             ret.cashRegisters.append(cro)
 
-        ret.usedReceiptIds = UsedReceiptIdsUnique().readFromJson(
+        ret.usedReceiptIds = UsedReceiptIdsBackend().readFromJson(
                 json['usedReceiptIds'], 'usedReceiptIds')
 
         return ret
