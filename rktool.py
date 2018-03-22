@@ -577,9 +577,8 @@ def verifyDEP_main_Task(args):
 
 def verifyDEP_finalize_Task(outUsedRecIds, usedRecIds):
     try:
-        mergedUsedRecIds = verify.updateUsedReceiptIds(outUsedRecIds,
-                usedRecIds)
-        return None, mergedUsedRecIds
+        usedRecIds.merge(outUsedRecIds)
+        return None, usedRecIds
     except (receipt.ReceiptException, depparser.DEPException) as e:
         return e, None
 
@@ -728,8 +727,8 @@ class VerifyDEPWidget(BoxLayout):
             outUsedRecIds.append(r[1])
 
         App.get_running_app().pool.apply_async(verifyDEP_finalize_Task,
-                (outUsedRecIds, set()), callback =
-                self.verifyDEP_finalize_Cb)
+                (outUsedRecIds, verification_state.UsedReceiptIdsUnique()),
+                callback = self.verifyDEP_finalize_Cb)
 
     @mainthread
     def verifyDEP_finalize_Cb(self, result):
