@@ -32,7 +32,8 @@ gettext.install('rktool', './lang', True)
 from librksv import depparser
 from librksv import utils
 from librksv.receipt import Receipt
-from librksv.verification_state import CashRegisterState, ClusterState
+from librksv.verification_state import (CashRegisterState, ClusterState,
+        DEFAULT_USED_RECEIPT_IDS_BACKEND)
 
 def printStateField(name, value):
     print(u'{: >25}: {}'.format(name, value))
@@ -48,7 +49,9 @@ def printClusterState(state):
         print(_('Cash Register {}:').format(i))
         printCashRegisterState(state.cashRegisters[i])
         print('')
-    printStateField(_('Used Receipt IDs'), len(state.usedReceiptIds))
+    # TODO: add a proper print function per type
+    printStateField(_('Used Receipt IDs Backend'),
+            state.usedReceiptIds.__class__._backendType)
 
 INPUT_FORMATS = {
         'jws': lambda s: Receipt.fromJWSString(s),
@@ -97,6 +100,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         usage()
 
+    recIdsBackend = DEFAULT_USED_RECEIPT_IDS_BACKEND
     filename = sys.argv[1]
     state = None
 
@@ -104,7 +108,7 @@ if __name__ == "__main__":
         if len(sys.argv) != 3:
             usage()
 
-        state = ClusterState()
+        state = ClusterState(recIdsBackend)
 
     elif sys.argv[2] == 'show':
         if len(sys.argv) != 3:
@@ -127,7 +131,7 @@ if __name__ == "__main__":
 
         state = load_state(filename)
         state.updateCashRegisterInfo(int(sys.argv[3]), CashRegisterState(),
-                set())
+                recIdsBackend())
 
     elif sys.argv[2] == 'deleteCashRegister':
         if len(sys.argv) != 4:
@@ -182,8 +186,9 @@ if __name__ == "__main__":
             usage()
 
         state = load_state(filename)
-        state.usedReceiptIds = set(
-                arg_list_from_file_or_empty(sys.argv[3]))
+        state.usedReceiptIds = recIdsBackend()
+        for rId in arg_list_from_file_or_empty(sys.argv[3]):
+            state.usedReceiptIds.add(rId)
 
     elif sys.argv[2] == 'copyCashRegister':
         if len(sys.argv) != 6:
@@ -231,7 +236,7 @@ if __name__ == "__main__":
 
         r, p = INPUT_FORMATS[sys.argv[3]](sys.argv[4].strip())
 
-        state = ClusterState.fromArbitraryReceipt(r, p, key)
+        state = ClusterState.fromArbitraryReceipt(r, p, key, recIdsBackend)
 
     elif sys.argv[2] == 'fromArbitraryStartReceipt':
         if len(sys.argv) != 5:
@@ -243,7 +248,7 @@ if __name__ == "__main__":
 
         r, p = INPUT_FORMATS[sys.argv[3]](sys.argv[4].strip())
 
-        state = ClusterState.fromArbitraryStartReceipt(r)
+        state = ClusterState.fromArbitraryStartReceipt(r, recIdsBackend)
 
     else:
         usage()

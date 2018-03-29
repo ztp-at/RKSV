@@ -584,7 +584,8 @@ def prepareVerificationTuples(chunksWithVerifiers, key, prevStartJWS,
 
 def verifyParsedDEP(parser, keyStore, key, state = None,
         cashRegisterIdx = None, pool = None, nprocs = 1,
-        chunksize = utils.depParserChunkSize()):
+        chunksize = utils.depParserChunkSize(),
+        usedRecIdsBackend = verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND):
     """
     Verifies a previously parsed DEP. It checks if the signature of each
     receipt is valid, if the receipts are properly chained, if receipts
@@ -607,6 +608,10 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     function will create at most nprocs work packages at a time and either pass
     them to a pool or (if no pool is given) process them itself. How the
     packages are distributed among the pool's processes is up to the pool.
+    :param chunksize: The number of receipts the parser should read from the DEP
+    in one go.
+    :param usedRecIdsBackend: The implementation used to keep track of used
+    receipt IDs.
     :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
@@ -635,10 +640,12 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     :throws: NoStartReceiptForLastCashRegisterException
     :throws: depparser.DEPParseException
     """
-    # TODO
-    usedRecIdsBackend = verification_state.UsedReceiptIdsUnique
     if not state:
         state = verification_state.ClusterState(usedRecIdsBackend)
+
+    # Use the same backend in all processes so we don't have to do merging
+    # across different backends.
+    usedRecIdsBackend = state.usedReceiptIds.__class__
 
     prevStart, rState, usedRecIds = state.getCashRegisterInfo(cashRegisterIdx)
     res = None
@@ -668,7 +675,8 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
     return state
 
-def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
+def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None,
+        usedRecIdsBackend = verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND):
     """
     Verifies an entire DEP. It checks if the signature of each receipt is
     valid, if the receipts are properly chained, if receipts with zero
@@ -683,6 +691,8 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
     :param state: The state returned by evaluating a previous DEP or None.
     :param cashRegisterIdx: The index of the cash register that created the
     DEP in the state parameter or None to create a new register state.
+    :param usedRecIdsBackend: The implementation used to keep track of used
+    receipt IDs.
     :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
@@ -711,8 +721,6 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None):
     :throws: NoStartReceiptForLastCashRegisterException
     :throws: depparser.DEPParseException
     """
-    # TODO
-    usedRecIdsBackend = verification_state.UsedReceiptIdsUnique
     if not state:
         state = verification_state.ClusterState(usedRecIdsBackend)
 

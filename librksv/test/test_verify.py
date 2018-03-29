@@ -120,6 +120,7 @@ def _testVerify(spec, deps, cc, parse, proxy):
         key = utils.loadB64Key(spec['base64AesKey'].encode('utf-8'))
         ks = key_store.KeyStore.readStoreFromJson(cc)
 
+        # TODO: need to test different used receipt ids backends somehow
         state = verification_state.ClusterState()
         depToRegisterIdx = list()
         nRegisters = 0

@@ -78,6 +78,9 @@ def depParserChunkSize():
     """
     return int(os.environ.get('RKSV_DEP_CHUNKSIZE', 100000))
 
+def clusterStateReceiptIDsBackend():
+    return os.environ.get('RKSV_STATE_RECEIPT_IDS', 'USED_RECEIPT_IDS_UNIQUE')
+
 def raiseForKey(key, algorithm):
     if not algorithm.verifyKey(key):
         raise InvalidKeyException()

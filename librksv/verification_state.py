@@ -28,6 +28,7 @@ from six import string_types
 
 import base64
 import copy
+import re
 
 from . import algorithms
 from . import depparser
@@ -139,6 +140,16 @@ class UsedReceiptIdsBackend(object):
     def _dataExport(self):
         raise NotImplementedError("Please implement this yourself.")
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
     @staticmethod
     def readFromJson(json, label):
         if not isinstance(json, dict):
@@ -205,19 +216,88 @@ class UsedReceiptIdsUnique(UsedReceiptIdsBackend):
     def _dataExport(self):
         return list(self._usedRecIds)
 
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        return NotImplemented
+# TODO: this breaks for out of order cluster DEP verification, we need to scope
+# IDs per cash register...
+_numSplitRegex = re.compile('([0-9]+)')
+class UsedReceiptIdsSortedNatural(UsedReceiptIdsBackend):
+    _backendType = 'USED_RECEIPT_IDS_SORTED_NATURAL'
 
-    def __ne__(self, other):
-        if isinstance(other, self.__class__):
-            return not self.__eq__(other)
-        return NotImplemented
+    # natural sort copied from here:
+    # https://blog.codinghorror.com/sorting-for-humans-natural-sort-order/
+    @staticmethod
+    def _key(recId):
+        convert = lambda text: int(text) if text.isdigit() else text.lower()
+        return [ convert(c) for c in _numSplitRegex.split(recId) ]
+
+    def __init__(self):
+        self._minId = None
+        self._maxId = None
+
+    def check(self, receiptId):
+        if self._maxId is None:
+            return
+        if self._key(self._maxId) < self._key(receiptId):
+            return
+        raise DuplicateReceiptIdException(receiptId)
+
+    def add(self, receiptId):
+        self._maxId = receiptId
+        if self._minId is None:
+            self._minId = receiptId
+
+    def merge(self, usedReceiptIdsList):
+        # note that the usedReceiptIdsList needs to be in the correct order
+        for rIds in usedReceiptIdsList:
+            if rIds._minId is None or rIds._maxId is None:
+                # no receipts, allow this for now...
+                continue
+
+            # we assume rIds._minId <= rIds._maxId
+            self.check(rIds._minId)
+            # in case our own _minId is None
+            self.add(rIds._minId)
+            self.add(rIds._maxId)
+
+    @classmethod
+    def _dataImport(cls, data, label):
+        if not isinstance(data, dict):
+            raise MalformedStateElementException(label,
+                    _('backend data not a dictionary'))
+
+        if 'minId' not in data:
+            raise MalformedStateElementException(label,
+                    _('minimum receipt ID missing'))
+        if 'maxId' not in data:
+            raise MalformedStateElementException(label,
+                    _('maximum receipt ID missing'))
+
+        minId = data['minId']
+        maxId = data['maxId']
+
+        if minId is not None and not isinstance(minId, string_types):
+            raise MalformedStateElementException(label,
+                    _('minimum receipt ID not a string'))
+        if maxId is not None and not isinstance(maxId, string_types):
+            raise MalformedStateElementException(label,
+                    _('maximum receipt ID not a string'))
+
+        ret = cls()
+        ret._minId = minId
+        ret._maxId = maxId
+        return ret
+
+    def _dataExport(self):
+        return {
+                'minId': self._minId,
+                'maxId': self._maxId,
+        }
 
 USED_RECEIPT_IDS_BACKENDS = {
         UsedReceiptIdsUnique._backendType: UsedReceiptIdsUnique,
+        UsedReceiptIdsSortedNatural._backendType: UsedReceiptIdsSortedNatural,
 }
+DEFAULT_USED_RECEIPT_IDS_BACKEND = USED_RECEIPT_IDS_BACKENDS[
+        utils.clusterStateReceiptIDsBackend()]
 
 class CashRegisterState(object):
     """
@@ -344,7 +424,7 @@ class ClusterState(object):
     that is not in a GGS use a ClusterState with a single cash register.
     """
 
-    def __init__(self, usedRecIdsBackend = UsedReceiptIdsUnique,
+    def __init__(self, usedRecIdsBackend = DEFAULT_USED_RECEIPT_IDS_BACKEND,
             initChainNextTo = None, initReceiptJWS = None):
         self.cashRegisters = list()
         self.usedReceiptIds = usedRecIdsBackend()
@@ -355,7 +435,8 @@ class ClusterState(object):
             self.cashRegisters[0].chainNextTo = initChainNextTo
 
     @staticmethod
-    def fromArbitraryReceipt(rec, prefix, key = None):
+    def fromArbitraryReceipt(rec, prefix, key = None,
+            usedRecIdsBackend = DEFAULT_USED_RECEIPT_IDS_BACKEND):
         if prefix not in algorithms.ALGORITHMS:
             raise receipt.UnknownAlgorithmException(rec.receiptId)
         algorithm = algorithms.ALGORITHMS[prefix]
@@ -372,13 +453,15 @@ class ClusterState(object):
                 "DUMMY000", rec.certSerial, dummyChain.decode('utf-8'));
         dummyRec.sign(algorithm.jwsHeader(), "DUMMY000")
 
-        cs = ClusterState(rec.previousChain, dummyRec.toJWSString(prefix))
+        cs = ClusterState(usedRecIdsBackend, rec.previousChain,
+                dummyRec.toJWSString(prefix))
         cs.cashRegisters[0].lastTurnoverCounter = dummyLastTC
         return cs
 
     @staticmethod
-    def fromArbitraryStartReceipt(rec):
-        cs = ClusterState(rec.previousChain)
+    def fromArbitraryStartReceipt(rec,
+            usedRecIdsBackend = DEFAULT_USED_RECEIPT_IDS_BACKEND):
+        cs = ClusterState(usedRecIdsBackend, rec.previousChain)
         return cs
 
     def addNewCashRegister(self):
@@ -455,6 +538,8 @@ class ClusterState(object):
         if not isinstance(cregs, list):
             raise MalformedStateElementException('cashRegisters', _('not a list'))
 
+        # No explicit receipt IDs backend here, we read the type from the JSON
+        # below.
         ret = ClusterState()
 
         for i in range(0, len(cregs)):
