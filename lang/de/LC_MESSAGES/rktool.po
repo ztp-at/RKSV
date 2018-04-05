@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2018-03-29 13:03+CEST\n"
+"POT-Creation-Date: 2018-04-05 14:02+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -480,8 +480,8 @@ msgid "GGS Cluster is not supported in an open system."
 msgstr "GGS Verbund wird in offenen Systemen nicht unterstützt."
 
 #: librksv/verify.py:73
-msgid "Previous receipt is not \"{0}\"."
-msgstr "Vorherige Rechnung ist nicht \"{0}\"."
+msgid "Chaining value \"{0}\" invalid."
+msgstr "Verkettungswert \"{0}\" ungültig."
 
 #: librksv/verify.py:85
 msgid "Receipt after restored signature system must not have any turnover."
@@ -872,3 +872,6 @@ msgstr "Zeile {: >3}: {}"
 #: verify_receipt.py:85
 msgid "{} of {} receipts verified successfully."
 msgstr "{} von {} Rechnungen wurden erfolgreich überprüft."
+
+#~ msgid "Previous receipt is not \"{0}\"."
+#~ msgstr "Vorherige Rechnung ist nicht \"{0}\"."
