@@ -70,7 +70,7 @@ class ChainingException(DEPReceiptException):
 
     def __init__(self, rec, recPrev = 'THIS IS A BUG'):
         super(ChainingException, self).__init__(rec,
-                _("Previous receipt is not \"{0}\".").format(recPrev))
+                _("Chaining value \"{0}\" invalid.").format(recPrev))
         self._initargs = (rec, recPrev)
 
 class NoRestoreReceiptAfterSignatureSystemFailureException(DEPReceiptException):
