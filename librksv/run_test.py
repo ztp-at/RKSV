@@ -148,7 +148,10 @@ def runTest(spec, keymat, closed=False, tcSize=None):
     exporter = depexport.DEPExporter(stream, list)
     deps = list()
     lastStartJWS = None
-    previousClusterDEPIdx = 0
+    prevRegStartDEPIdx = 0
+    reg2Reg = list()
+    reg2LastDEP = list()
+    curRegIdx = -1
 
     override = dict()
     receipts = list()
@@ -174,11 +177,12 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             sig = sigsWorking[sigId]
 
         newDEP = recI.get('beginNewDEP', 'NO_NEW_DEP')
+        contReg = recI.get('continueRegister', None)
         override = recI.get('override', dict())
 
         if newDEP == 'NEW_CLUSTER_DEP' and lastStartJWS:
-            register.lastReceiptSig = lastStartJWS
-            register.turnoverCounter = 0
+            register = cashreg.CashRegister(spec['cashBoxId'], lastStartJWS,
+                    int(0.0 * 100), key, turnoverCounterSize)
             lastStartJWS = None
 
         if doGroups and prevSigId is not None:
@@ -197,10 +201,16 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             dep = exporter.export()
             stream = depexport.DEPStream()
             exporter = depexport.DEPExporter(stream, list)
+            reg2LastDEP[curRegIdx] = len(deps)
             if newDEP == 'NEW_CLUSTER_DEP':
-                exporter.addExtra('Vorheriges-DEP', previousClusterDEPIdx)
+                exporter.addExtra('Vorheriges-DEP', prevRegStartDEPIdx)
             else:
-                exporter.addExtra('Vorheriges-DEP', len(deps))
+                if contReg is not None:
+                    register = reg2Reg[contReg]
+                    exporter.addExtra('Vorheriges-DEP', reg2LastDEP[contReg])
+                    curRegIdx = contReg
+                else:
+                    exporter.addExtra('Vorheriges-DEP', len(deps))
                 exporter.addExtra('Fortgesetztes-DEP', True)
             deps.append(dep)
 
@@ -219,9 +229,13 @@ def runTest(spec, keymat, closed=False, tcSize=None):
         algorithmPrefix = override.get('algorithmPrefix', 'R1')
         receipts.append((rec, algorithmPrefix))
 
+        # Started new cash register, chain future registers to this DEP
         if not lastStartJWS:
             lastStartJWS = rec.toJWSString(algorithmPrefix)
-            previousClusterDEPIdx = len(deps)
+            reg2LastDEP.append(len(deps))
+            reg2Reg.append(register)
+            curRegIdx += 1
+            prevRegStartDEPIdx = len(deps)
 
         prevSigId = sigId
 
