@@ -36,7 +36,7 @@
     }
   ],
   "expectedException": "DuplicateReceiptIdException",
-  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-1",
+  "exceptionMsg": "Receipt ID \"CASHBOX-DEMO-1-Receipt-ID-1\" is already in use.",
   "multipleGroups": true,
   "closedSystem": true
 }
