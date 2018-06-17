@@ -218,6 +218,8 @@ class UsedReceiptIdsUnique(UsedReceiptIdsBackend):
 
 # TODO: this breaks for out of order cluster DEP verification, we need to scope
 # IDs per cash register...
+# impl algorithm to find correct split? (i.e. key[>i] range, key[<=i] unique)
+# manually specify ranged parts of key?
 _numSplitRegex = re.compile('([0-9]+)')
 class UsedReceiptIdsSortedNatural(UsedReceiptIdsBackend):
     _backendType = 'USED_RECEIPT_IDS_SORTED_NATURAL'
