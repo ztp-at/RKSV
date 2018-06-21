@@ -237,7 +237,7 @@ class NonstandardTypeOnInitialReceiptException(DEPReceiptException):
 
 def verifyChainValue(rec, chainingValue):
     if chainingValue != rec.previousChain:
-        raise ChainingException(rec.receiptId, chainingValue)
+        raise ChainingException(rec.receiptId, rec.previousChain)
 
 def verifyChain(rec, prev, algorithm):
     """
