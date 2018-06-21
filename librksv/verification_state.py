@@ -390,6 +390,8 @@ class CashRegisterState(object):
             self.startReceiptJWS = depparser.expandDEPReceipt(group[0])
 
         self.lastReceiptJWS = depparser.expandDEPReceipt(group[-1])
+        # Discard any chainNextTo value, we chain to our own last receipt.
+        self.chainNextTo = None
 
         if not key:
             return
