@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2018-04-05 14:02+CEST\n"
+"POT-Creation-Date: 2018-06-21 12:49+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -85,13 +85,13 @@ msgid "Malformed DEP root"
 msgstr "Ungültige DEP-Wurzel"
 
 #: librksv/depparser.py:283 librksv/depparser.py:609 librksv/key_store.py:439
-#: librksv/key_store.py:449 librksv/verification_state.py:334
-#: librksv/verification_state.py:340 librksv/verification_state.py:356
+#: librksv/key_store.py:449 librksv/verification_state.py:336
+#: librksv/verification_state.py:342 librksv/verification_state.py:358
 msgid "not a string"
 msgstr "kein String"
 
 #: librksv/depparser.py:292 librksv/depparser.py:302 librksv/depparser.py:612
-#: librksv/depparser.py:617 librksv/verification_state.py:539
+#: librksv/depparser.py:617 librksv/verification_state.py:543
 msgid "not a list"
 msgstr "keine Liste"
 
@@ -439,39 +439,39 @@ msgstr "Backend-Daten sind keine Liste"
 msgid "receipt ID not a string"
 msgstr "Belegnummer ist kein String"
 
-#: librksv/verification_state.py:265
+#: librksv/verification_state.py:267
 msgid "backend data not a dictionary"
 msgstr "Backend-Daten sind kein Verzeichnis"
 
-#: librksv/verification_state.py:269
+#: librksv/verification_state.py:271
 msgid "minimum receipt ID missing"
 msgstr "kleinste Belegnummer fehlt"
 
-#: librksv/verification_state.py:272
+#: librksv/verification_state.py:274
 msgid "maximum receipt ID missing"
 msgstr "größte Belegnummer fehlt"
 
-#: librksv/verification_state.py:279
+#: librksv/verification_state.py:281
 msgid "minimum receipt ID not a string"
 msgstr "kleinste Belegnummer ist kein String"
 
-#: librksv/verification_state.py:282
+#: librksv/verification_state.py:284
 msgid "maximum receipt ID not a string"
 msgstr "größte Belegnummer ist kein String"
 
-#: librksv/verification_state.py:345
+#: librksv/verification_state.py:347
 msgid "not an integer"
 msgstr "keine Ganzzahl"
 
-#: librksv/verification_state.py:350
+#: librksv/verification_state.py:352
 msgid "not a boolean"
 msgstr "kein Boolean"
 
-#: librksv/verification_state.py:530
+#: librksv/verification_state.py:534
 msgid "Malformed verification state root"
 msgstr "Ungültige Überprüfungszustand-Wurzel"
 
-#: librksv/verification_state.py:548
+#: librksv/verification_state.py:552
 msgid "not an object"
 msgstr "kein Objekt"
 
