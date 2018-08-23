@@ -231,7 +231,7 @@ key_store.py
 	       ./key_store.py <key store> fromLegacyIni
 
 A key store is a JSON file conforming to the format specified in
-[Festlegungen des BMF zu Detailfragen der RKSV](https://github.com/a-sit-plus/at-registrierkassen-mustercode/releases/download/1.2-DOK/2016-09-05-Detailfragen-RKSV-V1.2.pdf),
+[Festlegungen des BMF zu Detailfragen der RKSV](https://github.com/BMF-RKSV-Technik/at-registrierkassen-mustercode/releases/download/1.2-DOK/2016-09-05-Detailfragen-RKSV-V1.2.pdf),
 Section 8.2 (`cryptographicMaterialContainer.json`), with the exception that the
 `base64AESKey` may be missing if no symmetric key is known.
 

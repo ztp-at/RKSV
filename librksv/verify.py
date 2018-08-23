@@ -404,7 +404,7 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
                     prevObj.zda != 'AT0' and ro.zda == 'AT0'):
                 raise ChangingSystemTypeException(ro.receiptId)
             # These checks are not necessary according to:
-            # https://github.com/a-sit-plus/at-registrierkassen-mustercode/issues/144#issuecomment-255786335
+            # https://github.com/BMF-RKSV-Technik/at-registrierkassen-mustercode/issues/144#issuecomment-255786335
             #if prevObj.dateTime > ro.dateTime:
             #    raise DecreasingDateException(ro.receiptId)
 
