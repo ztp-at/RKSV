@@ -213,17 +213,15 @@ def verifyCert(cert, signCert):
     # We only support ECDSA and RSA+PKCS1
     if isinstance(pubKey, ec.EllipticCurvePublicKey):
         alg = ec.ECDSA(halg)
-        ver = pubKey.verifier(sig, alg)
+        ver = lambda: pubKey.verify(sig, data, alg)
     elif isinstance(pubKey, rsa.RSAPublicKey):
         pad = padding.PKCS1v15()
-        ver = pubKey.verifier(sig, pad, halg)
+        ver = lambda: pubKey.verify(sig, data, pad, halg)
     else:
         return False
 
-    ver.update(data)
-
     try:
-        ver.verify()
+        ver()
         return True
     except InvalidSignature as e:
         return False

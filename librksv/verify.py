@@ -268,33 +268,33 @@ def verifyCert(cert, chain, keyStore):
     prev = cert
 
     for c in chain:
-        ksCert = keyStore.getCert(key_store.numSerialToKeyId(prev.serial))
+        ksCert = keyStore.getCert(key_store.numSerialToKeyId(prev.serial_number))
         if ksCert:
             if utils.certFingerprint(ksCert) != utils.certFingerprint(prev):
                 raise CertificateSerialCollisionException(
-                        key_store.numSerialToKeyId(prev.serial),
+                        key_store.numSerialToKeyId(prev.serial_number),
                         utils.certFingerprint(prev),
                         utils.certFingerprint(ksCert))
             return
 
         if not utils.verifyCert(prev, c):
             raise CertificateChainBrokenException(
-                    key_store.numSerialToKeyId(prev.serial),
-                    key_store.numSerialToKeyId(c.serial))
+                    key_store.numSerialToKeyId(prev.serial_number),
+                    key_store.numSerialToKeyId(c.serial_number))
 
         prev = c
 
-    ksCert = keyStore.getCert(key_store.numSerialToKeyId(prev.serial))
+    ksCert = keyStore.getCert(key_store.numSerialToKeyId(prev.serial_number))
     if ksCert:
         if utils.certFingerprint(ksCert) != utils.certFingerprint(prev):
             raise CertificateSerialCollisionException(
-                    key_store.numSerialToKeyId(prev.serial),
+                    key_store.numSerialToKeyId(prev.serial_number),
                     utils.certFingerprint(prev),
                     utils.certFingerprint(ksCert))
         return
 
     raise UntrustedCertificateException(key_store.numSerialToKeyId(
-        cert.serial))
+        cert.serial_number))
 
 def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
         usedReceiptIds):

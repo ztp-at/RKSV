@@ -298,7 +298,7 @@ class KeyStore(KeyStoreI):
     def putPEMCert(self, pemCert):
         cert = utils.loadCert(pemCert)
         pubKey = cert.public_key()
-        serial = numSerialToKeyId(cert.serial)
+        serial = numSerialToKeyId(cert.serial_number)
 
         self.keydict[serial] = KeyTuple(serial, pubKey, cert)
 

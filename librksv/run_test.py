@@ -102,7 +102,7 @@ def runTest(spec, keymat, closed=False, tcSize=None):
                 cserial, privObj))
         else:
             certList.append(utils.loadCert(keymat[i][0]))
-            numSerial = certList[-1].serial
+            numSerial = certList[-1].serial_number
             for j in range(chainLength[i], 0, -1):
                 s, p = utils.makeES256Keypair()
                 numSerial = utils.makeCertSerial()
@@ -122,7 +122,7 @@ def runTest(spec, keymat, closed=False, tcSize=None):
             if certChainSerialCollision[i]:
                 s, p = utils.makeES256Keypair()
                 tlCert = utils.makeSignedCert(p, 'fake root {}'.format(i),
-                        365, certList[0].serial, s)
+                        365, certList[0].serial_number, s)
             else:
                 tlCert = certList[-1]
             certPEM = utils.addPEMCertHeaders(

@@ -51,7 +51,7 @@ if __name__ == "__main__":
                 groupCerts.append(cert)
 
             for co in groupCerts:
-                cs = key_store.numSerialToKeyId(co.serial)
+                cs = key_store.numSerialToKeyId(co.serial_number)
                 with open('{}.crt'.format(cs), 'w') as f:
                     f.write(utils.addPEMCertHeaders(
                         utils.exportCertToPEM(co)))

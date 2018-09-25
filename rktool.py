@@ -636,14 +636,14 @@ class VerifyDEPWidget(BoxLayout):
                     text='Belege-kompakt'), groupNode)
 
                 if cert:
-                    serial = key_store.numSerialToKeyId(cert.serial)
+                    serial = key_store.numSerialToKeyId(cert.serial_number)
                     tv.add_node(TreeViewKeyButton(
                         text=_('Serial: ') + serial,
                         key_id=serial, key=cert,
                         on_press=self.addCert), certNode)
 
                 for cert in cert_list:
-                    serial = key_store.numSerialToKeyId(cert.serial)
+                    serial = key_store.numSerialToKeyId(cert.serial_number)
                     tv.add_node(TreeViewKeyButton(
                         text=_('Serial: ') + serial,
                         key_id=serial, key=cert,

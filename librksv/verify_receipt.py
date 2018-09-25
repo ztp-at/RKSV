@@ -232,7 +232,7 @@ class ReceiptVerifier(ReceiptVerifierI):
         else:
             serials = key_store.strSerialToKeyIds(rec.certSerial)
             if self.cert:
-                certSerial = key_store.numSerialToKeyId(self.cert.serial)
+                certSerial = key_store.numSerialToKeyId(self.cert.serial_number)
                 if not certSerial in serials:
                     raise CertSerialMismatchException(rec.receiptId)
                 pubKey = self.cert.public_key()
