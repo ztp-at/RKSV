@@ -405,8 +405,10 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
                 raise ChangingSystemTypeException(ro.receiptId)
             # These checks are not necessary according to:
             # https://github.com/BMF-RKSV-Technik/at-registrierkassen-mustercode/issues/144#issuecomment-255786335
-            #if prevObj.dateTime > ro.dateTime:
-            #    raise DecreasingDateException(ro.receiptId)
+            # However, the current (v1.1.1) BMF tool enforces this anyway so we
+            # will too.
+            if prevObj.dateTime > ro.dateTime:
+                raise DecreasingDateException(ro.receiptId)
 
         usedReceiptIds.add(ro.receiptId)
 
