@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2018-06-21 12:49+CEST\n"
+"POT-Creation-Date: 2018-09-25 10:28+CEST\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -553,7 +553,7 @@ msgstr ""
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: librksv/verify.py:346 librksv/verify.py:348 librksv/verify.py:734
+#: librksv/verify.py:346 librksv/verify.py:348 librksv/verify.py:736
 msgid "THIS IS A BUG"
 msgstr "DAS IST EIN BUG"
 
