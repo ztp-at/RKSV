@@ -61,6 +61,33 @@ class RKSVException(Exception):
 class RKSVVerifyException(RKSVException):
     pass
 
+class RKSVVerifyMultiException(RKSVVerifyException):
+    def __init__(self, errors = None):
+        super(RKSVVerifyMultiException, self).__init__(
+                _("Errors were found in the DEP."))
+
+        if errors:
+            self.errors = errors
+        else:
+            self.errors = list()
+        self._initargs = (self.errors,)
+
+    def hasErrors(self):
+        return len(self.errors) > 0
+
+    def appendVerifyError(self, e):
+        self.errors.append(e)
+
+    def extendVerifyError(self, es):
+        self.errors.extend(es.errors)
+
+    def __str__(self):
+        ret = super(RKSVVerifyMultiException, self).__str__()
+        for e in self.errors:
+            ret += os.linesep + '\t' + str(e)
+
+        return ret
+
 class InvalidKeyException(RKSVException):
     """
     Indicates that a given key is invalid for the given algorithm.

@@ -25,6 +25,7 @@ from builtins import range
 from .gettext_helper import _
 
 import base64
+import copy
 
 from itertools import groupby
 from math import ceil
@@ -38,6 +39,49 @@ from . import receipt
 from . import utils
 from . import verification_state
 from . import verify_receipt
+
+# TODO: note that states put out by "continued" verifications may be useless or
+#       broken, or never return a state at all... -- done, if errors, no state
+# TODO: right now duplicate receipt IDs, where the receipt causes an unrelated
+#       Exception will not be detected.
+# TODO: make it very clear that a resumed verification is not guaranteed to find
+#       all errors! If multiple things are wrong on the same receipt then just
+#       one will show up!
+# TODO: DEPParseException should always be fatal. -- done
+# TODO: DEPReceiptException should all result from a check against the previous
+#       receipt and should be restartable with the state reconstruction. Use
+#       fromArbitraryReceipt and extend it to take the previous state and only
+#       override what can be inferred from the current receipt (i.e. keep old
+#       turnover counter UNLESS the current receipt contains one).
+# TODO: ReceiptExceptions should all result from the current receipt and should
+#       be restartable by skipping the broken receipt and reconstructing the
+#       state for the next one.
+# TODO: The remaining DEPExceptions need to be handled on a case by case basis
+#       and should either be fatal or logged only once. -- probably only
+#       DuplicateReceiptIdException
+# TODO: On restarts we need to handle the turnover counter somehow. -- done,
+#       reconstruct if possible, keep old one otherwise
+# TODO: We need to be able to determine where to restart a group. By either
+#       keeping count or removing receipts from the group list at the end of
+#       the loop in verifyGroup(). -- done, removing from list
+# TODO: We need a container exception of sorts for multiple occurred errors and
+#       we need to find a proper type for it.
+# TODO: Extend groupWithVerifiersTuple thing with an addtional exception return
+#       value or see if map_async let's us get at individual exceptions. -- We
+#       can handle individual exceptions BUT we need proper handling of the used
+#       receipts log -- done, return non-fatal exceptions as additional value
+# TODO: update the cashreg state inplace intelligently, after a receipt has
+#       been handled the state should update, if a receipt fails it should
+#       remain at the state after the previous receipt. -- done, needs testing
+# TODO: prevent/catch (and test for) exceptions in the state
+#       estimation/reconstruction (which can cause infinite loops or break the
+#       chunking before we even start the actual group verification) -- for now
+#       just catch around prepareVerificationTuples and merge with previous
+#       errors, later maybe construct a new state if estimation fails
+#       (generalize fromArbitraryReceipt) -- done, changed state estimation to
+#       keep going as long as possible, reconstruct state from the first receipt
+#       in the next group if estimation fails and continue, should fail again in
+#       the actual verification
 
 class ClusterInOpenSystemException(depparser.DEPException):
     """
@@ -297,7 +341,7 @@ def verifyCert(cert, chain, keyStore):
         cert.serial_number))
 
 def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
-        usedReceiptIds):
+        usedReceiptIds, reinit):
     """
     Verifies a group of receipts from a DEP. It checks if the signature of
     each receipt is valid, if the receipts are properly chained and if
@@ -313,13 +357,16 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
     cluster or the register is the first in one. This is only used if
     cashRegisterState does not contain a previous receipt for the register.
     :param cashRegisterState: State of the cash register as a
-    CashRegisterState object.
+    CashRegisterState object. This object is updated after every successfully
+    checked receipt.
     :param usedReceiptIds: A set containing all previously used receipt IDs
     as strings. Note that this set is not per DEP or per cash register but
-    per GGS cluster.
-    :return: The updated cashRegisterState object and the updated
-    usedReceiptIds set. These can be passed to a subsequent call to
-    verifyGroup().
+    per GGS cluster. It is also updated after every successfully checked
+    receipt.
+    :param reinit: If true, verifyGroup will use the information in the state
+    and the first receipt in the group to construct a state against which that
+    first receipt will definitely pass verification. This is used to continue
+    after a detected error. Otherwise, the state is used as is.
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
     :throws: CertSerialInvalidException
@@ -347,23 +394,35 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
     if not usedReceiptIds:
         raise Exception(_('THIS IS A BUG'))
 
+    if reinit:
+        reRec, rePre = receipt.Receipt.fromJWSString(
+                depparser.expandDEPReceipt(group[0]))
+        cashRegisterState.updateForReceipt(reRec, rePre, key)
+
     prev = cashRegisterState.lastReceiptJWS
     prevObj = None
     if prev:
         prevObj, algorithmPrefix = receipt.Receipt.fromJWSString(prev)
-    for cr in group:
+    while group:
+        cr = group[0]
         r = depparser.expandDEPReceipt(cr)
         ro = None
         algorithm = None
+
+        # record a start receipt as soon as we expand it
+        if not prevObj:
+            cashRegisterState.startReceiptJWS = r
+
+        needRestoreReceipt = cashRegisterState.needRestoreReceipt
         try:
             ro, algorithm = rv.verifyJWS(r)
             if prevObj and (not ro.isNull() or ro.isDummy() or ro.isReversal()):
-                if cashRegisterState.needRestoreReceipt:
+                if needRestoreReceipt:
                     raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
                 if prevObj.isSignedBroken():
-                    cashRegisterState.needRestoreReceipt = True
+                    needRestoreReceipt = True
             else:
-                cashRegisterState.needRestoreReceipt = False
+                needRestoreReceipt = False
         except verify_receipt.SignatureSystemFailedException as e:
             pass
         except verify_receipt.UnsignedNullReceiptException as e:
@@ -374,7 +433,7 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
             ro, algorithmPrefix = receipt.Receipt.fromJWSString(r)
             if not prevObj:
                 raise SignatureSystemFailedOnInitialReceiptException(ro.receiptId)
-            if cashRegisterState.needRestoreReceipt:
+            if needRestoreReceipt:
                 raise NoRestoreReceiptAfterSignatureSystemFailureException(ro.receiptId)
             # fromJWSString() already raises an UnknownAlgorithmException if necessary
             algorithm = algorithms.ALGORITHMS[algorithmPrefix]
@@ -394,10 +453,7 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
                 if prevObj.zda != 'AT0':
                     raise ClusterInOpenSystemException()
 
-            cashRegisterState.startReceiptJWS = r
-
         if prevObj:
-            usedReceiptIds.check(ro.receiptId)
             if prevObj.registerId != ro.registerId:
                 raise ChangingRegisterIdException(ro.receiptId)
             if (prevObj.zda == 'AT0' and ro.zda != 'AT0') or (
@@ -410,12 +466,9 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
             if prevObj.dateTime > ro.dateTime:
                 raise DecreasingDateException(ro.receiptId)
 
-        usedReceiptIds.add(ro.receiptId)
-
         try:
             if cashRegisterState.chainNextTo:
                 verifyChainValue(ro, cashRegisterState.chainNextTo)
-                cashRegisterState.chainNextTo = None
             else:
                 verifyChain(ro, prev, algorithm)
         except ChainingException as e:
@@ -426,22 +479,34 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
                 raise InvalidChainingOnInitialReceiptException(e.receipt)
             raise e
 
+        newC = cashRegisterState.lastTurnoverCounter
         if not ro.isDummy():
             if key is not None:
                 utils.raiseForKey(key, algorithm)
-                newC = cashRegisterState.lastTurnoverCounter + int(round(
-                    (ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
+                newC += int(round((ro.sumA + ro.sumB + ro.sumC + ro.sumD
+                    + ro.sumE) * 100))
                 if not ro.isReversal():
                     turnoverCounter = ro.decryptTurnoverCounter(key, algorithm)
                     if turnoverCounter != newC:
                         raise InvalidTurnoverCounterException(ro.receiptId)
-                cashRegisterState.lastTurnoverCounter = newC
+
+        # update the cash register state
+        cashRegisterState.needRestoreReceipt = needRestoreReceipt
+        cashRegisterState.chainNextTo = None
+        cashRegisterState.lastTurnoverCounter = newC
+        cashRegisterState.lastReceiptJWS = r
 
         prev = r
         prevObj = ro
 
-    cashRegisterState.lastReceiptJWS = prev
-    return cashRegisterState, usedReceiptIds
+        # remove the handled receipt from the group
+        group.pop(0)
+
+        # check and update the used receipt IDs
+        # This goes last so if we have a duplicate receipt we can just call
+        # verifyGroup again.
+        usedReceiptIds.check(ro.receiptId)
+        usedReceiptIds.add(ro.receiptId)
 
 def verifyGroupsWithVerifiers(groups, key, prevStart, rState, usedRecIds):
     """
@@ -464,8 +529,9 @@ def verifyGroupsWithVerifiers(groups, key, prevStart, rState, usedRecIds):
     :param usedRecIds: A set containing all previously used receipt IDs as
     strings. Note that this set is not per DEP or per cash register but per
     GGS cluster.
-    :return: The updated rState object and the updated usedRecIds set.
-    These can be passed to a subsequent call to verifyGroup() or
+    :return: The updated rState object and the updated usedRecIds set, as well
+    as an RKSVVerifyMultiException (which is empty if no errors occurred). The
+    former two can be passed to a subsequent call to verifyGroup() or
     verifyGroupsWithVerifiers().
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
@@ -489,11 +555,29 @@ def verifyGroupsWithVerifiers(groups, key, prevStart, rState, usedRecIds):
     :throws: DuplicateReceiptIdException
     :throws: ClusterInOpenSystemException
     """
+    # TODO: make collection optional
+    error = utils.RKSVVerifyMultiException()
+    reinit = False
     for recs, rv in groups:
-        rState, usedRecIds = verifyGroup(recs, rv, key, prevStart, rState,
-                usedRecIds)
+        while len(recs) > 0:
+            try:
+                verifyGroup(recs, rv, key, prevStart, rState, usedRecIds, reinit)
+                reinit = False
+                break
+            except DEPReceiptException as e:
+                error.appendVerifyError(e)
+            except receipt.ReceiptException as e:
+                error.appendVerifyError(e)
+                recs.pop(0)
+            except verification_state.DuplicateReceiptIdException as e:
+                error.appendVerifyError(e)
+                # don't reinit, all other checks passed for this receipt, just
+                # continue
+                break
 
-    return rState, usedRecIds
+            reinit = True
+
+    return rState, usedRecIds, error
 
 def verifyGroupsWithVerifiersTuple(args):
     """
@@ -572,12 +656,29 @@ def prepareVerificationTuples(chunksWithVerifiers, key, prevStartJWS,
         cashregState, usedRecIdsBackend):
     # create start cashreg state for each package
     npkgs = len(chunksWithVerifiers)
+    nextGroupReinit = False
     pkgRStates = [cashregState]
     pkgRState = cashregState
     for pkg in chunksWithVerifiers:
+        pkgRState = copy.copy(pkgRState)
+
         for group, rv in pkg:
-            pkgRState = verification_state.CashRegisterState.fromDEPGroup(
-                    pkgRState, group, key)
+            if nextGroupReinit and len(group) > 0:
+                # The update from the last group failed. Reconstruct the state
+                # from the first receipt of this one if possible.
+                try:
+                    ro, prefix = receipt.Receipt.fromJWSString(
+                            depparser.expandDEPReceipt(group[0]))
+                    pkgRState.updateForReceipt(ro, prefix, key)
+                except receipt.ReceiptException:
+                    pass
+                nextGroupReinit = False
+
+            try:
+                pkgRState.updateFromDEPGroup(group, key)
+            except receipt.ReceiptException:
+                nextGroupReinit = True
+
         pkgRStates.append(pkgRState)
     del pkgRStates[-1]
 
@@ -650,12 +751,16 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     usedRecIdsBackend = state.usedReceiptIds.__class__
 
     prevStart, rState, usedRecIds = state.getCashRegisterInfo(cashRegisterIdx)
+    errors = utils.RKSVVerifyMultiException()
     res = None
     for chunks in getChunksForProcs(parser.parse(chunksize), nprocs):
         pkgs = [ packageChunkWithVerifiers(chunk, keyStore) for chunk in chunks ]
 
         if res is not None:
-            outRStates, outUsedRecIds = zip(*res.get())
+            outRStates, outUsedRecIds, outErrors = zip(*res.get())
+            # collapse detected errors into a single exception
+            for outE in outErrors:
+                errors.extendVerifyError(outE)
             usedRecIds.merge(outUsedRecIds)
             rState = outRStates[-1]
 
@@ -670,13 +775,21 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
         else:
             res = pool.map_async(verifyGroupsWithVerifiersTuple, wargs)
 
-    outRStates, outUsedRecIds = zip(*res.get())
+    outRStates, outUsedRecIds, outErrors = zip(*res.get())
+    # collapse detected errors into a single exception
+    for outE in outErrors:
+        errors.extendVerifyError(outE)
     usedRecIds.merge(outUsedRecIds)
     rState = outRStates[-1]
+
+    # TODO: raise merged error
+    if errors.hasErrors():
+        raise errors.errors[0]
 
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
     return state
 
+# TODO: throw this out?
 def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None,
         usedRecIdsBackend = verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND):
     """
@@ -752,8 +865,7 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None,
                 rv = verify_receipt.ReceiptVerifier.fromCert(cert)
                 one_group = False
 
-            rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,
-                    rState, usedRecIds)
+            verifyGroup(recs, rv, key, prevStart, rState, usedRecIds, False)
 
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
     return state

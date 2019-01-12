@@ -310,7 +310,7 @@ class CashRegisterState(object):
     def __init__(self):
         self.startReceiptJWS = None
         self.lastReceiptJWS = None
-        self.lastTurnoverCounter = 0
+        self.lastTurnoverCounter = int(0)
         self.needRestoreReceipt = False
         self.chainNextTo = None
 
@@ -360,14 +360,96 @@ class CashRegisterState(object):
         return ret
 
     @staticmethod
+    def forReceipt(old, rec, prefix, key = None):
+        new = copy.copy(old)
+        new.updateForReceipt(rec, prefix, key)
+        return new
+
+    def updateForReceipt(self, rec, prefix, key = None):
+        if prefix not in algorithms.ALGORITHMS:
+            raise receipt.UnknownAlgorithmException(rec.receiptId)
+        algorithm = algorithms.ALGORITHMS[prefix]
+
+        # If we can, retrieve the turnover counter from the given receipt.
+        # Furthermore, this receipt can fail a turnover counter check if and
+        # only if it contains an encrypted turnover counter and a key is
+        # provided. So if this receipt could fail a turnover counter check we
+        # always retrieve the turnover counter anyway.
+        if key and not rec.isDummy() and not rec.isReversal():
+            curTC = rec.decryptTurnoverCounter(key, algorithm)
+            self.lastTurnoverCounter = curTC - int(round((rec.sumA + rec.sumB
+                + rec.sumC + rec.sumD + rec.sumE) * 100))
+
+        # Construct a dummy receipt that will match to the given one.
+        dummyChain = base64.b64encode("DUMMY000".encode('utf-8'))
+        dummyRec = receipt.Receipt(rec.zda, rec.registerId, "dummyrec",
+                rec.dateTimeStr, "0,00", "0,00", "0,00", "0,00", "0,00",
+                "DUMMY000", rec.certSerial, dummyChain.decode('utf-8'));
+        if key:
+            # turnover counter length should not matter
+            encTurnoverCounter = algorithm.encryptTurnoverCounter(dummyRec,
+                    self.lastTurnoverCounter, key, 16)
+            encTurnoverCounter = base64.b64encode(encTurnoverCounter)
+            encTurnoverCounter = encTurnoverCounter.decode("utf-8")
+            dummyRec.encTurnoverCounter = encTurnoverCounter
+        dummyRec.sign(algorithm.jwsHeader(), "DUMMY000")
+
+        self.lastReceiptJWS = dummyRec.toJWSString(prefix)
+        self.chainNextTo = rec.previousChain
+        # We cannot reliably recover this from just this receipt and when this
+        # function is called chances are that either the previous receipt is
+        # invalid, or this receipt does not match to the previous one. We do not
+        # want to loop because we repeatedly fail on needRestoreReceipt.
+        self.needRestoreReceipt = False
+
+    @staticmethod
     def fromDEPGroup(old, group, key = None):
         new = copy.copy(old)
         new.updateFromDEPGroup(group, key)
         return new
 
+    @staticmethod
+    def _getLastTCFromDEPGroup(group, key, oldLastTC):
+        lastTC = oldLastTC
+        reversals = list()
+        for i in range(len(group) - 1, -1, -1):
+            try:
+                ro, prefix = receipt.Receipt.fromJWSString(
+                        depparser.expandDEPReceipt(group[i]))
+            except receipt.ReceiptException:
+                continue
+            if (not ro.isDummy()) and (not ro.isReversal()):
+                alg = algorithms.ALGORITHMS[prefix]
+                lastTC = ro.decryptTurnoverCounter(key, alg)
+                break
+            if ro.isReversal():
+                reversals.insert(0, ro)
+
+        for ro in reversals:
+            lastTC += int(round((ro.sumA + ro.sumB + ro.sumC + ro.sumD
+                + ro.sumE) * 100))
+
+        return lastTC
+
     def updateFromDEPGroup(self, group, key = None):
         if len(group) <= 0:
             return
+
+        # Update the fields we can get without raising a ReceiptException.
+        if not self.startReceiptJWS:
+            self.startReceiptJWS = depparser.expandDEPReceipt(group[0])
+        self.lastReceiptJWS = depparser.expandDEPReceipt(group[-1])
+        # Discard any chainNextTo value, we chain to our own last receipt.
+        self.chainNextTo = None
+
+        # Update the turnover counter if we can.
+        if key:
+            self.lastTurnoverCounter = CashRegisterState._getLastTCFromDEPGroup(
+                    group, key, self.lastTurnoverCounter)
+
+        # Update the needRestoreReceipt field.
+        last, prefix = receipt.Receipt.fromJWSString(
+                depparser.expandDEPReceipt(group[-1]))
 
         if len(group) == 1:
             secondToLastReceiptJWS = self.lastReceiptJWS
@@ -376,40 +458,13 @@ class CashRegisterState(object):
 
         stl = None
         if secondToLastReceiptJWS:
-            stl, prefix = receipt.Receipt.fromJWSString(secondToLastReceiptJWS)
-        last, prefix = receipt.Receipt.fromJWSString(
-                depparser.expandDEPReceipt(group[-1]))
+            stl, unused = receipt.Receipt.fromJWSString(secondToLastReceiptJWS)
 
         if not last.isSignedBroken() and stl and (not last.isNull() or
                 last.isDummy() or last.isReversal()) and stl.isSignedBroken():
             self.needRestoreReceipt = True
         else:
             self.needRestoreReceipt = False
-
-        if not self.startReceiptJWS:
-            self.startReceiptJWS = depparser.expandDEPReceipt(group[0])
-
-        self.lastReceiptJWS = depparser.expandDEPReceipt(group[-1])
-        # Discard any chainNextTo value, we chain to our own last receipt.
-        self.chainNextTo = None
-
-        if not key:
-            return
-
-        reversals = list()
-        for i in range(len(group) - 1, -1, -1):
-            ro, prefix = receipt.Receipt.fromJWSString(
-                depparser.expandDEPReceipt(group[i]))
-            if (not ro.isDummy()) and (not ro.isReversal()):
-                alg = algorithms.ALGORITHMS[prefix]
-                self.lastTurnoverCounter = ro.decryptTurnoverCounter(key, alg)
-                break
-            if ro.isReversal():
-                reversals.insert(0, ro)
-
-        for ro in reversals:
-            self.lastTurnoverCounter += int(round(
-                (ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -441,6 +496,7 @@ class ClusterState(object):
     @staticmethod
     def fromArbitraryReceipt(rec, prefix, key = None,
             usedRecIdsBackend = DEFAULT_USED_RECEIPT_IDS_BACKEND):
+        # TODO: migrate most of this to the cashreg state's forArbitraryReceipt
         if prefix not in algorithms.ALGORITHMS:
             raise receipt.UnknownAlgorithmException(rec.receiptId)
         algorithm = algorithms.ALGORITHMS[prefix]
