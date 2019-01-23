@@ -17,7 +17,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
-"POT-Creation-Date: 2018-09-25 10:28+CEST\n"
+"POT-Creation-Date: 2019-01-23 19:46+CET\n"
 "PO-Revision-Date: 2016-05-30 23:05+0200\n"
 "Last-Translator: Mino Sharkhawy\n"
 "Language-Team: German\n"
@@ -91,7 +91,7 @@ msgid "not a string"
 msgstr "kein String"
 
 #: librksv/depparser.py:292 librksv/depparser.py:302 librksv/depparser.py:612
-#: librksv/depparser.py:617 librksv/verification_state.py:543
+#: librksv/depparser.py:617 librksv/verification_state.py:599
 msgid "not a list"
 msgstr "keine Liste"
 
@@ -145,7 +145,7 @@ msgstr "Ungültige Zertifikatsseriennummer \"{}\""
 msgid "not one of \"CERTIFICATE\" or \"PUBLIC_KEY\""
 msgstr "nicht eines von \"CERTIFICATE\" oder \"PUBLIC_KEY\""
 
-#: librksv/receipt.py:45 librksv/verify.py:61
+#: librksv/receipt.py:45 librksv/verify.py:106
 msgid "At receipt \"{0}\": {1}"
 msgstr "Bei Rechnung \"{0}\": {1}"
 
@@ -391,7 +391,11 @@ msgstr "Kein Simulationsname"
 msgid "{} tests run, {} failed, {} errors"
 msgstr "{} Tests ausgeführt, {} fehlgeschlagen, {} Fehler"
 
-#: librksv/utils.py:70
+#: librksv/utils.py:67
+msgid "Errors were found in the DEP."
+msgstr "DEP ist fehlerhaft."
+
+#: librksv/utils.py:97
 msgid "Invalid key."
 msgstr "Ungültiger Schlüssel."
 
@@ -467,61 +471,61 @@ msgstr "keine Ganzzahl"
 msgid "not a boolean"
 msgstr "kein Boolean"
 
-#: librksv/verification_state.py:534
+#: librksv/verification_state.py:590
 msgid "Malformed verification state root"
 msgstr "Ungültige Überprüfungszustand-Wurzel"
 
-#: librksv/verification_state.py:552
+#: librksv/verification_state.py:608
 msgid "not an object"
 msgstr "kein Objekt"
 
-#: librksv/verify.py:50
+#: librksv/verify.py:95
 msgid "GGS Cluster is not supported in an open system."
 msgstr "GGS Verbund wird in offenen Systemen nicht unterstützt."
 
-#: librksv/verify.py:73
+#: librksv/verify.py:118
 msgid "Chaining value \"{0}\" invalid."
 msgstr "Verkettungswert \"{0}\" ungültig."
 
-#: librksv/verify.py:85
+#: librksv/verify.py:130
 msgid "Receipt after restored signature system must not have any turnover."
 msgstr ""
 "Rechnung nach Wiederherstellung der Sicherheitseinrichtung darf keinen "
 "Umsatz haben."
 
-#: librksv/verify.py:95
+#: librksv/verify.py:140
 msgid "Turnover counter invalid."
 msgstr "Umsatzzähler ungültig."
 
-#: librksv/verify.py:105
+#: librksv/verify.py:150
 msgid "Register ID changed."
 msgstr "Kassen-ID geändert."
 
-#: librksv/verify.py:116
+#: librksv/verify.py:161
 msgid "Receipt was created before previous receipt."
 msgstr "Rechnung wurde vor vorhergehender Rechnung erstellt."
 
-#: librksv/verify.py:127
+#: librksv/verify.py:172
 msgid "The system type changed."
 msgstr "Typ des Systems wurde geändert."
 
-#: librksv/verify.py:138
+#: librksv/verify.py:183
 msgid "The size of the turnover counter changed."
 msgstr "Die Länge des Umsatzzählers wurde geändert."
 
-#: librksv/verify.py:148
+#: librksv/verify.py:193
 msgid "No certificate specified in DEP and multiple groups used."
 msgstr "Kein Zertifikat angegeben, aber DEP hat mehrere Gruppen."
 
-#: librksv/verify.py:160
+#: librksv/verify.py:205
 msgid "Certificate \"%s\" is not trusted."
 msgstr "Zertifikat \"%s\" wird nicht vertraut."
 
-#: librksv/verify.py:172
+#: librksv/verify.py:217
 msgid "Certificate \"{}\" was not signed by \"{}\"."
 msgstr "Zertifikat \"{}\" wurde nicht von \"{}\" signiert."
 
-#: librksv/verify.py:184
+#: librksv/verify.py:229
 msgid ""
 "Two certificates with serial \"{0}\" detected (fingerprints \"{1}\" and "
 "\"{2}\"). This may be an attempted attack."
@@ -529,19 +533,19 @@ msgstr ""
 "Zwei Zertifikate mit Seriennummer \"{0}\" gefunden (Fingerabdrücke \"{1}\" "
 "und \"{2}\"). Dies könnte ein versuchter Angriff sein."
 
-#: librksv/verify.py:194
+#: librksv/verify.py:239
 msgid "Initial receipt not signed."
 msgstr "Startbeleg nicht signiert."
 
-#: librksv/verify.py:203
+#: librksv/verify.py:248
 msgid "Initial receipt has nonzero turnover."
 msgstr "Startbeleg hat Umsatz ungleich Null."
 
-#: librksv/verify.py:214
+#: librksv/verify.py:259
 msgid "Initial receipt has not been chained to the cash register ID."
 msgstr "Startbeleg ist nicht mit der Kassen-ID verkettet."
 
-#: librksv/verify.py:225
+#: librksv/verify.py:270
 msgid ""
 "Initial receipt in cluster has not been chained to the previous cash "
 "register's initial receipt."
@@ -549,11 +553,11 @@ msgstr ""
 "Startbeleg in Verbund ist nicht mit dem Startbeleg der vorherigen Kassa "
 "verkettet."
 
-#: librksv/verify.py:235
+#: librksv/verify.py:280
 msgid "Initial receipt is a dummy or reversal receipt."
 msgstr "Startbeleg ist ein Trainings- oder Storno-Beleg."
 
-#: librksv/verify.py:346 librksv/verify.py:348 librksv/verify.py:736
+#: librksv/verify.py:394 librksv/verify.py:396 librksv/verify.py:857
 msgid "THIS IS A BUG"
 msgstr "DAS IST EIN BUG"
 
@@ -861,7 +865,7 @@ msgstr "Kassa {}:"
 msgid "Used Receipt IDs Backend"
 msgstr "Benutzte Belegnummern Backend"
 
-#: verify.py:154
+#: verify.py:167
 msgid "Verification successful."
 msgstr "Überprüfung erfolgreich."
 
