@@ -584,7 +584,7 @@ def verifyGroupsWithVerifiersMulti(args):
                 error.appendVerifyError(e)
                 # don't reinit, all other checks passed for this receipt, just
                 # continue
-                break
+                continue
 
             reinit = True
 
