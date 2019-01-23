@@ -41,7 +41,8 @@ from . import verification_state
 from . import verify_receipt
 
 # TODO: note that states put out by "continued" verifications may be useless or
-#       broken, or never return a state at all... -- done, if errors, no state
+#       broken, or never return a state at all... -- done, still return a
+#       state, warn somewhere
 # TODO: right now duplicate receipt IDs, where the receipt causes an unrelated
 #       Exception will not be detected.
 # TODO: make it very clear that a resumed verification is not guaranteed to find
@@ -52,20 +53,20 @@ from . import verify_receipt
 #       receipt and should be restartable with the state reconstruction. Use
 #       fromArbitraryReceipt and extend it to take the previous state and only
 #       override what can be inferred from the current receipt (i.e. keep old
-#       turnover counter UNLESS the current receipt contains one).
+#       turnover counter UNLESS the current receipt contains one). -- done.
 # TODO: ReceiptExceptions should all result from the current receipt and should
 #       be restartable by skipping the broken receipt and reconstructing the
-#       state for the next one.
+#       state for the next one. -- done.
 # TODO: The remaining DEPExceptions need to be handled on a case by case basis
 #       and should either be fatal or logged only once. -- probably only
-#       DuplicateReceiptIdException
+#       DuplicateReceiptIdException -- done
 # TODO: On restarts we need to handle the turnover counter somehow. -- done,
 #       reconstruct if possible, keep old one otherwise
 # TODO: We need to be able to determine where to restart a group. By either
 #       keeping count or removing receipts from the group list at the end of
 #       the loop in verifyGroup(). -- done, removing from list
 # TODO: We need a container exception of sorts for multiple occurred errors and
-#       we need to find a proper type for it.
+#       we need to find a proper type for it. -- done
 # TODO: Extend groupWithVerifiersTuple thing with an addtional exception return
 #       value or see if map_async let's us get at individual exceptions. -- We
 #       can handle individual exceptions BUT we need proper handling of the used
@@ -508,7 +509,9 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
         usedReceiptIds.check(ro.receiptId)
         usedReceiptIds.add(ro.receiptId)
 
-def verifyGroupsWithVerifiers(groups, key, prevStart, rState, usedRecIds):
+def verifyGroupsWithVerifiers(args):
+    groups, key, prevStart, rState, usedRecIds = args
+
     """
     Takes a list of tuples containing a list of receipts and their
     according ReceiptVerifier each and calls verifyGroup() for each of
@@ -555,7 +558,15 @@ def verifyGroupsWithVerifiers(groups, key, prevStart, rState, usedRecIds):
     :throws: DuplicateReceiptIdException
     :throws: ClusterInOpenSystemException
     """
-    # TODO: make collection optional
+    # exit on the first detected error
+    for recs, rv in groups:
+        verifyGroup(recs, rv, key, prevStart, rState, usedRecIds, False)
+    return rState, usedRecIds, utils.RKSVVerifyMultiException()
+
+def verifyGroupsWithVerifiersMulti(args):
+    groups, key, prevStart, rState, usedRecIds = args
+
+    # collect errors we can recover from and continue
     error = utils.RKSVVerifyMultiException()
     reinit = False
     for recs, rv in groups:
@@ -578,14 +589,6 @@ def verifyGroupsWithVerifiers(groups, key, prevStart, rState, usedRecIds):
             reinit = True
 
     return rState, usedRecIds, error
-
-def verifyGroupsWithVerifiersTuple(args):
-    """
-    This function is used as an adapter for the process pool's map()
-    function. It simply calls verifyGroupsWithVerifiers with the arguments
-    given in the args tuple.
-    """
-    return verifyGroupsWithVerifiers(*args)
 
 def balanceGroupsWithVerifiers(groups, nprocs):
     """
@@ -688,7 +691,8 @@ def prepareVerificationTuples(chunksWithVerifiers, key, prevStartJWS,
 def verifyParsedDEP(parser, keyStore, key, state = None,
         cashRegisterIdx = None, pool = None, nprocs = 1,
         chunksize = utils.depParserChunkSize(),
-        usedRecIdsBackend = verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND):
+        usedRecIdsBackend = verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND,
+        keepGoing = False):
     """
     Verifies a previously parsed DEP. It checks if the signature of each
     receipt is valid, if the receipts are properly chained, if receipts
@@ -743,6 +747,11 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     :throws: NoStartReceiptForLastCashRegisterException
     :throws: depparser.DEPParseException
     """
+    if keepGoing:
+        verifyGroupsFunc = verifyGroupsWithVerifiersMulti
+    else:
+        verifyGroupsFunc = verifyGroupsWithVerifiers
+
     if not state:
         state = verification_state.ClusterState(usedRecIdsBackend)
 
@@ -769,11 +778,11 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
 
         # apply verifyGroup() to each package
         if not pool:
-            outresults = map(verifyGroupsWithVerifiersTuple, wargs)
+            outresults = map(verifyGroupsFunc, wargs)
             res = type('DummyAsyncResult', (object,), {"data": outresults})
             res.get = MethodType(lambda self: self.data, res)
         else:
-            res = pool.map_async(verifyGroupsWithVerifiersTuple, wargs)
+            res = pool.map_async(verifyGroupsFunc, wargs)
 
     outRStates, outUsedRecIds, outErrors = zip(*res.get())
     # collapse detected errors into a single exception
@@ -782,12 +791,11 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     usedRecIds.merge(outUsedRecIds)
     rState = outRStates[-1]
 
-    # TODO: raise merged error
-    if errors.hasErrors():
-        raise errors.errors[0]
-
     state.updateCashRegisterInfo(cashRegisterIdx, rState, usedRecIds)
-    return state
+
+    if errors.hasErrors():
+        return state, errors
+    return state, None
 
 # TODO: throw this out?
 def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None,

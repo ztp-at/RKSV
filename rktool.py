@@ -571,7 +571,7 @@ def verifyDEP_prepare_Task(dep, store, key, nprocs):
 
 def verifyDEP_main_Task(args):
     try:
-        rState, usedRecIds = verify.verifyGroupsWithVerifiersTuple(args)
+        rState, usedRecIds, error = verify.verifyGroupsWithVerifiers(args)
         return None, usedRecIds
     except (receipt.ReceiptException, depparser.DEPException) as e:
         return e, None

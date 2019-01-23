@@ -64,8 +64,10 @@ class LibRKSVVerificationProxy(RKSVVerificationProxyI):
 
         try:
             parser = depparser.IncrementalDEPParser.fromFd(fd, True)
-            outState = verify.verifyParsedDEP(parser, keyStore, aesKey, inState,
-                    registerIdx, self.pool, self.nprocs, chunksize)
+            errors = None
+            outState, errors = verify.verifyParsedDEP(parser, keyStore, aesKey,
+                    inState, registerIdx, self.pool, self.nprocs, chunksize,
+                    verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND, False)
         finally:
             (
                 __builtin__._ ,

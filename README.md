@@ -368,7 +368,7 @@ converting them to a different format. The supported input formats are
 
 verify.py
 ---------
-	Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] <key store> <dep export file>
+	Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] [keepgoing] <key store> <dep export file>
 	       ./verify.py state
 
 This script verifies the given DEP export file. The used certificates or public
@@ -421,6 +421,15 @@ each state JSON. In this case however, `verify.py` will only be able to
 ascertain the uniqueness of receipt IDs within one file.
 
 The `json` keyword is just here for backwards compatibility and can be omitted.
+
+Lastly, the `keepgoing` keyword instructs the script to collect and report all
+errors found in the DEP that can be recovered from and continue verification
+until the last receipt. Note however, that this option does not necessarily
+show all errors that exist in a DEP and after applying corrections, the
+verification needs to be run again to be sure. Furthermore, if the `state`
+keyword is also used, `verify.py` will still return a post-verification state
+if (recoverable) errors were found in the DEP. It will still print an error
+report or success message.
 
 test_verify.py
 --------------

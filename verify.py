@@ -35,13 +35,13 @@ from librksv import verification_state
 from librksv.verify import verifyDEP, verifyParsedDEP
 
 def usage():
-    print("Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] <key store> <dep export file>",
+    print("Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] [keepgoing] <key store> <dep export file>",
             file=sys.stderr)
     print("       ./verify.py state", file=sys.stderr)
     sys.exit(0)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2 or len(sys.argv) > 10:
+    if len(sys.argv) < 2 or len(sys.argv) > 11:
         usage()
 
     key = None
@@ -70,7 +70,7 @@ if __name__ == "__main__":
         except ValueError:
             pass
 
-    if len(sys.argv) < 3 or len(sys.argv) > 8:
+    if len(sys.argv) < 3 or len(sys.argv) > 9:
         usage()
 
     nprocs = 1
@@ -105,6 +105,11 @@ if __name__ == "__main__":
     if sys.argv[1] == 'json':
         del sys.argv[1]
 
+    keepGoing = False
+    if sys.argv[1] == 'keepgoing':
+        keepGoing = True
+        del sys.argv[1]
+
     if len(sys.argv) != 3:
         usage()
 
@@ -121,6 +126,7 @@ if __name__ == "__main__":
         if continueLast:
             registerIdx = len(state.cashRegisters) - 1
 
+    errors = None
     if nprocs > 1:
         import multiprocessing
         pool = multiprocessing.Pool(nprocs)
@@ -132,8 +138,10 @@ if __name__ == "__main__":
                 else:
                     parser = depparser.IncrementalDEPParser.fromFd(f, True)
 
-                state = verifyParsedDEP(parser, keyStore, key, state, registerIdx,
-                        pool, nprocs, chunksize)
+                state, errors = verifyParsedDEP(parser, keyStore, key, state,
+                        registerIdx, pool, nprocs, chunksize,
+                        verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND,
+                        keepGoing)
         finally:
             pool.terminate()
             pool.join()
@@ -144,11 +152,16 @@ if __name__ == "__main__":
                 state = verifyDEP(dep, keyStore, key, state, registerIdx)
             else:
                 parser = depparser.IncrementalDEPParser.fromFd(f, True)
-                state = verifyParsedDEP(parser, keyStore, key, state, registerIdx,
-                        None, nprocs, chunksize)
+                state, errors = verifyParsedDEP(parser, keyStore, key, state,
+                        registerIdx, None, nprocs, chunksize,
+                        verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND,
+                        keepGoing)
 
     if statePassthrough:
         print(json.dumps(
             state.writeStateToJson(), sort_keys=False, indent=2))
 
-    print(_("Verification successful."), file=sys.stderr)
+    if errors is not None:
+        print(errors, file=sys.stderr)
+    else:
+        print(_("Verification successful."), file=sys.stderr)
