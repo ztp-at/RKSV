@@ -7,7 +7,7 @@ analyzing cash register logs (DEPs) and signed receipts according to the
 Registrierkassensicherheitsverordnung (RKSV).
 
 A German tutorial for some of the tools here is available in the
-[Wiki](https://github.com/prentner/RKSV/wiki).
+[Wiki](https://github.com/ztp-at/RKSV/wiki).
 
 Disclaimer
 ----------
@@ -42,6 +42,7 @@ To run `make env`:
 
 To use on Linux:
 * Kivy >=1.9.1
+* dsv-python/backports-abc >=0.4
 * dev-python/configparser >=3.3.0.2
 * dev-python/cryptography >=1.2
 * dev-python/cython >=0.24.1
@@ -92,6 +93,28 @@ build the APK.
 The container also includes an SSH server that can be started with `service
 ssh start`. The default user (and password) is `rksv`. Together with X11
 forwarding, the SSH server can be used to run the GUI.
+
+Managing large DEPs
+-------------------
+
+As larger DEPs may take up too much space to be resident entirely in memory, all
+scripts that read DEP JSON files (except for the `rktool.py` GUI) use an
+incremental parser to read and process a file in several chunks. The default
+number of receipts per chunks is `100000` and can be adjusted with the
+`RKSV_DEP_CHUNKSIZE` environment variable. A higher chunk size can increase
+performance but requires more memory, while a lower chunk size can reduce memory
+usage at the cost of speed. A chunk size of zero will cause the entire DEP to be
+read into memory.
+
+As the incremental parser needs to return the appropriate certificates for each
+chunk it generates, it may need to locate the certificate and certificate chain
+elements in each DEP group before all receipts have been read. Therefore,
+receipts either need to be placed _after_ these elements or the parser needs to
+parse the DEP twice (first to locate the certificate elements, second to read
+the receipts in chunks), thus requiring more time and a seekable file (i.e. not
+a Pipe or a Socket). For optimal performance the certificate and certificate
+chain elements should be placed _before_ the receipt list in each group in the
+DEP file.
 
 make env
 --------
@@ -198,22 +221,23 @@ key_store.py
 ------------
 	Usage: ./key_store.py <key store> create
 	       ./key_store.py <key store> list
-	       ./key_store.py <key store> toJson <base64 AES key file>
-	       ./key_store.py <key store> fromJson <json container file>
 	       ./key_store.py <key store> add <pem cert file>
 	       ./key_store.py <key store> add <pem pubkey file> <pubkey id>
 	       ./key_store.py <key store> del <pubkey id|cert serial>
+	       ./key_store.py <key store> showSymmetricKey
+	       ./key_store.py <key store> setSymmetricKey
+	       ./key_store.py <key store> delSymmetricKey
+	       ./key_store.py <key store> toLegacyIni
+	       ./key_store.py <key store> fromLegacyIni
+
+A key store is a JSON file conforming to the format specified in
+[Festlegungen des BMF zu Detailfragen der RKSV](https://github.com/BMF-RKSV-Technik/at-registrierkassen-mustercode/releases/download/1.2-DOK/2016-09-05-Detailfragen-RKSV-V1.2.pdf),
+Section 8.2 (`cryptographicMaterialContainer.json`), with the exception that the
+`base64AESKey` may be missing if no symmetric key is known.
 
 The `create` command creates a new empty key store in the file `key store`.
 
-The `list` command lists the known certificate serials and key IDs
-
-The `toJson` command prints the key store in the new JSON crypto container
-format defined in version 0.6 of the reference implementation. It requires a
-file containing the base64 encoded AES256 key as a parameter.
-
-The `fromJson` command creates a new key store from the new JSON crypto
-container format defined in version 0.6 of the reference implementation.
+The `list` command lists the known certificate serials and key IDs.
 
 The first `add` command adds a PEM certificate to the key store using the
 certificate's serial number as ID.
@@ -223,7 +247,25 @@ The second `add` command adds a PEM public key to the key store using
 
 The `del` command deletes the key or certificate with the given ID.
 
-A key store is just a simple `.ini` file.
+In addition to public keys and certificates, a key store can also contain a
+single symmetric key (used for encryption and decryption of turnover counters)
+encoded as base64.
+
+The `showSymmetricKey` command prints the contained key (if any) in base64.
+
+The `setSymmetricKey` command reads a new key from stdin and stores it in the
+key store.
+
+Lastly, the `delSymmetricKey` command removes the symmetric key from the key
+store.
+
+Before commit `f9aad95725f21cb01c4d8c2f7a252d336f10460d` (on the 5th of December
+2017) the scripts here used a simple INI style format for key stores. This
+format is now deprecated and only the JSON format should be used. The
+`key_store.py` script can convert key stores from and to the old format with the
+`fromLegacyIni` and `toLegacyIni` commands respectively. The `toLegacyIni`
+command prints the INI key store to stdout while the `fromLegacyIni` command
+reads it from stdin.
 
 verification_state.py
 ---------------------
@@ -236,9 +278,12 @@ verification_state.py
 	       ./verification_state.py <state> updateCashRegister <n-Target> <dep export file> [<base64 AES key file>]
 	       ./verification_state.py <state> setLastReceiptJWS <n> <receipt in JWS format>
 	       ./verification_state.py <state> setLastTurnoverCounter <n> <counter in cents>
+	       ./verification_state.py <state> setChainNextTo <n> <chaining value>
 	       ./verification_state.py <state> toggleNeedRestoreReceipt <n>
 	       ./verification_state.py <state> setStartReceiptJWS <n> <receipt in JWS format>
 	       ./verification_state.py <state> readUsedReceiptIds <file with one receipt ID per line>
+	       ./verification_state.py <state> fromArbitraryReceipt <in format> <receipt in in format> [<base64 AES key file>]
+	       ./verification_state.py <state> fromArbitraryStartReceipt <in format> <receipt in in format>
 
 This script manages the verification state if multiple related DEPs need to be
 verified. A state store is a simple JSON file. It contains a list of used receipt
@@ -286,6 +331,9 @@ register to the given value.
 The `setLastTurnoverCounter` command sets the last known turnover counter for
 the nth cash register to the given value.
 
+The `setChainNextTo` command sets chaining value the next receipt must chain to.
+This is useful if only part of the DEP is available.
+
 The `toggleNeedRestoreReceipt` command toggles the value indicating whether the
 next receipt for the nth cash register must be a signed null receipt.
 
@@ -296,6 +344,17 @@ inconsistent state as the start receipt is lost and the start receipt of the
 
 The `readUsedReceiptIds` command reads the list of used receipt IDs from the
 specified file.
+
+The `fromArbitraryReceipt` command creates a new state such that a DEP section
+beginning with the given receipt can be verified starting from that state. The
+turnover counter can only be determined if the key is given and the receipt is
+neither a dummy, nor a reversal receipt.
+
+The `fromArbitraryStartReceipt` command behaves like `fromArbitraryReceipt` but
+assumes the given receipt to be a start receipt in a GGS cluster. As the
+turnover counter should always be zero, no key is needed. This can be used to
+verify a DEP from a GGS cluster where the previous start receipt in not
+available.
 
 receipt.py
 -----------
@@ -309,28 +368,22 @@ converting them to a different format. The supported input formats are
 
 verify.py
 ---------
-	Usage: ./verify.py [state [continue|<n>]] [par <n>] keyStore <key store> <dep export file> [<base64 AES key file>]
-	       ./verify.py [state [continue|<n>]] [par <n>] json <json container file> <dep export file>
+	Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] <key store> <dep export file>
 	       ./verify.py state
 
-This script, when called with the `keyStore` command, verifies the given DEP
-export file. The used certificates or public keys must be available in the given
-key store. If the DEP is valid the script prints a short success message, if it
-is not then the script will print an error message.
-
-If an AES key file is specified, the script will also check the turnover
-counter in each receipt.
-
-When the script is called with the `json` command it will instead read the
-certificates and the AES key from a cryptographic material container JSON file.
+This script verifies the given DEP export file. The used certificates or public
+keys must be available in the given key store. If the DEP is valid the script
+prints a short success message, if it is not then the script will print an error
+message. If the key store contains an AES key, the script will also check the
+turnover counter in each receipt.
 
 When just `state` is specified, the script will emit the JSON for an empty
 verification state to stdout.
 
-If `state` is specified before the `keyStore` or `json` commands, the script
-expects a JSON state store on stdin and emits the modified store after
-verification to stdout. The state store can contain multiple cash registers but
-may only do so if the DEP belongs to a register in a GGS cluster.
+If `state` is specified before key store and DEP export file, the script expects
+a JSON state store on stdin and emits the modified store after verification to
+stdout. The state store can contain multiple cash registers but may only do so
+if the DEP belongs to a register in a GGS cluster.
 
 `state <n>` instructs the script to interpret the DEP as a continuation of the
 nth cash register in the read state. Verification will expect the first receipt
@@ -347,6 +400,27 @@ the first DEP for this new cash register.
 The `par` keyword will instruct the script to use the following positive
 number as the number of parallel processes to use for verifying the DEP. If
 it is omitted, a single process will be used.
+
+The `chunksize` keyword will set the number of receipts that are processed as
+one chunk. If the keyword is missing, the default chunk size or (if available)
+the chunk size in the `RKSV_DEP_CHUNKSIZE` environment variable will be used. If
+the `par` keyword was also used, the script will read a chunk for every process,
+dispatch the chunks for verification to the processes, and repeat this until no
+chunks are left. If a chunk size of zero is specified, the script will read the
+entire DEP at once and evenly distribute the receipts among the processes. Note
+that all receipts in a chunk must fit into memory at the same time. If multiple
+processes are used one chunk for every process must fit into memory at the same
+time.
+
+Note that even when a non-zero chunk size is used, the required memory
+increases linearly with the total number of receipts in the DEP. This is
+because the script needs to keep track of the used receipt IDs to detect
+duplicates. A possible workaround is to split the DEP into multiple files and
+use the `state` keyword to verify them while clearing the list of receipts in
+each state JSON. In this case however, `verify.py` will only be able to
+ascertain the uniqueness of receipt IDs within one file.
+
+The `json` keyword is just here for backwards compatibility and can be omitted.
 
 test_verify.py
 --------------
@@ -380,6 +454,12 @@ specification. If it is present, the script will only execute the test as a
 closed system (if it is `True`) or an open system (if it is `False`). This
 allows for tests that are specific to open/closed systems.
 
+When verifying a DEP using a parser, `test_verify.py` will pick a random chunk
+size for every test. To enable reproducibility of test runs, the script prints
+the seed used for the random number generator at the start and at the end of
+the run. A seed can be set manually via the `RKSV_TEST_SEED` environment
+variable.
+
 verify_receipt.py
 -----------------
 	Usage: ./verify_receipt.py <format> <key store> [<receipt string>]
@@ -406,6 +486,34 @@ certificates are not mapped into the CSV and hence cannot be restored when
 converting back to JSON.
 
 The CSV contains one receipt per line with `;` serving as the delimiter.
+
+split.py
+--------
+	Usage: ./split.py <chunk size> <output dir>
+
+The split script splits a JSON DEP passed via stdin into segments containing at
+most `chunk size` receipts and stores them as JSON DEP files in `output dir`.
+Note that the output files will only contain the elements specified in the
+RKSV. All other (custom) elements are ignored.
+
+The output files are numbered and can be verified using the `verify.py` script
+with the `state` keyword.
+
+merge.py
+--------
+	Usage: ./merge.py [nomerge] <input file 1> <input file 2>...
+
+The merge script merges the DEPs in the given input files into one output file
+(printed to stdout) in the order in which the files are specified. Note that
+the output will only contain the elements specified in the RKSV. All other
+(custom) elements are ignored.
+
+By default the script merges adjacent groups if their certificate and
+certificate chain elements are identical. The `nomerge` keyword deactivates
+this. Note that due to how the DEP parser works, the final DEP can contain more
+groups than the input files if `nomerge` is used. The exact number depends on
+the chunk size that is used (default or read from `RKSV_DEP_CHUNKSIZE`).
+
 
 receipt_host.py
 ---------------

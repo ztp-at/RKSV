@@ -1,5 +1,5 @@
 ###########################################################################
-# Copyright 2017 ZT Prentner IT GmbH
+# Copyright 2017 ZT Prentner IT GmbH (www.ztp.at)
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -40,7 +40,7 @@ RUN apt-get install -y sudo && echo 'rksv ALL=(root) NOPASSWD: ALL' > \
 	/etc/sudoers.d/rksv && chmod 440 /etc/sudoers.d/rksv
 
 # download A-SIT Plus demo & verification tool
-RUN cd /home/rksv && wget https://github.com/a-sit-plus/at-registrierkassen-mustercode/releases/download/V1.0.0/regkassen-demo-1.0.0.zip && \
+RUN cd /home/rksv && wget https://github.com/BMF-RKSV-Technik/at-registrierkassen-mustercode/releases/download/V1.0.0/regkassen-demo-1.0.0.zip && \
 	unzip regkassen-demo-1.0.0.zip && chown -R rksv:rksv regkassen-demo-1.0.0*
 
 # setup repo

@@ -35,9 +35,7 @@
       "beginNewDEP": "NEW_CLUSTER_DEP"
     }
   ],
-  "unused": {
-    "expectedException": "DecreasingDateException",
-    "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-2"
-  },
+  "expectedException": "DecreasingDateException",
+  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-2",
   "closedSystem": true
 }

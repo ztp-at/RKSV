@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 
 ###########################################################################
-# Copyright 2017 ZT Prentner IT GmbH
+# Copyright 2017 ZT Prentner IT GmbH (www.ztp.at)
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -23,9 +23,8 @@ from builtins import range
 import kivy
 kivy.require('1.9.0')
 
-import base64 
-import configparser
 import os
+import json
 
 from requests.exceptions import RequestException
 from PIL import Image
@@ -67,13 +66,16 @@ if platform == 'android':
 else:
     __use_threads = False
 
-import algorithms
+from librksv.url_receipt_helpers import getBasicCodeFromURL, getURLHashFromURL
+from librksv import algorithms
+from librksv import depparser
+from librksv import key_store
+from librksv import receipt
+from librksv import utils
+from librksv import verification_state
+from librksv import verify_receipt
+from librksv import verify
 import img_decode
-import key_store
-import receipt
-import utils
-import verify_receipt
-import verify
 
 if __use_threads:
     # This code blatantly copied from https://stackoverflow.com/a/325528
@@ -262,7 +264,7 @@ class ViewReceiptWidget(BoxLayout):
         self._popup.dismiss()
 
     def __init__(self, receipt, algorithmPrefix, isValid, key, **kwargs):
-        self._init_key = key
+        self._init_key = key if key else None
         self._receipt = receipt
         self._key = None
         self._algorithmPrefix = algorithmPrefix
@@ -391,7 +393,7 @@ class ViewReceiptWidget(BoxLayout):
         except (IOError, UnicodeDecodeError, ValueError) as e:
             displayError(e)
         except KeyError:
-            displayError(_("Malformed crypto container"))
+            displayError(_("No AES key in crypto container"))
 
         self.dismissPopup()
         self.setKey(key)
@@ -399,15 +401,14 @@ class ViewReceiptWidget(BoxLayout):
     def setKey(self, key):
         self._key = None
         try:
-            if key and key != '':
+            if key is not None:
                 self.aes_input.text = key
-                k = base64.b64decode(key.encode('utf-8'))
+                k = utils.loadB64Key(key.encode('utf-8'))
                 if self._algorithmPrefix not in algorithms.ALGORITHMS:
                     raise receipt.UnknownAlgorithmException(
                             self._receipt.receiptId)
                 algorithm = algorithms.ALGORITHMS[self._algorithmPrefix]
-                if not algorithm.verifyKey(k):
-                    raise Exception(_("Invalid key."))
+                utils.raiseForKey(k, algorithm)
                 self._key = k
         except Exception as e:
             self.aes_input.text = ''
@@ -536,8 +537,8 @@ class VerifyReceiptWidget(BoxLayout):
             elif (self._input_type == 'OCR'):
                 rec, prefix = receipt.Receipt.fromOCRCode(self.receiptInput.text)
             elif (self._input_type == 'URL'):
-                urlHash = utils.getURLHashFromURL(self.receiptInput.text)
-                basicCode = utils.getBasicCodeFromURL(self.receiptInput.text)
+                urlHash = getURLHashFromURL(self.receiptInput.text)
+                basicCode = getBasicCodeFromURL(self.receiptInput.text)
 
                 rec, prefix = receipt.Receipt.fromBasicCode(basicCode)
 
@@ -559,25 +560,27 @@ class VerifyReceiptWidget(BoxLayout):
 
 def verifyDEP_prepare_Task(dep, store, key, nprocs):
     try:
-        inargs, usedRecIds = verify.verifyParsedDEP_prepare(dep, store, key,
-                None, None, nprocs)
+        groupsWithVerifiers = verify.packageChunkWithVerifiers(dep, store)
+        pkgs = verify.balanceGroupsWithVerifiers(groupsWithVerifiers, nprocs)
+        rState = verification_state.CashRegisterState()
+        inargs = verify.prepareVerificationTuples(pkgs, key, None, rState,
+                verification_state.UsedReceiptIdsUnique)
         return None, inargs
-    except (receipt.ReceiptException, verify.DEPException) as e:
+    except (receipt.ReceiptException, depparser.DEPException) as e:
         return e, None
 
 def verifyDEP_main_Task(args):
     try:
         rState, usedRecIds = verify.verifyGroupsWithVerifiersTuple(args)
         return None, usedRecIds
-    except (receipt.ReceiptException, verify.DEPException) as e:
+    except (receipt.ReceiptException, depparser.DEPException) as e:
         return e, None
 
 def verifyDEP_finalize_Task(outUsedRecIds, usedRecIds):
     try:
-        mergedUsedRecIds = verify.verifyParsedDEP_finalize(outUsedRecIds,
-                usedRecIds)
-        return None, mergedUsedRecIds
-    except (receipt.ReceiptException, verify.DEPException) as e:
+        usedRecIds.merge(outUsedRecIds)
+        return None, usedRecIds
+    except (receipt.ReceiptException, depparser.DEPException) as e:
         return e, None
 
 # TODO: add a visual way to determine where an error happened?
@@ -633,14 +636,14 @@ class VerifyDEPWidget(BoxLayout):
                     text='Belege-kompakt'), groupNode)
 
                 if cert:
-                    serial = key_store.numSerialToKeyId(cert.serial)
+                    serial = key_store.numSerialToKeyId(cert.serial_number)
                     tv.add_node(TreeViewKeyButton(
                         text=_('Serial: ') + serial,
                         key_id=serial, key=cert,
                         on_press=self.addCert), certNode)
 
                 for cert in cert_list:
-                    serial = key_store.numSerialToKeyId(cert.serial)
+                    serial = key_store.numSerialToKeyId(cert.serial_number)
                     tv.add_node(TreeViewKeyButton(
                         text=_('Serial: ') + serial,
                         key_id=serial, key=cert,
@@ -648,7 +651,7 @@ class VerifyDEPWidget(BoxLayout):
 
                 receiptIdx = 0
                 for cr in recs:
-                    jws = verify.expandDEPReceipt(cr)
+                    jws = depparser.expandDEPReceipt(cr)
                     rec, prefix = receipt.Receipt.fromJWSString(jws)
                     tv.add_node(TreeViewReceiptButton(text=rec.receiptId,
                         group_id=groupIdx - 1, receipt_id=receiptIdx,
@@ -683,7 +686,7 @@ class VerifyDEPWidget(BoxLayout):
         try:
             k = self.aesInput.text
             if k and k != '':
-                key = base64.b64decode(k.encode('utf-8'))
+                key = utils.loadB64Key(k.encode('utf-8'))
         except Exception as e:
             self.aesInput.text = ''
             displayError(e)
@@ -725,8 +728,8 @@ class VerifyDEPWidget(BoxLayout):
             outUsedRecIds.append(r[1])
 
         App.get_running_app().pool.apply_async(verifyDEP_finalize_Task,
-                (outUsedRecIds, set()), callback =
-                self.verifyDEP_finalize_Cb)
+                (outUsedRecIds, verification_state.UsedReceiptIdsUnique()),
+                callback = self.verifyDEP_finalize_Cb)
 
     @mainthread
     def verifyDEP_finalize_Cb(self, result):
@@ -759,12 +762,14 @@ class VerifyDEPWidget(BoxLayout):
 
         try:
             with open(os.path.join(path, filename[0])) as f:
-                jsonDEP = utils.readJsonStream(f)
-                self.dep = verify.parseDEPAndGroups(jsonDEP)
+                # We expect the FullFileDEPParser to return each group
+                # separately with these parameters.
+                parser = depparser.FullFileDEPParser(f)
+                self.dep = [ chunk[0] for chunk in parser.parse(0) ]
 
             App.get_running_app().curSearchPath = path
         except (IOError, UnicodeDecodeError, ValueError,
-                verify.DEPException) as e:
+                depparser.DEPException) as e:
             displayError(e)
             self.dismissPopup()
             return
@@ -799,7 +804,7 @@ class VerifyDEPWidget(BoxLayout):
         except (IOError, UnicodeDecodeError, ValueError) as e:
             displayError(e)
         except KeyError:
-            displayError(_("Malformed crypto container"))
+            displayError(_("No AES key in crypto container"))
 
         self.dismissPopup()
 
@@ -931,18 +936,10 @@ class KeyStoreWidget(BoxLayout):
 
         try:
             full = os.path.join(path, filename[0])
-            if full.endswith(".json"):
-                with open(full) as f:
-                    jsonKS = utils.readJsonStream(f)
-                    App.get_running_app().keyStore = \
-                            key_store.KeyStore.readStoreFromJson(jsonKS)
-            else:
-                config = configparser.RawConfigParser()
-                config.optionxform = str
-                with open(full) as f:
-                    config.readfp(f)
+            with open(full) as f:
+                jsonKS = utils.readJsonStream(f)
                 App.get_running_app().keyStore = \
-                        key_store.KeyStore.readStore(config)
+                        key_store.KeyStore.readStoreFromJson(jsonKS)
 
             App.get_running_app().curSearchPath = path
         except (IOError, UnicodeDecodeError, ValueError,
@@ -958,12 +955,10 @@ class KeyStoreWidget(BoxLayout):
         if not filename:
             return
 
-        config = configparser.RawConfigParser()
-        config.optionxform = str
-        App.get_running_app().keyStore.writeStore(config)
+        jsonStore = App.get_running_app().keyStore.writeStoreToJson(None)
         try:
             with open(os.path.join(path, filename), 'w') as f:
-                config.write(f)
+                json.dump(jsonStore, f, sort_keys=False, indent=2)
 
             App.get_running_app().curSearchPath = path
         except IOError as e:

@@ -24,10 +24,6 @@
     }
   ],
   "expectedException": "MalformedReceiptException",
-  "exceptionMsgRegex": "^At receipt \"[.a-zA-Z0-9_-]+\": Malformed receipt -- Chaining value \"\" invalid.$",
-  "unused": {
-	  "comment": "TODO: We can't determine the exact receipt in the from*() functions.",
-	  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-1",
-	  "exceptionMsg": "At receipt \"CASHBOX-DEMO-1-Receipt-ID-1\": Malformed receipt -- Chaining value \"\" invalid."
-  }
+  "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-1",
+  "exceptionMsg": "At receipt \"CASHBOX-DEMO-1-Receipt-ID-1\": Malformed receipt -- Chaining value \"\" invalid."
 }

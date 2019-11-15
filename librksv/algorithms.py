@@ -1,5 +1,5 @@
 ###########################################################################
-# Copyright 2017 ZT Prentner IT GmbH
+# Copyright 2017 ZT Prentner IT GmbH (www.ztp.at)
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -23,13 +23,15 @@ is indexed by the algorithm codes specified in the regulation.
 from builtins import int
 from builtins import range
 
+from .gettext_helper import _
+
 import base64
 import jwt
 import jwt.algorithms
 
 from six import binary_type
 
-import utils
+from . import utils
 
 class AlgorithmI(object):
     """
@@ -55,6 +57,14 @@ class AlgorithmI(object):
         """
         The JWS signature algorithm used.
         :return: Returns the JWS signature algorithm as a string.
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
+    def chainBytes(self):
+        """
+        The number of bytes of the hash of the previous receipt used in the
+        chaining value.
+        :return: Returns the expected number of bytes.
         """
         raise NotImplementedError("Please implement this yourself.")
 
@@ -144,6 +154,9 @@ class R1(AlgorithmI):
 
     def sigAlgo(self):
         return "ES256"
+
+    def chainBytes(self):
+        return 8
 
     def hash(self, data):
         return utils.sha256(data.encode("utf-8"))

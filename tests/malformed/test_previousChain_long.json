@@ -2,7 +2,7 @@
   "cashBoxId": "CASHBOX-DEMO-1",
   "base64AesKey": "WQRtiiya3hYh/Uz44Bv3x8ETl1nrH6nCdErn69g5/lU=",
   "companyID": "U:ATU12345678",
-  "simulationRunLabel": "test_previousChain_pad",
+  "simulationRunLabel": "test_previousChain_long",
   "numberOfSignatureDevices": 1,
   "cashBoxInstructionList": [
     {
@@ -19,11 +19,11 @@
       },
       "typeOfReceipt": "START_BELEG",
       "override": {
-	      "previousChain": "=="
+	      "previousChain": "RVhOVqzBpwcc"
       }
     }
   ],
   "expectedException": "MalformedReceiptException",
   "exceptionReceipt": "CASHBOX-DEMO-1-Receipt-ID-1",
-  "exceptionMsg": "At receipt \"CASHBOX-DEMO-1-Receipt-ID-1\": Malformed receipt -- Chaining value \"==\" invalid."
+  "exceptionMsg": "At receipt \"CASHBOX-DEMO-1-Receipt-ID-1\": Malformed receipt -- Chaining value \"RVhOVqzBpwcc\" invalid."
 }

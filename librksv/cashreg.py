@@ -1,5 +1,5 @@
 ###########################################################################
-# Copyright 2017 ZT Prentner IT GmbH
+# Copyright 2017 ZT Prentner IT GmbH (www.ztp.at)
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -21,11 +21,13 @@ This module provides classes that can act as a simple cash register.
 from builtins import int
 from builtins import range
 
+from .gettext_helper import _
+
 import base64
 
-import algorithms
-import receipt
-import utils
+from . import algorithms
+from . import receipt
+from . import utils
 
 class CashRegisterI(object):
     """
@@ -157,8 +159,7 @@ class CashRegister(CashRegisterI):
             if reversal:
                 encTurnoverCounter = b'STO'
             else:
-                if not algorithm.verifyKey(self.key):
-                    raise Exception(_("Invalid key."))
+                utils.raiseForKey(self.key, algorithm)
                 encTurnoverCounter = algorithm.encryptTurnoverCounter(rec,
                         self.turnoverCounter, self.key,
                         self.turnoverCounterSize)

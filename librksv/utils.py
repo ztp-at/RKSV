@@ -1,5 +1,5 @@
 ###########################################################################
-# Copyright 2017 ZT Prentner IT GmbH
+# Copyright 2017 ZT Prentner IT GmbH (www.ztp.at)
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -23,12 +23,16 @@ from __future__ import unicode_literals
 from builtins import int
 from builtins import range
 
+from .gettext_helper import _
+
 import base64
 import codecs
 import datetime
+import io
 import json
-import requests
+import os
 import re
+import six
 import uuid
 
 from cryptography import x509
@@ -40,15 +44,64 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
 from cryptography.x509.oid import NameOID
 
-from six import string_types
+class RKSVException(Exception):
+    def __init__(self, message):
+        super(RKSVException, self).__init__(message)
+        self.message = message
+        self._initargs = (message,)
+
+    def __reduce__(self):
+        return (self.__class__, self._initargs)
+
+    def __str__(self):
+        if six.PY2:
+            return self.message.encode('utf-8')
+        return self.message
+
+class RKSVVerifyException(RKSVException):
+    pass
+
+class InvalidKeyException(RKSVException):
+    """
+    Indicates that a given key is invalid for the given algorithm.
+    """
+
+    def __init__(self):
+        super(InvalidKeyException, self).__init__(_("Invalid key."))
+
+def depParserChunkSize():
+    """
+    This function returns the preferred chunksize that RKSV script should use
+    when none was specified. The default is 100000. The value can be modified
+    via the RKSV_DEP_CHUNKSIZE environment variable.
+    :return: An int specifying the default chunksize.
+    """
+    return int(os.environ.get('RKSV_DEP_CHUNKSIZE', 100000))
+
+def clusterStateReceiptIDsBackend():
+    return os.environ.get('RKSV_STATE_RECEIPT_IDS', 'USED_RECEIPT_IDS_UNIQUE')
+
+def raiseForKey(key, algorithm):
+    if not algorithm.verifyKey(key):
+        raise InvalidKeyException()
+
+def loadB64Key(b64Key):
+    return b64decode(b64Key)
 
 def loadKeyFromJson(json):
     """
     Loads an AES-256 key from a cryptographic material container JSON.
     :param json: The JSON data.
-    :return: The key as a byte list.
+    :return: The key as a byte list or None if there is no key element in
+    the JSON.
     """
-    return base64.b64decode(json['base64AESKey'].encode('utf-8'))
+    b64Key = None
+    try:
+        b64Key = json['base64AESKey']
+    except KeyError:
+        return None
+
+    return loadB64Key(b64Key.encode('utf-8'))
 
 def sha256(data):
     """
@@ -160,17 +213,15 @@ def verifyCert(cert, signCert):
     # We only support ECDSA and RSA+PKCS1
     if isinstance(pubKey, ec.EllipticCurvePublicKey):
         alg = ec.ECDSA(halg)
-        ver = pubKey.verifier(sig, alg)
+        ver = lambda: pubKey.verify(sig, data, alg)
     elif isinstance(pubKey, rsa.RSAPublicKey):
         pad = padding.PKCS1v15()
-        ver = pubKey.verifier(sig, pad, halg)
+        ver = lambda: pubKey.verify(sig, data, pad, halg)
     else:
         return False
 
-    ver.update(data)
-
     try:
-        ver.verify()
+        ver()
         return True
     except InvalidSignature as e:
         return False
@@ -182,7 +233,7 @@ def certFingerprint(cert):
     :return: The fingerprint as a string.
     """
     fp = cert.fingerprint(hashes.SHA256())
-    if isinstance(fp, string_types):
+    if isinstance(fp, six.string_types):
         # Python 2
         return ':'.join('{:02x}'.format(ord(b)) for b in fp)
     else:
@@ -218,37 +269,6 @@ def b32decode(data):
     if not b32Regex.match(data.decode('utf-8')):
         raise TypeError
     return base64.b32decode(data)
-
-def getBasicCodeFromURL(url):
-    """
-    Downloads the basic code representation of a receipt from
-    the given URL.
-    :param url: The URL as a string.
-    :return: The basic code representation as a string.
-    """
-    r = requests.get(url)
-    r.raise_for_status()
-    return r.json()['code']
-
-urlHashRegex = re.compile(
-        r'(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{11}(?![A-Za-z0-9_-])')
-def getURLHashFromURL(url):
-    """
-    Extracts the URL hash from the given URL. If an anchor part is given,
-    it is used as the hash.
-    :param url: The URL to search for the hash.
-    :return: The hash as a base64 URL encoded string without padding or
-    None if the hash could not be found.
-    """
-    urlParts = url.split('#')
-    if len(urlParts) >= 2:
-        return urlParts[1]
-
-    matches = urlHashRegex.findall(urlParts[0])
-    if len(matches) == 0:
-        return None
-
-    return matches[-1]
 
 def makeES256Keypair():
     """
@@ -317,18 +337,33 @@ def getReceiptFloat(fstr):
     except:
         return None
 
-def readJsonStream(stream):
+def skipBOM(fd):
     """
     Removes the BOM from UTF-8 files so that we can live in peace.
+    :param fd: The file descriptor that may or may not have a BOM at the start.
+    :return: The position after the BOM as reported by fd.tell().
     """
     try:
-        pos = stream.tell()
+        pos = fd.tell()
     except IOError:
-        return json.load(stream)
+        return 0
 
-    fst = stream.read(len(codecs.BOM_UTF8))
-    if fst != codecs.BOM_UTF8:
-        stream.seek(pos)
+    if isinstance(fd, io.TextIOBase):
+        fst = fd.read(len(codecs.BOM_UTF8.decode('utf-8')))
+        if fst.encode('utf-8') != codecs.BOM_UTF8:
+            fd.seek(pos)
+    else:
+        fst = fd.read(len(codecs.BOM_UTF8))
+        if fst != codecs.BOM_UTF8:
+            fd.seek(pos)
+
+    return fd.tell()
+
+def readJsonStream(stream):
+    """
+    Read a JSON file that may or may not have a BOM.
+    """
+    skipBOM(stream)
     return json.load(stream)
 
 def cert_getstate(self):

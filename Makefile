@@ -1,5 +1,5 @@
 ###########################################################################
-# Copyright 2017 ZT Prentner IT GmbH
+# Copyright 2017 ZT Prentner IT GmbH (www.ztp.at)
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -56,7 +56,7 @@ lang/%/LC_MESSAGES/rktool.po: lang/rktool.pot
 
 lang/rktool.pot:
 	mkdir -p lang
-	pygettext.py -o lang/rktool.pot *.py *.kv
+	pygettext.py -o lang/rktool.pot librksv/*.py librksv/test/*.py *.py *.kv
 
 env: .pyenv
 	echo "Virtualenv ready. Run \"source .pyenv/bin/activate\" to enable it."
@@ -134,6 +134,10 @@ buildozer.spec: misc/buildozer.spec
 clean:
 	rm -rf __pycache__
 	rm -f *.pyc
+	rm -rf librksv/__pycache__
+	rm -f librksv/*.pyc
+	rm -rf librksv/test/__pycache__
+	rm -f librksv/test/*.pyc
 	rm -f lang/rktool.pot
 	rm -f lang/*/LC_MESSAGES/rktool.mo
 	rm -f aesBase64*.txt

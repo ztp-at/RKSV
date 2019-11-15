@@ -17,43 +17,45 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-from __future__ import print_function
 from builtins import int
-from builtins import range
+
+import os
+import sys
 
 import gettext
 gettext.install('rktool', './lang', True)
 
-import sys
-
 from librksv import depexport
 from librksv import depparser
 from librksv import receipt
-from librksv import utils
 
 def usage():
-    print("Usage: ./convert.py json2csv")
-    print("       ./convert.py csv2json")
+    print("Usage: ./split.py <chunk size> <output dir>")
     sys.exit(0)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         usage()
 
-    recs = list()
-    if sys.argv[1] == 'json2csv':
-        parser = depparser.CertlessStreamDEPParser(sys.stdin)
-        generator = depparser.receiptGroupAdapter(parser.parse(
-            utils.depParserChunkSize()))
+    chunksize = int(sys.argv[1])
+    if chunksize < 1:
+        usage()
+
+    outDir = sys.argv[2]
+    if not os.path.exists(outDir):
+        os.mkdir(outDir)
+    os.chdir(outDir)
+
+    parser = depparser.IncrementalDEPParser.fromFd(sys.stdin, True)
+    i = 0
+    for chunk in parser.parse(chunksize):
+        generator = depparser.receiptGroupAdapter([chunk])
         stream = depexport.DEPStream(generator)
-        exporter = depexport.CSVExporter(stream)
-    elif sys.argv[1] == 'csv2json':
-        next(sys.stdin)
-        rec_generator = (receipt.Receipt.fromCSV(r.strip()) for r in sys.stdin)
-        exporter = depexport.JSONExporter.fromSingleGroup(rec_generator)
-    else:
-        usage()
+        exporter = depexport.JSONExporter(stream)
 
-    for s in exporter.export():
-        print(s, end='')
-    print()
+        with open('dep-export{}.json'.format(i), 'w') as f:
+            for part in exporter.export():
+                f.write(part)
+
+        i += 1
+        chunk = None

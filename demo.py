@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 
 ###########################################################################
-# Copyright 2017 ZT Prentner IT GmbH
+# Copyright 2017 ZT Prentner IT GmbH (www.ztp.at)
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -17,10 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
+from __future__ import print_function
 from builtins import int
 from builtins import range
 
-import base64
+import gettext
+gettext.install('rktool', './lang', True)
+
 import datetime
 import random
 import sys
@@ -28,10 +31,10 @@ import sys
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
-import depexport
-import cashreg
-import sigsys
-import utils
+from librksv import depexport
+from librksv import cashreg
+from librksv import sigsys
+from librksv import utils
 
 def usage():
     print("Usage: ./demo.py <private key file> <cert file> <base64 AES key file> <number of receipts>")
@@ -39,10 +42,26 @@ def usage():
     print("       ./demo.py <base64 AES key file> <number of receipts>")
     sys.exit(0)
 
-if __name__ == "__main__":
-    import gettext
-    gettext.install('rktool', './lang', True)
+def receiptGen(register, sigsystem, num):
+    # initial receipt
+    yield (register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0,
+        0.0, 0.0, 0.0, sigsystem), 'R1')
 
+    # the rest
+    for i in range(1, num):
+        receiptId = "%05d" % i
+        sumA = round(random.uniform(-1000, 1000), 2)
+        sumB = round(random.uniform(-1000, 1000), 2)
+        sumC = round(random.uniform(-1000, 1000), 2)
+        sumD = round(random.uniform(-1000, 1000), 2)
+        sumE = round(random.uniform(-1000, 1000), 2)
+        dummy = random.uniform(0, 1) > 0.5
+        reversal = random.uniform(0, 1) > 0.5
+        receipt = register.receipt('R1', receiptId, datetime.datetime.now(),
+                sumA, sumB, sumC, sumD, sumE, sigsystem, dummy, reversal)
+        yield (receipt, 'R1')
+
+if __name__ == "__main__":
     if len(sys.argv) < 3 or len(sys.argv) > 6:
         usage()
 
@@ -62,7 +81,7 @@ if __name__ == "__main__":
         serial = None
         with open(sys.argv[2]) as f:
             cert = utils.loadCert(f.read())
-            serial = "%x" % abs(cert.serial)
+            serial = "%x" % abs(cert.serial_number)
 
         sigsystem = sigsys.SignatureSystemWorking("AT77", serial, priv)
         keyf = sys.argv[3]
@@ -85,26 +104,13 @@ if __name__ == "__main__":
 
     key = None
     with open(keyf) as f:
-        key = base64.b64decode(f.read().encode("utf-8"))
+        key = utils.loadB64Key(f.read().encode("utf-8"))
 
     register = cashreg.CashRegister("PIGGYBANK-007", None, int(0.0 * 100), key)
 
-    receipts = [(register.receipt('R1', "00000", datetime.datetime.now(), 0.0, 0.0, 0.0,
-        0.0, 0.0, sigsystem), 'R1')]
-    for i in range(1, num):
-        receiptId = "%05d" % i
-        sumA = round(random.uniform(-1000, 1000), 2)
-        sumB = round(random.uniform(-1000, 1000), 2)
-        sumC = round(random.uniform(-1000, 1000), 2)
-        sumD = round(random.uniform(-1000, 1000), 2)
-        sumE = round(random.uniform(-1000, 1000), 2)
-        dummy = random.uniform(0, 1) > 0.5
-        reversal = random.uniform(0, 1) > 0.5
-        receipt = register.receipt('R1', receiptId, datetime.datetime.now(), sumA, sumB,
-                sumC, sumD, sumE, sigsystem, dummy, reversal)
-        receipts.append((receipt, 'R1'))
+    rec_generator = receiptGen(register, sigsystem, num)
+    exporter = depexport.JSONExporter.fromSingleGroup(rec_generator)
 
-    exporter = depexport.JSONExporter()
-    exporter.addGroup(receipts, cert)
-
-    print(exporter.export())
+    for s in exporter.export():
+        print(s, end='')
+    print()

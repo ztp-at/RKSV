@@ -19,12 +19,11 @@
 
 from __future__ import print_function
 from builtins import int
-from builtins import range
+
+import sys
 
 import gettext
 gettext.install('rktool', './lang', True)
-
-import sys
 
 from librksv import depexport
 from librksv import depparser
@@ -32,28 +31,48 @@ from librksv import receipt
 from librksv import utils
 
 def usage():
-    print("Usage: ./convert.py json2csv")
-    print("       ./convert.py csv2json")
+    print("Usage: ./merge.py [nomerge] <input file 1> <input file 2>...")
     sys.exit(0)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 3:
         usage()
 
-    recs = list()
-    if sys.argv[1] == 'json2csv':
-        parser = depparser.CertlessStreamDEPParser(sys.stdin)
-        generator = depparser.receiptGroupAdapter(parser.parse(
-            utils.depParserChunkSize()))
-        stream = depexport.DEPStream(generator)
-        exporter = depexport.CSVExporter(stream)
-    elif sys.argv[1] == 'csv2json':
-        next(sys.stdin)
-        rec_generator = (receipt.Receipt.fromCSV(r.strip()) for r in sys.stdin)
-        exporter = depexport.JSONExporter.fromSingleGroup(rec_generator)
-    else:
+    # check if adjacent groups should be merged if they are the same
+    streamcls = depexport.MergingDEPStream
+    if sys.argv[1] == 'nomerge':
+        streamcls = depexport.DEPStream
+        del sys.argv[1]
+
+    if len(sys.argv) < 3:
         usage()
 
-    for s in exporter.export():
-        print(s, end='')
-    print()
+    # get the chunksize for the individual parsers
+    csz = utils.depParserChunkSize()
+    fds = list()
+
+    # open current input file and start streaming
+    def fdgen(fname):
+        f =  open(fname, 'r')
+        fds.append(f)
+
+        dp = depparser.IncrementalDEPParser.fromFd(f, True)
+        for g in depparser.receiptGroupAdapter(dp.parse(csz)):
+            yield g
+            g = None
+
+        fds.pop()
+        f.close()
+
+    try:
+        # build the parser-stream-exporter pipeline
+        stream = streamcls.fromIterList([ fdgen(fn) for fn in sys.argv[1:] ])
+        exporter = depexport.JSONExporter(stream)
+
+        # export as one DEP
+        for s in exporter.export():
+            print(s, end='')
+        print()
+    finally:
+        for f in fds:
+            f.close()

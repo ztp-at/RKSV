@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 
 ###########################################################################
-# Copyright 2017 ZT Prentner IT GmbH
+# Copyright 2017 ZT Prentner IT GmbH (www.ztp.at)
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -24,9 +24,12 @@ import sys
 
 from flask import Flask, abort, jsonify, make_response
 
-import receipt
-import utils
-import verify
+import gettext
+gettext.install('rktool', './lang', True)
+
+from librksv import depparser
+from librksv import receipt
+from librksv import utils
 
 receipt_store = None
 
@@ -51,21 +54,18 @@ def usage():
     sys.exit(0)
 
 if __name__ == "__main__":
-    import gettext
-    gettext.install('rktool', './lang', True)
-
     if len(sys.argv) != 2:
         usage()
 
     receipts = dict()
     if sys.argv[1] == 'dep':
-        dep = utils.readJsonStream(sys.stdin)
-        groups = verify.parseDEPAndGroups(dep)
-        for recs, cert, cert_list in groups:
-            for cr in recs:
-                r = verify.expandDEPReceipt(cr)
-                rec, pre = receipt.Receipt.fromJWSString(r)
-                receipts[rec.toURLHash(pre)] = rec.toBasicCode(pre)
+        parser = depparser.CertlessStreamDEPParser(sys.stdin)
+        for chunk in parser.parse(utils.depParserChunkSize()):
+            for recs, cert, cert_list in chunk:
+                for cr in recs:
+                    r = depparser.expandDEPReceipt(cr)
+                    rec, pre = receipt.Receipt.fromJWSString(r)
+                    receipts[rec.toURLHash(pre)] = rec.toBasicCode(pre)
     elif sys.argv[1] == 'jws':
         for l in sys.stdin:
             rec, pre = receipt.Receipt.fromJWSString(l.strip())
