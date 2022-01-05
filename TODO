@@ -1,3 +1,4 @@
+add nice CLI UI to inspect receipts, especially special values like "TRA" and "STO", sig system failure and turnover counters should be easy to look at
 add tests, fix natural sort backend, add a way to test different backends
 allow for different algorithms in one DEP?
 scope serials/key IDs per ZDA, allow for multiple ZDAs in one DEP
