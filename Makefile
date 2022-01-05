@@ -22,10 +22,7 @@ TEST_FILES		= $(shell find tests/ -name '*.json' | sort)
 setup: aesBase64_1.txt cert_1.key cert_1.crt cert_1.pub
 
 test: cert_1.key cert_1.crt cert_1.pub
-	python2.7 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 2' $(TEST_FILES)
-	if command -v python3 >/dev/null 2>&1 && [ -z "$${VIRTUAL_ENV}" ] ; then \
-		python3 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 3' $(TEST_FILES) ; \
-	fi
+	python3 ./test_verify.py multi cert_1.key cert_1.crt cert_1.pub $(TURNOVER_COUNTER_SIZES) 'Python 3' $(TEST_FILES)
 
 aesBase64_%.txt:
 	dd if=/dev/urandom bs=1 count=32 | base64 > $@
@@ -73,9 +70,9 @@ endif
 
 .pyenv: misc/requirements_run.txt misc/pygettext.py
 	$(DISABLE_VENV) ; \
-	virtualenv -p python2.7 .pyenv && \
+	virtualenv -p python3 .pyenv && \
 	.pyenv/bin/pip install --upgrade pip && \
-	.pyenv/bin/pip install cython==0.24.1 && \
+	.pyenv/bin/pip install 'cython>=0.29.9' && \
 	.pyenv/bin/pip install -r misc/requirements_run.txt
 	cp misc/pygettext.py .pyenv/bin
 	chmod +x .pyenv/bin/pygettext.py
