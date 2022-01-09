@@ -552,7 +552,7 @@ class Receipt(object):
 
         encTurnoverCounter = None
         try:
-            encTurnoverCounter = utils.b32decode(segments[10])
+            encTurnoverCounter = utils.b32decode(segments[10].encode('utf-8'))
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(ocrCode,
                     _('Encrypted turnover counter \"{}\" not Base 32 encoded.'
@@ -560,7 +560,7 @@ class Receipt(object):
 
         previousChain = None
         try:
-            previousChain = utils.b32decode(segments[12])
+            previousChain = utils.b32decode(segments[12].encode('utf-8'))
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(ocrCode,
                     _('Chaining value \"{}\" not Base 32 encoded.'
@@ -568,7 +568,7 @@ class Receipt(object):
 
         signature = None
         try:
-            signature = utils.b32decode(segments[13])
+            signature = utils.b32decode(segments[13].encode('utf-8'))
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(ocrCode,
                     _('Signature \"{}\" not Base 32 encoded.'
