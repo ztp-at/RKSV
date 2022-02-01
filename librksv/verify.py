@@ -235,23 +235,20 @@ class NonstandardTypeOnInitialReceiptException(DEPReceiptException):
                 _("Initial receipt is a dummy or reversal receipt."))
         self._initargs = (rec,)
 
-def verifyChainValue(rec, chainingValue):
-    if chainingValue != rec.previousChain:
-        raise ChainingException(rec.receiptId, rec.previousChain)
-
-def verifyChain(rec, prev, algorithm):
+def verifyChain(rec, prev, algorithm, rv):
     """
     Verifies that a receipt is preceeded by another receipt in the receipt
     chain. It returns nothing on success and throws an exception otherwise.
     :param rec: The new receipt as a receipt object.
     :param prev: The previous receipt as a JWS string or None if this is
     the first receipt.
+    :param rv: The receipt verifier object used to verify single receipts.
     :param algorithm: The algorithm class to use.
     :throws: ChainingException
     """
     chainingValue = algorithm.chain(rec, prev)
     chainingValue = base64.b64encode(chainingValue)
-    verifyChainValue(rec, chainingValue.decode('utf-8'));
+    rv.verifyChainValue(rec, chainingValue.decode('utf-8'));
 
 def verifyCert(cert, chain, keyStore):
     """
@@ -407,17 +404,16 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
             # https://github.com/BMF-RKSV-Technik/at-registrierkassen-mustercode/issues/144#issuecomment-255786335
             # However, the current (v1.1.1) BMF tool enforces this anyway so we
             # will too.
-            if prevObj.dateTime > ro.dateTime:
-                raise DecreasingDateException(ro.receiptId)
+            rv.verifyDateTime(ro, prevObj.dateTime)
 
         usedReceiptIds.add(ro.receiptId)
 
         try:
             if cashRegisterState.chainNextTo:
-                verifyChainValue(ro, cashRegisterState.chainNextTo)
+                rv.verifyChainValue(ro, cashRegisterState.chainNextTo)
                 cashRegisterState.chainNextTo = None
             else:
-                verifyChain(ro, prev, algorithm)
+                verifyChain(ro, prev, algorithm, rv)
         except ChainingException as e:
             # Special exception for the initial receipt
             if cashRegisterState.startReceiptJWS == r:
@@ -432,9 +428,7 @@ def verifyGroup(group, rv, key, prevStartReceiptJWS, cashRegisterState,
                 newC = cashRegisterState.lastTurnoverCounter + int(round(
                     (ro.sumA + ro.sumB + ro.sumC + ro.sumD + ro.sumE) * 100))
                 if not ro.isReversal():
-                    turnoverCounter = ro.decryptTurnoverCounter(key, algorithm)
-                    if turnoverCounter != newC:
-                        raise InvalidTurnoverCounterException(ro.receiptId)
+                    newC = rv.verifyTurnoverCounter(ro, algorithm, key, newC)
                 cashRegisterState.lastTurnoverCounter = newC
 
         prev = r
@@ -536,15 +530,15 @@ def balanceGroupsWithVerifiers(groups, nprocs):
 
     return pkgs
 
-def packageChunkWithVerifiers(chunk, keyStore):
+def packageChunkWithVerifiers(chunk, keyStore, receiptVerifierClass):
     groupsWithVerifiers = list()
     if len(chunk) == 1:
         recs, cert, chain = chunk[0]
         if not cert:
-            rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+            rv = receiptVerifierClass.fromKeyStore(keyStore)
         else:
             verifyCert(cert, chain, keyStore)
-            rv = verify_receipt.ReceiptVerifier.fromCert(cert)
+            rv = receiptVerifierClass.fromCert(cert)
 
         groupsWithVerifiers.append((recs, rv))
     else:
@@ -587,7 +581,8 @@ def prepareVerificationTuples(chunksWithVerifiers, key, prevStartJWS,
 def verifyParsedDEP(parser, keyStore, key, state = None,
         cashRegisterIdx = None, pool = None, nprocs = 1,
         chunksize = utils.depParserChunkSize(),
-        usedRecIdsBackend = verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND):
+        usedRecIdsBackend = verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND,
+        receiptVerifierClass = None):
     """
     Verifies a previously parsed DEP. It checks if the signature of each
     receipt is valid, if the receipts are properly chained, if receipts
@@ -614,6 +609,7 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     in one go.
     :param usedRecIdsBackend: The implementation used to keep track of used
     receipt IDs.
+    :param receiptVerifierClass: The implementation of the receipt verifier.
     :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
@@ -642,6 +638,9 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     :throws: NoStartReceiptForLastCashRegisterException
     :throws: depparser.DEPParseException
     """
+    if not receiptVerifierClass:
+        receiptVerifierClass = verify_receipt.ReceiptVerifier
+
     if not state:
         state = verification_state.ClusterState(usedRecIdsBackend)
 
@@ -652,7 +651,7 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     prevStart, rState, usedRecIds = state.getCashRegisterInfo(cashRegisterIdx)
     res = None
     for chunks in getChunksForProcs(parser.parse(chunksize), nprocs):
-        pkgs = [ packageChunkWithVerifiers(chunk, keyStore) for chunk in chunks ]
+        pkgs = [ packageChunkWithVerifiers(chunk, keyStore, receiptVerifierClass) for chunk in chunks ]
 
         if res is not None:
             outRStates, outUsedRecIds = zip(*res.get())
@@ -678,7 +677,8 @@ def verifyParsedDEP(parser, keyStore, key, state = None,
     return state
 
 def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None,
-        usedRecIdsBackend = verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND):
+        usedRecIdsBackend = verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND,
+        receiptVerifierClass = None):
     """
     Verifies an entire DEP. It checks if the signature of each receipt is
     valid, if the receipts are properly chained, if receipts with zero
@@ -695,6 +695,7 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None,
     DEP in the state parameter or None to create a new register state.
     :param usedRecIdsBackend: The implementation used to keep track of used
     receipt IDs.
+    :param receiptVerifierClass: The implementation of the receipt verifier.
     :return: The state of the evaluation. (Can be used for the next DEP.)
     :throws: NoRestoreReceiptAfterSignatureSystemFailure
     :throws: InvalidTurnoverCounterException
@@ -723,6 +724,9 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None,
     :throws: NoStartReceiptForLastCashRegisterException
     :throws: depparser.DEPParseException
     """
+    if not receiptVerifierClass:
+        receiptVerifierClass = verify_receipt.ReceiptVerifier
+
     if not state:
         state = verification_state.ClusterState(usedRecIdsBackend)
 
@@ -745,11 +749,11 @@ def verifyDEP(dep, keyStore, key, state = None, cashRegisterIdx = None,
             if not cert:
                 if one_group == False:
                     raise NoCertificateGivenException()
-                rv = verify_receipt.ReceiptVerifier.fromKeyStore(keyStore)
+                rv = receiptVerifierClass.fromKeyStore(keyStore)
                 one_group = True
             else:
                 verifyCert(cert, chain, keyStore)
-                rv = verify_receipt.ReceiptVerifier.fromCert(cert)
+                rv = receiptVerifierClass.fromCert(cert)
                 one_group = False
 
             rState, usedRecIds = verifyGroup(recs, rv, key, prevStart,

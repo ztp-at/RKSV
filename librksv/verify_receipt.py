@@ -31,6 +31,9 @@ from . import algorithms
 from . import key_store
 from . import receipt
 from . import utils
+from . import verify
+
+import sys
 
 class CertSerialMismatchException(receipt.ReceiptException):
     """
@@ -183,6 +186,41 @@ class ReceiptVerifierI(object):
         """
         raise NotImplementedError("Please implement this yourself.")
 
+    def verifyChainValue(self, rec, chainingValue):
+        """
+        Verifies if the receipt is correctly chained to the given chaining
+        value. Raises a ChainingException if not.
+        :param rec: The receipt as receipt object.
+        :param chainingValue: The chaining value as a base 64 encoded string.
+        :throws: ChainingException
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
+    def verifyTurnoverCounter(self, rec, algorithm, key, expected):
+        """
+        Decrypts the receipt's turnover counter and verifies that it matches
+        the given expected value. Raises an InvalidTurnoverCounterException if
+        not.
+        :param rec: The receipt as receipt object.
+        :param algorithm: The algorithm class object used to decrypt the
+        turnover counter.
+        :param key: The key used to decrypt the turnover counter.
+        :param expected: The expected value of the turnover counter.
+        :returns: The decrypted turnover counter of the receipt.
+        :throws: InvalidTurnoverCounterException
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
+    def verifyDateTime(self, rec, minDateTime):
+        """
+        Verifies if the receipt's date and time are no earlier than minDateTime.
+        Raises a DecreasingDateException if not.
+        :param rec: The receipt as receipt object.
+        :param minDateTime: The minimum date and time as datetime object.
+        :throws: DecreasingDateException
+        """
+        raise NotImplementedError("Please implement this yourself.")
+
 class ReceiptVerifier(ReceiptVerifierI):
     """
     A simple implementation of a receipt verifier.
@@ -275,6 +313,68 @@ class ReceiptVerifier(ReceiptVerifierI):
         rec, algorithmPrefix = receipt.Receipt.fromCSV(csv)
 
         return self.verify(rec, algorithmPrefix)
+
+    def verifyChainValue(self, rec, chainingValue):
+        if chainingValue != rec.previousChain:
+            raise verify.ChainingException(rec.receiptId, rec.previousChain)
+
+    def verifyTurnoverCounter(self, rec, algorithm, key, expected):
+        turnoverCounter = rec.decryptTurnoverCounter(key, algorithm)
+        if turnoverCounter != expected:
+            raise verify.InvalidTurnoverCounterException(rec.receiptId)
+
+        return turnoverCounter
+
+    def verifyDateTime(self, rec, minDateTime):
+        if minDateTime > rec.dateTime:
+            raise verify.DecreasingDateException(rec.receiptId)
+
+class StderrReceiptVerifier(ReceiptVerifier):
+    """
+    Identical to ReceiptVerifier except that this implementation only prints
+    verification errors to stderr and does not raise an exception.
+    """
+
+    def __init__(self, keyStore, cert):
+        super(StderrReceiptVerifier, self).__init__(keyStore, cert)
+
+    @staticmethod
+    def fromCert(cert):
+        return StderrReceiptVerifier(None, cert)
+
+    @staticmethod
+    def fromKeyStore(keyStore):
+        return StderrReceiptVerifier(keyStore, None)
+
+    def verify(self, rec, algorithmPrefix):
+        if algorithmPrefix not in algorithms.ALGORITHMS:
+            raise receipt.UnknownAlgorithmException(rec.receiptId)
+        algorithm = algorithms.ALGORITHMS[algorithmPrefix]
+
+        try:
+            super(StderrReceiptVerifier, self).verify(rec, algorithmPrefix)
+        except receipt.ReceiptException as e:
+            print(e, file=sys.stderr)
+
+        return rec, algorithm
+
+    def verifyChainValue(self, rec, chainingValue):
+        if chainingValue != rec.previousChain:
+            e = verify.ChainingException(rec.receiptId, rec.previousChain)
+            print(e, file=sys.stderr)
+
+    def verifyTurnoverCounter(self, rec, algorithm, key, expected):
+        turnoverCounter = rec.decryptTurnoverCounter(key, algorithm)
+        if turnoverCounter != expected:
+            e = verify.InvalidTurnoverCounterException(rec.receiptId)
+            print('{} New turnover counter: {}'.format(e, turnoverCounter), file=sys.stderr)
+
+        return turnoverCounter
+
+    def verifyDateTime(self, rec, minDateTime):
+        if minDateTime > rec.dateTime:
+            e = verify.DecreasingDateException(rec.receiptId)
+            print(e, file=sys.stderr)
 
 def verifyURLHash(rec, algorithm, urlHash):
     """

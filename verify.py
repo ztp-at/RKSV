@@ -22,6 +22,7 @@ from builtins import int
 from builtins import range
 
 import json
+import os
 import sys
 
 import gettext
@@ -31,8 +32,17 @@ from librksv import depparser
 from librksv import key_store
 from librksv import utils
 from librksv import verification_state
+from librksv import verify_receipt
 
 from librksv.verify import verifyDEP, verifyParsedDEP
+
+def getReceiptVerifier():
+    rv = verify_receipt.ReceiptVerifier
+
+    if int(os.environ.get('RKSV_RECEIPT_ERRORS_TO_STDERR', 0)) == 1:
+        rv = verify_receipt.StderrReceiptVerifier
+
+    return rv
 
 def usage():
     print("Usage: ./verify.py [state [continue|<n>]] [par <n>] [chunksize <n>] [json] <key store> <dep export file>",
@@ -133,7 +143,9 @@ if __name__ == "__main__":
                     parser = depparser.IncrementalDEPParser.fromFd(f, True)
 
                 state = verifyParsedDEP(parser, keyStore, key, state, registerIdx,
-                        pool, nprocs, chunksize)
+                        pool, nprocs, chunksize,
+                        verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND,
+                        getReceiptVerifier())
         finally:
             pool.terminate()
             pool.join()
@@ -141,11 +153,15 @@ if __name__ == "__main__":
         with open(sys.argv[2]) as f:
             if chunksize == 0:
                 dep = utils.readJsonStream(f)
-                state = verifyDEP(dep, keyStore, key, state, registerIdx)
+                state = verifyDEP(dep, keyStore, key, state, registerIdx,
+                        verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND,
+                        getReceiptVerifier())
             else:
                 parser = depparser.IncrementalDEPParser.fromFd(f, True)
                 state = verifyParsedDEP(parser, keyStore, key, state, registerIdx,
-                        None, nprocs, chunksize)
+                        None, nprocs, chunksize,
+                        verification_state.DEFAULT_USED_RECEIPT_IDS_BACKEND,
+                        getReceiptVerifier())
 
     if statePassthrough:
         print(json.dumps(
