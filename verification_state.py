@@ -78,6 +78,7 @@ def usage():
     print("       ./verification_state.py <state> readUsedReceiptIds <file with one receipt ID per line>")
     print("       ./verification_state.py <state> fromArbitraryReceipt <in format> <receipt in in format> [<base64 AES key file>]")
     print("       ./verification_state.py <state> fromArbitraryStartReceipt <in format> <receipt in in format>")
+    print("       ./verification_state.py <state> prepareForDEP <dep export file> [<base64 AES key file>]")
     sys.exit(0)
 
 if __name__ == "__main__":
@@ -249,6 +250,26 @@ if __name__ == "__main__":
         r, p = INPUT_FORMATS[sys.argv[3]](sys.argv[4].strip())
 
         state = ClusterState.fromArbitraryStartReceipt(r, recIdsBackend)
+
+    elif sys.argv[2] == 'prepareForDEP':
+        if len(sys.argv) != 4 and len(sys.argv) != 5:
+            usage()
+
+        key = None
+        if len(sys.argv) == 5:
+            with open(sys.argv[4]) as f:
+                key = utils.loadB64Key(f.read().encode("utf-8"))
+
+        with open(sys.argv[3]) as f:
+            parser = depparser.CertlessStreamDEPParser(f)
+            chunk = next(parser.parse(1))
+            recs, cert, cert_list = chunk[0]
+            cr = recs[0]
+
+            rs = depparser.expandDEPReceipt(cr)
+            r, p = Receipt.fromJWSString(rs)
+
+            state = ClusterState.fromArbitraryReceipt(r, p, key, recIdsBackend)
 
     else:
         usage()
