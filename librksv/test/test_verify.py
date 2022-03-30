@@ -263,7 +263,7 @@ def _testVerify(spec, deps, cc, parse, proxy):
                         expected_exception_msg, actual_exception_msg))
 
         if expected_exception_msg_regex and \
-                not expected_exception_msg_regex.match(actual_exception_msg):
+                not expected_exception_msg_regex.fullmatch(actual_exception_msg):
             return TestVerifyResult.FAIL, Exception(
                     _('Expected message matching "{}" but got "{}" instead'
                         ).format(expected_exception_msg_regex.pattern,

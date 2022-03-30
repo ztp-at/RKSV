@@ -161,6 +161,8 @@ class CertSerialType(enum.Enum):
 
 algRegex = re.compile(r'^R[1-9]\d*$')
 zdaRegex = re.compile(r'^([A-Z][A-Z][1-9]\d*|AT0)$')
+timestampRegex = re.compile(r'^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$')
+receiptIdRegex = re.compile(r'^[0-9A-Za-z-]+$')
 
 def _getSum(s, receiptId, reason):
     if not isinstance(s, string_types) or not s:
@@ -172,6 +174,8 @@ def _getSum(s, receiptId, reason):
 
 def _getTimestamp(dateTime, receiptId, reason):
     if not isinstance(dateTime, string_types) or not dateTime:
+        raise MalformedReceiptException(receiptId, reason)
+    if timestampRegex.fullmatch(dateTime) is None:
         raise MalformedReceiptException(receiptId, reason)
     try:
         dateTimeDT = datetime.datetime.strptime(dateTime, "%Y-%m-%dT%H:%M:%S")
@@ -221,12 +225,12 @@ class Receipt(object):
         if not isinstance(receiptId, string_types) or not receiptId:
             raise MalformedReceiptException(_("Unknown Receipt"),
                     _("Receipt ID \"{}\" invalid.").format(receiptId))
-        if '_' in receiptId:
+        if receiptIdRegex.fullmatch(receiptId) is None:
             raise MalformedReceiptException(receiptId,
                     _("Receipt ID \"{}\" invalid.").format(receiptId))
 
         if not isinstance(zda, string_types) or not zda \
-                or zdaRegex.match(zda) is None:
+                or zdaRegex.fullmatch(zda) is None:
             raise MalformedReceiptException(receiptId,
                     _("ZDA \"{}\" invalid.").format(zda))
 
@@ -315,6 +319,9 @@ class Receipt(object):
         if not isinstance(jwsString, string_types):
             raise MalformedReceiptException(jwsString, _('Invalid JWS.'))
 
+        if '\n' in jwsString:
+            raise MalformedReceiptException(jwsString, _('Invalid JWS.'))
+
         jwsSegs = jwsString.split('.')
         if len(jwsSegs) != 3:
             raise MalformedReceiptException(jwsString,
@@ -340,6 +347,10 @@ class Receipt(object):
             raise MalformedReceiptException(jwsString,
                     _('Invalid JWS payload.'))
 
+        if '\n' in payload:
+            raise MalformedReceiptException(jwsString,
+                    _('Invalid JWS payload.'))
+
         signature = jwsSegs[2]
 
         segments = payload.split('_')
@@ -354,7 +365,7 @@ class Receipt(object):
         algorithmPrefix = algorithmPrefixAndZda[0]
         zda = algorithmPrefixAndZda[1]
 
-        if algRegex.match(algorithmPrefix) is None:
+        if algRegex.fullmatch(algorithmPrefix) is None:
             raise MalformedReceiptException(jwsString,
                     _('Algorithm ID \"{}\" invalid.').format(algorithmPrefix))
         if algorithmPrefix not in algorithms.ALGORITHMS:
@@ -453,6 +464,10 @@ class Receipt(object):
             raise MalformedReceiptException(basicCode,
                     _('Invalid machine-readable code.'))
 
+        if '\n' in basicCode:
+            raise MalformedReceiptException(basicCode,
+                    _('Invalid machine-readable code.'))
+
         segments = basicCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:
             raise MalformedReceiptException(basicCode,
@@ -465,7 +480,7 @@ class Receipt(object):
         algorithmPrefix = algorithmPrefixAndZda[0]
         zda = algorithmPrefixAndZda[1]
 
-        if algRegex.match(algorithmPrefix) is None:
+        if algRegex.fullmatch(algorithmPrefix) is None:
             raise MalformedReceiptException(basicCode,
                     _('Algorithm ID \"{}\" invalid.').format(algorithmPrefix))
         if algorithmPrefix not in algorithms.ALGORITHMS:
@@ -542,6 +557,10 @@ class Receipt(object):
         :throws: UnknownAlgorithmException
         """
         if not isinstance(ocrCode, string_types):
+            raise MalformedReceiptException(ocrCode,
+                    _('Invalid OCR code.'))
+
+        if '\n' in ocrCode:
             raise MalformedReceiptException(ocrCode,
                     _('Invalid OCR code.'))
 
@@ -647,6 +666,10 @@ class Receipt(object):
         :throws: UnknownAlgorithmException
         """
         if not isinstance(csv, string_types):
+            raise MalformedReceiptException(csv,
+                    _('Invalid CSV.'))
+
+        if '\n' in csv:
             raise MalformedReceiptException(csv,
                     _('Invalid CSV.'))
 
