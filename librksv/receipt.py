@@ -404,6 +404,14 @@ class Receipt(object):
             raise MalformedReceiptException(receipt.receiptId,
                     _('Chaining value \"{}\" invalid.').format(previousChain))
 
+        basicCode = receipt.toBasicCode(algorithmPrefix)
+        if len(basicCode) < 100:
+            raise MalformedReceiptException(receipt.receiptId,
+                    _('Machine-readable code too short (< 100 characters).'))
+        if len(basicCode) > 1000:
+            raise MalformedReceiptException(receipt.receiptId,
+                    _('Machine-readable code too long (> 1000 characters).'))
+
         return receipt, algorithmPrefix
 
     def toJWSString(self, algorithmPrefix):
@@ -467,6 +475,13 @@ class Receipt(object):
         if '\n' in basicCode:
             raise MalformedReceiptException(basicCode,
                     _('Invalid machine-readable code.'))
+
+        if len(basicCode) < 100:
+            raise MalformedReceiptException(basicCode,
+                    _('Machine-readable code too short (< 100 characters).'))
+        if len(basicCode) > 1000:
+            raise MalformedReceiptException(basicCode,
+                    _('Machine-readable code too long (> 1000 characters).'))
 
         segments = basicCode.split('_')
         if len(segments) != 14 or len(segments[0]) != 0:

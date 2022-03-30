@@ -1,0 +1,34 @@
+{
+  "cashBoxId": "C",
+  "base64AesKey": "WQRtiiya3hYh/Uz44Bv3x8ETl1nrH6nCdErn69g5/lU=",
+  "companyID": "U:ATU12345678",
+  "simulationRunLabel": "test_basicCode_too_short",
+  "numberOfSignatureDevices": 1,
+  "cashBoxInstructionList": [
+    {
+      "signatureDeviceDamaged": false,
+      "receiptIdentifier": "1",
+      "dateToUse": "2016-03-11T03:57:08",
+      "usedSignatureDevice": 0,
+      "simplifiedReceipt": {
+        "taxSetNormal": 0.0,
+        "taxSetErmaessigt1": 0.0,
+        "taxSetErmaessigt2": 0.0,
+        "taxSetNull": 0.0,
+        "taxSetBesonders": 0.0
+      },
+      "typeOfReceipt": "START_BELEG",
+      "override": {
+	      "certSerial": "1",
+	      "signature": "ASDF",
+	      "turnoverCounterSize": 5
+      }
+    }
+  ],
+  "closedSystem": false,
+  "expectedException": "MalformedReceiptException",
+  "exceptionMsg": "At receipt \"1\": Malformed receipt -- Machine-readable code too short (< 100 characters).",
+  "unused": {
+	  "comment": "TODO: This fails on a closed system because the certificate serial number is not correctly formatted for closed systems."
+  }
+}
