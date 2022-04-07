@@ -259,8 +259,19 @@ class Receipt(object):
         encTC = _getEmptyOrB64(encTurnoverCounter, receiptId,
                 _('Encrypted turnover counter \"{}\" invalid.').format(
                     encTurnoverCounter))
-        _getEmptyOrB64(previousChain, receiptId,
+        pcv = _getEmptyOrB64(previousChain, receiptId,
                 _('Chaining value \"{}\" invalid.').format(previousChain))
+
+        newEncTurnoverCounter = base64.b64encode(encTC).decode('utf-8')
+        if encTurnoverCounter != newEncTurnoverCounter:
+            raise MalformedReceiptException(receiptId,
+                    _('Encrypted turnover counter \"{}\" invalid.').format(
+                        encTurnoverCounter))
+
+        newPreviousChain = base64.b64encode(pcv).decode('utf-8')
+        if previousChain != newPreviousChain:
+            raise MalformedReceiptException(receiptId,
+                    _('Chaining value \"{}\" invalid.').format(previousChain))
 
         if not isinstance(certSerial, string_types) \
                 or not certSerial:
@@ -412,6 +423,11 @@ class Receipt(object):
             raise MalformedReceiptException(receipt.receiptId,
                     _('Machine-readable code too long (> 1000 characters).'))
 
+        newJwsString = receipt.toJWSString(algorithmPrefix)
+        if jwsString != newJwsString:
+            raise MalformedReceiptException(receipt.receiptId,
+                    _('Generated JWS string does not match original JWS string.'))
+
         return receipt, algorithmPrefix
 
     def toJWSString(self, algorithmPrefix):
@@ -521,6 +537,12 @@ class Receipt(object):
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(basicCode,
                     _('Signature \"{}\" not Base 64 encoded.').format(segments[13]))
+
+        newSignature = base64.b64encode(signature).decode('utf-8')
+        if segments[13] != newSignature:
+            raise MalformedReceiptException(basicCode,
+                    _('Signature \"{}\" invalid.').format(segments[13]))
+
         signature = base64.urlsafe_b64encode(signature).replace(b'=', b'')
         signature = signature.decode("utf-8")
 
@@ -541,6 +563,11 @@ class Receipt(object):
         if len(cv) != alg.chainBytes():
             raise MalformedReceiptException(receipt.receiptId,
                     _('Chaining value \"{}\" invalid.').format(previousChain))
+
+        newBasicCode = receipt.toBasicCode(algorithmPrefix)
+        if basicCode != newBasicCode:
+            raise MalformedReceiptException(receipt.receiptId,
+                    _('Generated machine-readable code does not match original machine-readable code.'))
 
         return receipt, algorithmPrefix
 
@@ -617,7 +644,14 @@ class Receipt(object):
         signature = base64.b64encode(signature)
         segments[13] = signature.decode('utf-8')
 
-        return Receipt.fromBasicCode('_'.join(segments))
+        receipt, algorithmPrefix = Receipt.fromBasicCode('_'.join(segments))
+
+        newOcrCode = receipt.toOCRCode(algorithmPrefix)
+        if ocrCode != newOcrCode:
+            raise MalformedReceiptException(receipt.receiptId,
+                    _('Generated OCR code does not match original OCR code.'))
+
+        return receipt, algorithmPrefix
 
     def toOCRCode(self, algorithmPrefix):
         """
@@ -689,7 +723,14 @@ class Receipt(object):
                     _('Invalid CSV.'))
 
         segs = [ s.strip() for s in csv.split(';') ]
-        return Receipt.fromBasicCode('_' + ('_'.join(segs)))
+        receipt, algorithmPrefix = Receipt.fromBasicCode('_' + ('_'.join(segs)))
+
+        newCsv = receipt.toCSV(algorithmPrefix)
+        if csv != newCsv:
+            raise MalformedReceiptException(receipt.receiptId,
+                    _('Generated CSV does not match original CSV.'))
+
+        return receipt, algorithmPrefix
 
     def toCSV(self, algorithmPrefix):
         """
@@ -716,12 +757,17 @@ class Receipt(object):
         if signature.endswith('='):
             raise MalformedReceiptException(self.receiptId,
                     _('Signature \"{}\" uses padding.').format(signature))
+        binSig = None
         try:
-            utils.urlsafe_b64decode(utils.restoreb64padding(
+            binSig = utils.urlsafe_b64decode(utils.restoreb64padding(
                 signature).encode("utf-8"))
         except (TypeError, binascii.Error):
             raise MalformedReceiptException(self.receiptId,
                     _('Signature \"{}\" not Base 64 URL encoded.').format(signature))
+        newSignature = base64.urlsafe_b64encode(binSig).replace(b'=', b'').decode('utf-8')
+        if signature != newSignature:
+            raise MalformedReceiptException(self.receiptId,
+                    _('Signature \"{}\" invalid.').format(signature))
 
         self.header = header
         self.signature = signature
